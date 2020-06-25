@@ -1,16 +1,9 @@
 *.class
 *.orig
 persistence.xml
-*.mde 
-*.she
-*.old
-*.xmle
-*.sqle
-*.backup
-*.diste
-.mvn
-.vscode
-
+application-local.properties
+database.properties
+.env
 
 # Taken from https://github.com/spring-projects/spring-boot/blob/master/.gitignore
 *#
@@ -20,6 +13,7 @@ persistence.xml
 *.jar
 *.sw?
 *~
+*.mde
 .#*
 .*.md.html
 .DS_Store
