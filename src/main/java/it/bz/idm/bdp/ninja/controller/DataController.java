@@ -65,8 +65,11 @@ public class DataController {
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
 
-	@Value("${ninja.url}")
+	@Value("${ninja.baseurl}")
 	private String ninjaBaseUrl;
+
+	@Value("${ninja.hosturl}")
+	private String ninjaHostUrl;
 
 	@Value("${ninja.response.max-allowed-size-mb}")
 	private int maxAllowedSizeInMB;
@@ -154,7 +157,8 @@ public class DataController {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classloader.getResourceAsStream("openapi3.yml");
 		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
-			return scanner.useDelimiter("\\A").next();
+			String result = scanner.useDelimiter("\\A").next();
+			return result.replaceAll("__ODH_SERVER_URL__", ninjaHostUrl);
 		}
 	}
 

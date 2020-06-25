@@ -34,6 +34,7 @@ pipeline {
                     echo 'DOCKER_IMAGE=${DOCKER_IMAGE}' >> .env
                     echo 'DOCKER_TAG=${DOCKER_TAG}' >> .env
                     echo 'SERVER_PORT=${SERVER_PORT}' >> .env
+                    echo 'NINJA_HOST_URL=${NINJA_HOST_URL}' >> .env
                     echo 'NINJA_BASE_URL=${NINJA_BASE_URL}' >> .env
                     echo 'NINJA_QUERY_TIMEOUT_SEC=${NINJA_QUERY_TIMEOUT_SEC}' >> .env
                     echo 'NINJA_RESPONSE_MAX_SIZE_MB=${NINJA_RESPONSE_MAX_SIZE_MB}' >> .env
