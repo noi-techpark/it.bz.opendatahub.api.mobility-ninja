@@ -7,7 +7,7 @@ pipeline {
         DOCKER_TAG = "test-$BUILD_NUMBER"
 
         SERVER_PORT = "1004"
-        NINJA_HOST_URL = "https://ninja.testingmachine.eu"
+        NINJA_HOST_URL = "https://mobility.api.opendatahub.testingmachine.eu"
         NINJA_BASE_URL = "${NINJA_HOST_URL}"
         NINJA_QUERY_TIMEOUT_SEC = "30"
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
