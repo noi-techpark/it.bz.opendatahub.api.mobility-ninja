@@ -26,9 +26,14 @@
       "description": "Oauth audience CSV. Which resource server (API) can access?"
     },
     {
-      "name": "ninja.url",
+      "name": "ninja.baseurl",
       "type": "java.lang.String",
       "description": "Ninja's base URL"
+    },
+    {
+      "name": "ninja.hosturl",
+      "type": "java.lang.String",
+      "description": "Ninja's host URL, used inside the Open API spec file"
     },
     {
       "name": "ninja.response.max-allowed-size-mb",
