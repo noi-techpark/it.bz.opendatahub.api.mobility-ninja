@@ -11,7 +11,7 @@ ARG JENKINS_USER_ID=1000
 RUN addgroup -g $JENKINS_GROUP_ID jenkins && \
     adduser -D -u $JENKINS_USER_ID -G jenkins jenkins
 
-COPY docker/entrypoint.sh /entrypoint.sh
+COPY infrastructure/docker/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 
@@ -24,4 +24,4 @@ COPY src /code/src
 COPY pom.xml /code/pom.xml
 RUN mvn -B -U -DskipTests install
 
-CMD [ "mvn", "-B", "-U", "spring-boot:run" ]
+CMD [ "mvn", "spring-boot:run" ]

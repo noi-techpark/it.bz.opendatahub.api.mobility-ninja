@@ -28,7 +28,6 @@ pipeline {
         stage('Configure') {
             steps {
                 sh """
-                    cd ninja
                     rm -f .env
                     cp .env.example .env
                     echo 'COMPOSE_PROJECT_NAME=${DOCKER_PROJECT_NAME}' >> .env
@@ -46,36 +45,35 @@ pipeline {
                     echo 'KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}' >> .env
                     echo 'JDBC_URL=${JDBC_URL}' >> .env
                     echo 'DB_USERNAME=${DB_USERNAME}' >> .env
-                    echo 'DB_PASSWORD=${DB_PASSWORD}' >> .env                    
+                    echo 'DB_PASSWORD=${DB_PASSWORD}' >> .env
                 """
             }
         }
-        stage('Test - Ninja') {
+        stage('Test') {
             steps {
                 sh '''
-                    cd ninja
+                    docker network create authentication || true
                     docker-compose --no-ansi build --pull --build-arg JENKINS_USER_ID=$(id -u jenkins) --build-arg JENKINS_GROUP_ID=$(id -g jenkins)
                     docker-compose --no-ansi run --rm --no-deps -u $(id -u jenkins):$(id -g jenkins) app mvn -B -U clean test
                 '''
             }
         }
-        stage('Build - Ninja') {
+        stage('Build') {
             steps {
                 sh '''
-                    cd ninja
                     aws ecr get-login --region eu-west-1 --no-include-email | bash
                     docker-compose --no-ansi -f docker-compose.build.yml build --pull
                     docker-compose --no-ansi -f docker-compose.build.yml push
                 '''
             }
         }
-        stage('Deploy - Ninja API (v2)') {
+        stage('Deploy') {
             steps {
                sshagent(['jenkins-ssh-key']) {
                     sh """
-                        cd ninja
-                        ansible-galaxy install --force -r ansible/requirements.yml
-                        ansible-playbook --limit=prod ansible/deploy.yml --extra-vars "build_number=${BUILD_NUMBER}"
+                        cd infrastructure/ansible
+                        ansible-galaxy install --force -r requirements.yml
+                        ansible-playbook --limit=prod deploy.yml --extra-vars "build_number=${BUILD_NUMBER}"
                     """
                 }
             }

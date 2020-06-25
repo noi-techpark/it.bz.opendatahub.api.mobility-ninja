@@ -5,5 +5,5 @@ services:
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: infrastructure/docker/Dockerfile
       target: build
