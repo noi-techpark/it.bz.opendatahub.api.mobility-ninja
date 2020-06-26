@@ -185,6 +185,18 @@ public class SelectExpansionTests {
 	}
 
 	@Test
+	public void testOpenDataHubMultipleTargetDefPointers() {
+		seOpenDataHub.expand("tmeasurements", "datatype", "measurement", "measurementdouble", "measurementstring");
+		List<String> res = seOpenDataHub.getUsedTargetNames();
+		assertEquals(5, res.size());
+		assertEquals("mperiod", res.get(0));
+		assertEquals("mtransactiontime", res.get(1));
+		assertEquals("mvalidtime", res.get(2));
+		assertEquals("mvalue", res.get(3));
+		assertEquals("tmeasurements", res.get(4));
+	}
+
+	@Test
 	public void testNestedStructure() {
 		// Select definitions inside a sub-expansion
 		seNestedBig.expand("a", "A", "C");
