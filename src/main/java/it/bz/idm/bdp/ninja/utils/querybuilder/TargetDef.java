@@ -1,5 +1,8 @@
 package it.bz.idm.bdp.ninja.utils.querybuilder;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * An API consumer uses a target to select columns or a set of columns. So, if
  * the target has no column, it is a pointer to a TargetList instead. A
@@ -18,7 +21,7 @@ package it.bz.idm.bdp.ninja.utils.querybuilder;
  */
 public class TargetDef {
 	private final String name;
-	private final TargetDefList targetDefList;
+	private final List<TargetDefList> targetDefLists;
 	private final String column;
 	private String sqlBefore;
 	private String sqlAfter;
@@ -30,24 +33,26 @@ public class TargetDef {
 		}
 		this.name = name;
 		this.column = column;
-		this.targetDefList = null;
+		this.targetDefLists = null;
 	}
 
-	public TargetDef(final String name, final TargetDefList targetDefList) {
-		if (name == null || name.isEmpty() || targetDefList == null) {
-			throw new RuntimeException("A TargetDef must have non-empty name and a non-null pointer to a TargetDefList");
+	public TargetDef(final String name, final TargetDefList... targetDefLists) {
+		List<TargetDefList> _targetDefLists = Arrays.asList(targetDefLists);
+
+		if (name == null || name.isEmpty() || _targetDefLists == null || _targetDefLists.isEmpty()) {
+			throw new RuntimeException("A TargetDef must have non-empty name and a non-null pointer to one or more TargetDefLists");
 		}
 		this.name = name;
 		this.column = null;
-		this.targetDefList = targetDefList;
+		this.targetDefLists = _targetDefLists;
 	}
 
 	public String getColumn() {
 		return column;
 	}
 
-	public TargetDefList getTargetList() {
-		return this.targetDefList;
+	public List<TargetDefList> getTargetLists() {
+		return this.targetDefLists;
 	}
 
 	public String getName() {
@@ -107,7 +112,7 @@ public class TargetDef {
 	}
 
 	public boolean hasTargetDefList() {
-		return targetDefList != null;
+		return targetDefLists != null;
 	}
 
 	public boolean hasColumn() {
@@ -118,7 +123,7 @@ public class TargetDef {
 	public String toString() {
 		return "{" +
 			"name = " + name +
-			(hasColumn() ? (", column = " + column) : (", pointer = " + targetDefList.getName())) +
+			(hasColumn() ? (", column = " + column) : (", pointers = " + targetDefLists)) +
 			"}";
 	}
 }

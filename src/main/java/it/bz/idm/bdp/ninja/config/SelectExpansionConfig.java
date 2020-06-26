@@ -47,7 +47,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("ttype", "t.rtype"))
 			.add(new TargetDef("tdescription", "t.description"))
 			.add(new TargetDef("tmetadata", "tm.json"))
-			.add(new TargetDef("tmeasurements", measurement));
+			.add(new TargetDef("tmeasurements", measurement, measurementdouble, measurementstring));
 
 		schema.add(datatype);
 

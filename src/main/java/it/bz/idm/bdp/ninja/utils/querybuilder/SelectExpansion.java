@@ -426,10 +426,22 @@ public class SelectExpansion {
 			target.setTargetDef(targetDef);
 			target.setTargetDefListName(targetDefList.getName());
 
-			/* Do not process targets that point to definitions, that are not within our scope */
-			if (targetDef.hasTargetDefList() && !targetListNames.contains(targetDef.getTargetList().getName())) {
-				curPos++;
-				continue;
+			/*
+			 * Do not process targets that point to definitions, that are not
+			 * within our scope. This means, if a single pointer is OK, we need to
+			 * follow that pointer, otherwise we just skip this target.
+			 */
+			if (targetDef.hasTargetDefList()) {
+				int found = 0;
+				for (TargetDefList subTargetDefList : targetDef.getTargetLists()) {
+					if (targetListNames.contains(subTargetDefList.getName())) {
+						found++;
+					}
+				}
+				if (found == 0) {
+					curPos++;
+					continue;
+				}
 			}
 
 			if (!usedTargetDefs.contains(targetDef))
@@ -438,11 +450,13 @@ public class SelectExpansion {
 
 			/* It is a pointer to a targetlist, that is, not a regular column */
 			if (targetDef.hasTargetDefList()) {
-				for (String subAlias : targetDef.getTargetList().getFinalNames()) {
-					Target candTarget = new Target(subAlias); //xxx improve this, create a TargetList class?
-					if (!targets.contains(candTarget)) {
-						candTarget.setTargetDef(targetDef);
-						targets.add(candTarget);
+				for (TargetDefList subTargetDefList : targetDef.getTargetLists()) {
+					for (String subAlias : subTargetDefList.getFinalNames()) {
+						Target candTarget = new Target(subAlias); //xxx improve this, create a TargetList class?
+						if (!targets.contains(candTarget)) {
+							candTarget.setTargetDef(targetDef);
+							targets.add(candTarget);
+						}
 					}
 				}
 			}
