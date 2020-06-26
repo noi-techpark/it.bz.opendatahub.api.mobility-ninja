@@ -141,7 +141,7 @@ public class DataController {
 	@Autowired
 	DataFetcher dataFetcher;
 
-	@GetMapping(value = "", produces = "application/json")
+	@GetMapping(value = "", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestRoot() {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classloader.getResourceAsStream("root.json");
@@ -152,7 +152,7 @@ public class DataController {
 	}
 
 
-	@GetMapping(value = "/apispec", produces = "application/yaml")
+	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
 	public @ResponseBody String requestOpenApiSpec() {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classloader.getResourceAsStream("openapi3.yml");
@@ -162,7 +162,7 @@ public class DataController {
 		}
 	}
 
-	@GetMapping(value = "/{representation}", produces = "application/json")
+	@GetMapping(value = "/{representation}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestStationTypes(@PathVariable final String representation) {
 		final List<Map<String, Object>> queryResult =  new DataFetcher().fetchStationTypes();
 		String url = ninjaBaseUrl + "/" + representation + "/";
@@ -183,7 +183,7 @@ public class DataController {
 		return DataFetcher.serializeJSON(queryResult);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}", produces = "application/json")
+	@GetMapping(value = "/{representation}/{stationTypes}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestStations(@PathVariable final String representation,
 			@PathVariable final String stationTypes,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
@@ -206,7 +206,7 @@ public class DataController {
 		return DataFetcher.serializeJSON(result);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}", produces = "application/json")
+	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestDataTypes(@PathVariable final String representation,
 			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
@@ -233,7 +233,7 @@ public class DataController {
 		return DataFetcher.serializeJSON(result);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/latest", produces = "application/json")
+	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/latest", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestMostRecent(@PathVariable final String representation,
 			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
@@ -261,7 +261,7 @@ public class DataController {
 		return DataFetcher.serializeJSON(result);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/{from}/{to}", produces = "application/json")
+	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/{from}/{to}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestHistory(@PathVariable final String representation,
 			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
 			@PathVariable final String from, @PathVariable final String to,
