@@ -25,6 +25,8 @@ import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
+import static net.logstash.logback.argument.StructuredArguments.v;
+
 @Component
 public class DataFetcher {
 
@@ -54,12 +56,9 @@ public class DataFetcher {
 	private boolean distinct;
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, boolean flat) {
-
-		log.debug("FETCHING FROM STATIONS");
-
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
 
-		long nanoTime = System.nanoTime();
+		long timeBuild = System.nanoTime();
 		query = QueryBuilder
 				.init(select, where, distinct, "station", "parent")
 				.addSql("select")
@@ -77,42 +76,47 @@ public class DataFetcher {
 				.addSqlIf("order by _stationtype, _stationcode", !flat)
 				.addLimit(limit)
 				.addOffset(offset);
+		timeBuild = (System.nanoTime() - timeBuild) / 1000000;
 
-		log.debug(query.getSql());
-
-		log.debug("build query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
 
-		nanoTime = System.nanoTime();
+		long timeExec = System.nanoTime();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
 				.build(query.getSql());
+		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
 		log.debug(queryResult.toString());
 
-		log.debug("exec query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
+		Map<String, Object> logging = new HashMap<String, Object>();
+		logging.put("command", "fetchStations");
+		logging.put("stationTypes", stationTypeSet);
+		logging.put("representation", flat ? "flat" : "tree");
+		logging.put("result_count", queryResult.size());
+		logging.put("build_time", Long.toString(timeBuild));
+		logging.put("execution_time", Long.toString(timeExec));
+		logging.put("full_time", Long.toString(timeBuild + timeExec));
+		logging.put("sql", query.getSql());
+		log.info("query_execution", v("payload", logging));
 
 		return queryResult;
 	}
 
 	public static String serializeJSON(Object whatever) {
+		Map<String, Object> logging = new HashMap<String, Object>();
 		long nanoTime = System.nanoTime();
 		String serialize = JsonStream.serialize(whatever);
-		log.debug("serialize json: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
+		logging.put("serialization_time", Long.toString((System.nanoTime() - nanoTime) / 1000000));
+		log.info("json_serialization", v("payload", logging));
 		return serialize;
 	}
 
 	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, LocalDateTime from, LocalDateTime to, boolean flat) {
-		if (from == null && to == null) {
-			log.debug("FETCHING FROM MEASUREMENT");
-		} else {
-			log.debug("FETCHING FROM MEASUREMENTHISTORY");
-		}
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
 		Set<String> dataTypeSet = QueryBuilder.csvToSet(dataTypeList);
 
-		long nanoTime = System.nanoTime();
+		long timeBuild = System.nanoTime();
 		query = QueryBuilder
 				.init(select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
 
@@ -195,28 +199,41 @@ public class DataFetcher {
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !flat)
 			 .addLimit(limit)
 			 .addOffset(offset);
+		timeBuild = (System.nanoTime() - timeBuild) / 1000000;
 
-		log.debug("build query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
 
-		nanoTime = System.nanoTime();
+		long timeExec = System.nanoTime();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
 				.build(query.getSql());
+		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
-		log.debug("exec query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
+		Map<String, Object> logging = new HashMap<String, Object>();
+		if (from == null && to == null) {
+			logging.put("command", "fetchMeasurement");
+		} else {
+			logging.put("command", "fetchMeasurementHistory");
+		}
+		logging.put("stationTypes", stationTypeSet);
+		logging.put("dataTypes", dataTypeSet);
+		logging.put("representation", flat ? "flat" : "tree");
+		logging.put("result_count", queryResult.size());
+		logging.put("build_time", Long.toString(timeBuild));
+		logging.put("execution_time", Long.toString(timeExec));
+		logging.put("full_time", Long.toString(timeBuild + timeExec));
+		logging.put("sql", query.getSql());
+		log.info("query_execution", v("payload", logging));
 
 		return queryResult;
 	}
 
 	public List<Map<String, Object>> fetchStationsAndTypes(String stationTypeList, String dataTypeList, boolean flat) {
-		log.debug("FETCHING FROM STATIONS AND TYPES");
-
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
 		Set<String> dataTypeSet = QueryBuilder.csvToSet(dataTypeList);
 
-		long nanoTime = System.nanoTime();
+		long timeBuild = System.nanoTime();
 		query = QueryBuilder
 				.init(select, where, distinct, "station", "parent", "datatype");
 
@@ -281,25 +298,49 @@ public class DataFetcher {
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !flat)
 			 .addLimit(limit)
 			 .addOffset(offset);
+		timeBuild = (System.nanoTime() - timeBuild) / 1000000;
 
-		log.debug("build query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
 
-		nanoTime = System.nanoTime();
+		long timeExec = System.nanoTime();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
 				.build(query.getSql());
+		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
-		log.debug("exec query: " + Long.toString((System.nanoTime() - nanoTime) / 1000000));
+		Map<String, Object> logging = new HashMap<String, Object>();
+		logging.put("command", "fetchStationsAndTypes");
+		logging.put("stationTypes", stationTypeSet);
+		logging.put("dataTypes", dataTypeSet);
+		logging.put("representation", flat ? "flat" : "tree");
+		logging.put("result_count", queryResult.size());
+		logging.put("build_time", Long.toString(timeBuild));
+		logging.put("execution_time", Long.toString(timeExec));
+		logging.put("full_time", Long.toString(timeBuild + timeExec));
+		logging.put("sql", query.getSql());
+		log.info("query_execution", v("payload", logging));
 
 		return queryResult;
 	}
 
 	public List<Map<String, Object>> fetchStationTypes() {
+		String query = "select distinct stationtype as id from station order by 1";
+		long timeExec = System.nanoTime();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
-				.build("select distinct stationtype as id from station order by 1");
+				.build(query);
+		timeExec = (System.nanoTime() - timeExec) / 1000000;
+
+		Map<String, Object> logging = new HashMap<String, Object>();
+		logging.put("command", "fetchStationTypes");
+		logging.put("result_count", queryResult.size());
+		logging.put("build_time", 0);
+		logging.put("execution_time", Long.toString(timeExec));
+		logging.put("full_time", Long.toString(0 + timeExec));
+		logging.put("sql", query);
+		log.info("query_execution", v("payload", logging));
+
 		return queryResult;
 	}
 
