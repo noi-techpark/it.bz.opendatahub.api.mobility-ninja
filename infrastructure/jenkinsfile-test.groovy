@@ -11,6 +11,8 @@ pipeline {
         NINJA_BASE_URL = "${NINJA_HOST_URL}"
         NINJA_QUERY_TIMEOUT_SEC = "30"
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
+        LOG_APPLICATION_NAME = "ninja"
+        LOG_APPLICATION_VERSION = "0.8.2"
 
         SECURITY_ALLOWED_ORIGINS = "*"
         KEYCLOAK_URL = "https://auth.opendatahub.testingmachine.eu/auth/"
@@ -44,6 +46,8 @@ pipeline {
                     echo 'KEYCLOAK_REALM=${KEYCLOAK_REALM}' >> .env
                     echo 'KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}' >> .env
                     echo 'KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}' >> .env
+                    echo 'LOG_APPLICATION_NAME=${LOG_APPLICATION_NAME}' >> .env
+                    echo 'LOG_APPLICATION_VERSION=${LOG_APPLICATION_VERSION}' >> .env
                     echo 'JDBC_URL=${JDBC_URL}' >> .env
                     echo 'DB_USERNAME=${DB_USERNAME}' >> .env
                     echo 'DB_PASSWORD=${DB_PASSWORD}' >> .env
