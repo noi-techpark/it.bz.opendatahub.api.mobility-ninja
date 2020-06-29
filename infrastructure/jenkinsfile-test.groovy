@@ -9,7 +9,7 @@ pipeline {
         SERVER_PORT = "1004"
         NINJA_HOST_URL = "https://mobility.api.opendatahub.testingmachine.eu"
         NINJA_BASE_URL = "${NINJA_HOST_URL}"
-        NINJA_QUERY_TIMEOUT_SEC = "30"
+        NINJA_QUERY_TIMEOUT_SEC = "60"
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
         LOG_APPLICATION_NAME = "ninja"
         LOG_APPLICATION_VERSION = "0.8.2"
