@@ -15,7 +15,7 @@ pipeline {
         LOG_APPLICATION_VERSION = "0.8.2"
 
         SECURITY_ALLOWED_ORIGINS = "*"
-        KEYCLOAK_URL = "https://auth.opendatahub.opendatahub.bz.it/auth/"
+        KEYCLOAK_URL = "https://auth.opendatahub.bz.it/auth/"
         KEYCLOAK_SSL_REQUIRED = "none"
         KEYCLOAK_REALM = "noi"
         KEYCLOAK_CLIENT_ID = "odh-mobility-v2"
