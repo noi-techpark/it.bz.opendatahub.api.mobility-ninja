@@ -133,7 +133,7 @@ public class DataController {
 				return LocalDateTime.from(DATE_FORMAT.parse(dateString)).atZone(ZoneId.of("Z"));
 			}
 		} catch (final DateTimeParseException e) {
-			throw new SimpleException(ErrorCode.DATE_PARSE_ERROR, DATETIME_FORMAT_PATTERN.toString().replace("'", ""),
+			throw new SimpleException(ErrorCode.DATE_PARSE_ERROR, DATETIME_FORMAT_PATTERN.replace("'", ""),
 					e.getMessage());
 		}
 	}
@@ -147,7 +147,7 @@ public class DataController {
 		InputStream in = classloader.getResourceAsStream("root.json");
 		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
 			String result = scanner.useDelimiter("\\A").next();
-			return result.replaceAll("__URL__", ninjaBaseUrl);
+			return result.replace("__URL__", ninjaBaseUrl);
 		}
 	}
 
@@ -158,7 +158,7 @@ public class DataController {
 		InputStream in = classloader.getResourceAsStream("openapi3.yml");
 		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
 			String result = scanner.useDelimiter("\\A").next();
-			return result.replaceAll("__ODH_SERVER_URL__", ninjaHostUrl);
+			return result.replace("__ODH_SERVER_URL__", ninjaHostUrl);
 		}
 	}
 

@@ -32,7 +32,7 @@ public class DataFetcher {
 
 	private static final Logger log = LoggerFactory.getLogger(DataFetcher.class);
 
-	public static enum ErrorCode implements ErrorCodeInterface {
+	public enum ErrorCode implements ErrorCodeInterface {
 		WHERE_WRONG_DATA_TYPE ("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given.");
 
 		private final String msg;
@@ -89,7 +89,7 @@ public class DataFetcher {
 
 		log.debug(queryResult.toString());
 
-		Map<String, Object> logging = new HashMap<String, Object>();
+		Map<String, Object> logging = new HashMap<>();
 		logging.put("command", "fetchStations");
 		logging.put("stationTypes", stationTypeSet);
 		logging.put("representation", flat ? "flat" : "tree");
@@ -104,7 +104,7 @@ public class DataFetcher {
 	}
 
 	public static String serializeJSON(Object whatever) {
-		Map<String, Object> logging = new HashMap<String, Object>();
+		Map<String, Object> logging = new HashMap<>();
 		long nanoTime = System.nanoTime();
 		String serialize = JsonStream.serialize(whatever);
 		logging.put("serialization_time", Long.toString((System.nanoTime() - nanoTime) / 1000000));
@@ -210,7 +210,7 @@ public class DataFetcher {
 				.build(query.getSql());
 		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
-		Map<String, Object> logging = new HashMap<String, Object>();
+		Map<String, Object> logging = new HashMap<>();
 		if (from == null && to == null) {
 			logging.put("command", "fetchMeasurement");
 		} else {
@@ -309,7 +309,7 @@ public class DataFetcher {
 				.build(query.getSql());
 		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
-		Map<String, Object> logging = new HashMap<String, Object>();
+		Map<String, Object> logging = new HashMap<>();
 		logging.put("command", "fetchStationsAndTypes");
 		logging.put("stationTypes", stationTypeSet);
 		logging.put("dataTypes", dataTypeSet);
@@ -325,20 +325,20 @@ public class DataFetcher {
 	}
 
 	public List<Map<String, Object>> fetchStationTypes() {
-		String query = "select distinct stationtype as id from station order by 1";
+		String sql = "select distinct stationtype as id from station order by 1";
 		long timeExec = System.nanoTime();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
-				.build(query);
+				.build(sql);
 		timeExec = (System.nanoTime() - timeExec) / 1000000;
 
-		Map<String, Object> logging = new HashMap<String, Object>();
+		Map<String, Object> logging = new HashMap<>();
 		logging.put("command", "fetchStationTypes");
 		logging.put("result_count", queryResult.size());
 		logging.put("build_time", 0);
 		logging.put("execution_time", Long.toString(timeExec));
 		logging.put("full_time", Long.toString(0 + timeExec));
-		logging.put("sql", query);
+		logging.put("sql", sql);
 		log.info("query_execution", v("payload", logging));
 
 		return queryResult;
@@ -358,7 +358,7 @@ public class DataFetcher {
 
 	public void setRoles(List<String> roles) {
 		if (roles == null) {
-			roles = new ArrayList<String>();
+			roles = new ArrayList<>();
 			roles.add("GUEST");
 		}
 		this.roles = roles;
@@ -383,7 +383,7 @@ public class DataFetcher {
 		this.distinct = distinct;
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		SelectExpansion se = new SelectExpansion();
 		Schema schema = new Schema();
 
@@ -461,7 +461,7 @@ public class DataFetcher {
 		System.out.println(se.getWhereSql());
 
 		List<Map<String, Object>> queryResult = new ArrayList<>();
-		Map<String, Object> rec1 = new HashMap<String, Object>();
+		Map<String, Object> rec1 = new HashMap<>();
 		rec1.put("_stationtype", "parking");
 		rec1.put("_stationcode", "walther-code");
 		rec1.put("_datatypename", "occ1");
@@ -472,7 +472,7 @@ public class DataFetcher {
 		rec1.put("mvalue", 1);
 		queryResult.add(rec1);
 
-		Map<String, Object> rec2 = new HashMap<String, Object>();
+		Map<String, Object> rec2 = new HashMap<>();
 		rec2.put("_stationtype", "parking");
 		rec2.put("_stationcode", "walther-code");
 		rec2.put("_datatypename", "occ1");
@@ -490,7 +490,7 @@ public class DataFetcher {
 
 //		System.out.println(se.makeObjectOrEmptyMap(rec1, false, "stationtype").toString());
 
-		List<String> hierarchy = new ArrayList<String>();
+		List<String> hierarchy = new ArrayList<>();
 		hierarchy.add("_stationtype");
 		hierarchy.add("_stationcode");
 		hierarchy.add("_datatypename");

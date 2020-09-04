@@ -68,7 +68,7 @@ public class SimpleException extends RuntimeException {
 
 	public void addData(String key, Object data) {
 		if (this.data == null) {
-			this.data = new HashMap<String, Object>();
+			this.data = new HashMap<>();
 		}
 		this.data.put(key, data);
 	}
