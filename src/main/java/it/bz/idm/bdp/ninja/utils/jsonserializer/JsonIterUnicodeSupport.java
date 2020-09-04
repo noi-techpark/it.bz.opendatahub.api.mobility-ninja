@@ -12,6 +12,10 @@ import com.jsoniter.spi.JsoniterSpi;
 
 public class JsonIterUnicodeSupport {
 
+	private JsonIterUnicodeSupport() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	private static boolean enabled;
 
     public static synchronized void enable() {

@@ -222,7 +222,7 @@ public class WhereClauseParser extends MiniParser {
 		return ast;
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		String input;
 //		input = "a.b.c.eq.x=b";
 //		input = "and(x.eq.3,y.bbi.(1,2,3,4,5),or(z.neq.null,abc.in.(ciao,ha\\,llo),t.ire.\\.*77|e3))";

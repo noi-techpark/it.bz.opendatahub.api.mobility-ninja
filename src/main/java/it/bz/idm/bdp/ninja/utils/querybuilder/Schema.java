@@ -14,9 +14,9 @@ public class Schema {
 	private boolean dirty = true;
 
 	/* We use a tree map here, because we want to have elements naturally sorted */
-	private Map<String, TargetDefList> schema = new TreeMap<String, TargetDefList>();
-	private Map<String, String> targetDefNameToAliasMap = new TreeMap<String, String>();
-	private Map<String, List<TargetDef>> aliasOrNameToTargetDefMap = new TreeMap<String, List<TargetDef>>();
+	private Map<String, TargetDefList> schema = new TreeMap<>();
+	private Map<String, String> targetDefNameToAliasMap = new TreeMap<>();
+	private Map<String, List<TargetDef>> aliasOrNameToTargetDefMap = new TreeMap<>();
 
 	public Schema add(final TargetDefList targetDefList) {
 		if (targetDefList == null) {
@@ -39,7 +39,7 @@ public class Schema {
 	}
 
 	public List<String> getListNames(Set<String> targetDefListNames) {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		for (String targetDefListName : targetDefListNames) {
 			TargetDefList targetDefList = get(targetDefListName);
 			result.addAll(targetDefList.getFinalNames());
@@ -134,7 +134,7 @@ public class Schema {
 	private void _addToMapList(final String nameOrAlias, TargetDef targetDef) {
 		List<TargetDef> list = aliasOrNameToTargetDefMap.get(nameOrAlias);
 		if (list == null) {
-			list = new ArrayList<TargetDef>();
+			list = new ArrayList<>();
 			list.add(targetDef);
 			aliasOrNameToTargetDefMap.put(nameOrAlias, list);
 		}  else {

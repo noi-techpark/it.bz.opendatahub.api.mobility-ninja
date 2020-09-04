@@ -19,11 +19,12 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 
 	Logger logger = LoggerFactory.getLogger(CustomRequestLoggingFilter.class);
 
+	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		try {
 			filterChain.doFilter((ServletRequest) request, response);
 		} finally {
-			if (!this.isAsyncStarted((HttpServletRequest) request)) {
+			if (!this.isAsyncStarted(request)) {
 				logger.info("Request finished", entries(logData(request, response)));
 			}
 		}

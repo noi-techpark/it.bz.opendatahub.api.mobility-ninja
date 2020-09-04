@@ -18,7 +18,7 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 // TODO Make this generic, create a makeObjRecursive method
 public class ResultBuilder {
 
-	public static enum ErrorCode implements ErrorCodeInterface {
+	public enum ErrorCode implements ErrorCodeInterface {
 		RESPONSE_SIZE("Response size of %d MB exceeded. Please rephrase your request. Use a flat representation, WHERE, SELECT, LIMIT with OFFSET or a narrow time interval.");
 
 		private final String msg;
@@ -41,17 +41,17 @@ public class ResultBuilder {
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
 
 		if (queryResult == null || queryResult.isEmpty()) {
-			return new HashMap<String, Object>();
+			return new HashMap<>();
 		}
 
-		List<String> currValues = new ArrayList<String>();
-		List<String> prevValues = new ArrayList<String>();
+		List<String> currValues = new ArrayList<>();
+		List<String> prevValues = new ArrayList<>();
 
 		for (int i = 0; i < hierarchy.size(); i++) {
 			prevValues.add("");
 		}
 
-		Map<String, Object> stationTypes = new HashMap<String, Object>();
+		Map<String, Object> stationTypes = new HashMap<>();
 		Map<String, Object> stations = null;
 		Map<String, Object> datatypes = null;
 		List<Object> measurements = null;
@@ -115,7 +115,7 @@ public class ResultBuilder {
 			if (measurement != null && !measurement.isEmpty()) {
 				measurements = (List<Object>) datatype.get("tmeasurements");
 				if (measurements == null) {
-					measurements = new ArrayList<Object>();
+					measurements = new ArrayList<>();
 					datatype.put("tmeasurements", measurements);
 				}
 				measurements.add(measurement);
@@ -123,7 +123,7 @@ public class ResultBuilder {
 			if (datatype != null && !datatype.isEmpty()) {
 				datatypes = (Map<String, Object>) station.get("sdatatypes");
 				if (datatypes == null) {
-					datatypes = new HashMap<String, Object>();
+					datatypes = new HashMap<>();
 					station.put("sdatatypes", datatypes);
 				}
 				datatypes.put(currValues.get(2), datatype);
@@ -134,7 +134,7 @@ public class ResultBuilder {
 			if (!station.isEmpty()) {
 				stations = (Map<String, Object>) stationType.get("stations");
 				if (stations == null) {
-					stations = new HashMap<String, Object>();
+					stations = new HashMap<>();
 					stationType.put("stations", stations);
 				}
 				stations.put(currValues.get(1), station);
@@ -156,7 +156,7 @@ public class ResultBuilder {
 
 	public static Map<String, Object> makeObj(Schema schema, Map<String, Object> record, String defName, boolean ignoreNull, AtomicLong sizeEstimate) {
 		TargetDefList def = schema.getOrNull(defName);
-		Map<String, Object> result = new TreeMap<String, Object>();
+		Map<String, Object> result = new TreeMap<>();
 		int size = 0;
 		for (Entry<String, Object> entry : record.entrySet()) {
 			if (ignoreNull && entry.getValue() == null)
@@ -186,7 +186,7 @@ public class ResultBuilder {
 	}
 
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		Schema schema = new Schema();
 		TargetDefList defListC = new TargetDefList("C")
 				.add(new TargetDef("h", "C.h").sqlBefore("before"));
@@ -209,7 +209,7 @@ public class ResultBuilder {
 
 		AtomicLong size = new AtomicLong(0);
 
-		Map<String, Object> rec = new HashMap<String, Object>();
+		Map<String, Object> rec = new HashMap<>();
 		rec.put("a", "3");
 		rec.put("b", null);
 		rec.put("x.abc", "0");

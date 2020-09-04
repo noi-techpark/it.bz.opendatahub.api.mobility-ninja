@@ -18,7 +18,7 @@ public class QueryBuilder {
 
 	private StringBuilder sql = new StringBuilder();
 	private static SelectExpansion se;
-	private Map<String, Object> parameters = new HashMap<String, Object>();
+	private Map<String, Object> parameters = new HashMap<>();
 
 	public QueryBuilder(final String select, final String where, final boolean isDistinct, String... selectDefNames) {
 		if (QueryBuilder.se == null) {
@@ -194,12 +194,12 @@ public class QueryBuilder {
 	}
 
 	public QueryBuilder addLimit(long limit) {
-		setParameterIf("limit", new Long(limit), "limit :limit", limit > 0);
+		setParameterIf("limit", Long.valueOf(limit), "limit :limit", limit > 0);
 		return this;
 	}
 
 	public QueryBuilder addOffset(long offset) {
-		setParameterIf("offset", new Long(offset), "offset :offset", offset >= 0);
+		setParameterIf("offset", Long.valueOf(offset), "offset :offset", offset >= 0);
 		return this;
 	}
 

@@ -81,7 +81,7 @@ public class SelectExpansion {
 
 	private static final Logger log = LoggerFactory.getLogger(SelectExpansion.class);
 
-	public static enum ErrorCode implements ErrorCodeInterface {
+	public enum ErrorCode implements ErrorCodeInterface {
 		KEY_NOT_FOUND("Key '%s' does not exist"),
 		KEY_NOT_INSIDE_DEFLIST("Key '%s' is not reachable from the expanded select definition list: %s"),
 		DEFINITION_NOT_FOUND("Select Definition '%s' not found! It must exist before we can point to it"),
@@ -111,18 +111,18 @@ public class SelectExpansion {
 
 	/* We use tree sets and maps here, because we want to have elements naturally sorted */
 	private Schema schema;
-	private Map<String, String> expandedSelects = new TreeMap<String, String>();
-	private Set<String> usedTargetDefNames = new TreeSet<String>();
-	private List<TargetDef> usedTargetDefs = new ArrayList<TargetDef>();
-	private List<String> groupByCandidates = new ArrayList<String>();
-	private Set<String> usedTargetDefListNames = new TreeSet<String>();
-	private Map<String, List<Token>> usedJSONAliasesInWhere = new TreeMap<String, List<Token>>();
-	private Map<String, WhereClauseOperator> whereClauseOperatorMap = new TreeMap<String, WhereClauseOperator>();
+	private Map<String, String> expandedSelects = new TreeMap<>();
+	private Set<String> usedTargetDefNames = new TreeSet<>();
+	private List<TargetDef> usedTargetDefs = new ArrayList<>();
+	private List<String> groupByCandidates = new ArrayList<>();
+	private Set<String> usedTargetDefListNames = new TreeSet<>();
+	private Map<String, List<Token>> usedJSONAliasesInWhere = new TreeMap<>();
+	private Map<String, WhereClauseOperator> whereClauseOperatorMap = new TreeMap<>();
 
 	private Map<String, Object> whereParameters = null;
 	private String whereSQL = null;
 	private String whereClause = null;
-	private boolean dirty = true;
+	private boolean dirty = true;	// TODO Move dirty flags to Schema, or do we need it also here?
 	private boolean hasFunctions = false;
 	private boolean isDistinct = false;
 
@@ -150,16 +150,6 @@ public class SelectExpansion {
 		return schema;
 	}
 
-	private void _build() {
-		if (schema == null) {
-			throw new SimpleException(ErrorCode.SCHEMA_NULL);
-		}
-		hasFunctions = false;
-		// TODO Move dirty flags to Schema, or do we need it also here?
-		dirty = true;
-		dirty = false;
-	}
-
 	private class Context {
 		int clauseCnt;
 		String logicalOp;
@@ -178,7 +168,7 @@ public class SelectExpansion {
 	}
 
 	private void _addAliasesInWhere(final String alias, Token token) {
-		List<Token> tokens = usedJSONAliasesInWhere.getOrDefault(alias, new ArrayList<Token>());
+		List<Token> tokens = usedJSONAliasesInWhere.getOrDefault(alias, new ArrayList<>());
 		tokens.add(token);
 		usedJSONAliasesInWhere.put(alias, tokens);
 	}
@@ -205,12 +195,12 @@ public class SelectExpansion {
 		}
 
 		StringBuilder sbFull = new StringBuilder();
-		whereParameters = new TreeMap<String, Object>();
+		whereParameters = new TreeMap<>();
 
 		whereAST.walker(new ConsumerExtended() {
 
 			/* A stack implementation */
-			Deque<Context> context = new ArrayDeque<Context>();
+			Deque<Context> context = new ArrayDeque<>();
 			Context ctx;
 
 			@Override
@@ -254,18 +244,15 @@ public class SelectExpansion {
 
 			@Override
 			public boolean after(Token t) {
-				switch (t.getName()) {
-				case "AND":
-				case "OR":
+				if (t.is("AND") || t.is("OR")) {
 					sbFull.append(")");
 					context.pop();
 					ctx = context.peekFirst();
-					if (ctx == null)
-						break;
-					ctx.clauseCnt--;
-					if (ctx.clauseCnt > 0)
-						sbFull.append(" " + ctx.logicalOp + " ");
-					break;
+					if (ctx != null) {
+						ctx.clauseCnt--;
+						if (ctx.clauseCnt > 0)
+							sbFull.append(" " + ctx.logicalOp + " ");
+					}
 				}
 				return true;
 			}
@@ -299,7 +286,7 @@ public class SelectExpansion {
 		Object value = null;
 		switch (clauseValueToken.getName()) {
 		case "LIST":
-			List<Object> listItems = new ArrayList<Object>();
+			List<Object> listItems = new ArrayList<>();
 			for (Token listItem : clauseValueToken.getChildren()) {
 				listItems.add(listItem.getPayload("typedvalue"));
 				_addAliasesInWhere(alias, listItem); //XXX Needed?
@@ -327,15 +314,13 @@ public class SelectExpansion {
 		 * and error-out on failure. For instance, check if a list has exactly 3 elements. This cannot
 		 * be done during parsing.
 		 */
-		if (whereClauseOperator.getOperatorCheck() != null) {
-			if (!whereClauseOperator.getOperatorCheck().middle(clauseValueToken)) {
-				throw new SimpleException(ErrorCode.WHERE_ALIAS_VALUE_ERROR, operator, clauseValueToken.getName(), value);
-			}
+		if (whereClauseOperator.getOperatorCheck() != null && !whereClauseOperator.getOperatorCheck().middle(clauseValueToken)) {
+			throw new SimpleException(ErrorCode.WHERE_ALIAS_VALUE_ERROR, operator, clauseValueToken.getName(), value);
 		}
 
 		value = (value == null) ? "null" : ":" + paramName;
 		String sqlSnippet = whereClauseOperator.getSqlSnippet();
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		int i = 0;
 		while(i < sqlSnippet.length()) {
 		   char c = sqlSnippet.charAt(i);
@@ -368,14 +353,14 @@ public class SelectExpansion {
 	}
 
 	public void expand(final String selectString, String... targetDefListNames) {
-		Set<String> targetListNames = new HashSet<String>(Arrays.asList(targetDefListNames));
+		Set<String> targetListNames = new HashSet<>(Arrays.asList(targetDefListNames));
 
 		if (targetListNames == null || targetListNames.isEmpty()) {
 			throw new SimpleException(ErrorCode.EXPAND_INVALID_DATA);
 		}
 
 		boolean isStarExpansion = false;
-		List<Target> targets = new ArrayList<Target>();
+		List<Target> targets = new ArrayList<>();
 		if (selectString == null) {
 			isStarExpansion = true;
 		} else {
@@ -396,9 +381,15 @@ public class SelectExpansion {
 			}
 		}
 
-		if (dirty) {
-			_build();
+		if (schema == null) {
+			throw new SimpleException(ErrorCode.SCHEMA_NULL);
 		}
+
+		if (dirty) {
+			hasFunctions = false;
+			dirty = false;
+		}
+
 		usedTargetDefNames.clear();
 		usedTargetDefs.clear();
 		usedTargetDefListNames.clear();
@@ -525,7 +516,7 @@ public class SelectExpansion {
 		if (dirty) {
 			throw new SimpleException(ErrorCode.DIRTY_STATE);
 		}
-		return new ArrayList<String>(usedTargetDefNames);
+		return new ArrayList<>(usedTargetDefNames);
 	}
 
 	public List<String> getGroupByTargetNames() {
@@ -546,7 +537,7 @@ public class SelectExpansion {
 		if (dirty) {
 			throw new SimpleException(ErrorCode.DIRTY_STATE);
 		}
-		return new ArrayList<String>(usedTargetDefListNames);
+		return new ArrayList<>(usedTargetDefListNames);
 	}
 
 	public Map<String, String> getExpansion() {
@@ -571,7 +562,7 @@ public class SelectExpansion {
 		if (defNames == null) {
 			return getExpansion();
 		}
-		Map<String, String> res = new TreeMap<String, String>();
+		Map<String, String> res = new TreeMap<>();
 		for (String defName : defNames) {
 			String exp = getExpansion(defName);
 			if (exp == null) {
@@ -586,7 +577,7 @@ public class SelectExpansion {
 		if (defNames == null) {
 			return getExpansion();
 		}
-		return getExpansion(new TreeSet<String>(Arrays.asList(defNames)));
+		return getExpansion(new TreeSet<>(Arrays.asList(defNames)));
 	}
 
 	public String getWhereSql() {
@@ -613,7 +604,7 @@ public class SelectExpansion {
 		return "SelectSchema [schema=" + schema + "]";
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		AtomicLong size = new AtomicLong(0);
 		SelectExpansion se = new SelectExpansion();
 		Schema schema = new Schema();
@@ -711,7 +702,7 @@ public class SelectExpansion {
 
 		// se.expand("*", "A", "B");
 		se.expand("*", "main", "A", "B", "C");
-		Map<String, Object> rec = new HashMap<String, Object>();
+		Map<String, Object> rec = new HashMap<>();
 		rec.put("a", "3");
 		rec.put("b", "7");
 		rec.put("x", "0");

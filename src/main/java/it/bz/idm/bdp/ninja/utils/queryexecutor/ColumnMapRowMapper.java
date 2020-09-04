@@ -89,7 +89,7 @@ public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 	@Nullable
 	protected Object getColumnValue(ResultSet rs, int index) throws SQLException {
 		Object obj = rs.getObject(index);
-		if (obj != null && obj instanceof PGobject) {
+		if (obj instanceof PGobject) {
 			PGobject pgObj = (PGobject) obj;
 			String pgObjType = cleanPostgresType(pgObj.getType());
 

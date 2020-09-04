@@ -15,8 +15,12 @@ import com.jsoniter.spi.JsoniterSpi;
 
 public class JsonIterSqlTimestampSupport {
 
+	private JsonIterSqlTimestampSupport() {
+		throw new IllegalStateException("Utility class");
+	}
+
     private static String pattern;
-    private final static ThreadLocal<SimpleDateFormat> sdf = new ThreadLocal<SimpleDateFormat>() {
+    private static final ThreadLocal<SimpleDateFormat> sdf = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
             return new SimpleDateFormat(pattern);

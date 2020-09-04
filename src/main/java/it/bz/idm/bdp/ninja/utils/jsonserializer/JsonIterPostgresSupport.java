@@ -17,6 +17,10 @@ import com.jsoniter.spi.JsoniterSpi;
 
 public class JsonIterPostgresSupport {
 
+	private JsonIterPostgresSupport() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	private static boolean enabled;
 
 	public static synchronized void enable() {

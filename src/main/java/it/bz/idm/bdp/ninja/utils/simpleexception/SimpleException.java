@@ -38,23 +38,23 @@ public class SimpleException extends RuntimeException {
 	private static final long serialVersionUID = -8271639898842999188L;
 
 	private String description;
-	private ErrorCodeInterface id;
+	private final ErrorCodeInterface id;
 	private Map<String, Object> data;
 
-	public SimpleException(ErrorCodeInterface id, Object... params) {
+	public SimpleException(final ErrorCodeInterface id, final Object... params) {
 		super(String.format(id.getMsg(), params));
 		this.id = id;
 	}
 
-	public SimpleException(ErrorCodeInterface id) {
-		this(id, (Object[])null);
+	public SimpleException(final ErrorCodeInterface id) {
+		this(id, (Object[]) null);
 	}
 
 	public String getDescription() {
 		return description;
 	}
 
-	public void setDescription(String description) {
+	public void setDescription(final String description) {
 		this.description = description;
 	}
 
@@ -66,14 +66,14 @@ public class SimpleException extends RuntimeException {
 		return data;
 	}
 
-	public void addData(String key, Object data) {
+	public void addData(final String key, final Object data) {
 		if (this.data == null) {
 			this.data = new HashMap<>();
 		}
 		this.data.put(key, data);
 	}
 
-	public void setData(Map<String, Object> dataMap) {
+	public void setData(final Map<String, Object> dataMap) {
 		this.data = dataMap;
 	}
 
