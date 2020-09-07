@@ -9,6 +9,10 @@ import org.springframework.security.core.Authentication;
 
 public class SecurityUtils {
 
+	private SecurityUtils() {
+		throw new IllegalStateException("Utility class");
+	}
+
 	public static List<String> getRolesFromAuthentication(Authentication auth) {
 		List<String> result = new ArrayList<>();
 		if (auth instanceof KeycloakAuthenticationToken) {

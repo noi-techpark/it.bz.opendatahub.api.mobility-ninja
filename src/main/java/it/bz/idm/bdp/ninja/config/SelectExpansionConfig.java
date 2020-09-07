@@ -79,6 +79,44 @@ public class SelectExpansionConfig {
 
 		schema.add(station);
 
+		TargetDefList stationBegin = TargetDefList
+			.init("stationbegin")
+			.add(new TargetDef("sbname", "o.name"))
+			.add(new TargetDef("sbtype", "o.stationtype"))
+			.add(new TargetDef("sbcode", "o.stationcode"))
+			.add(new TargetDef("sborigin", "o.origin"))
+			.add(new TargetDef("sbactive", "o.active"))
+			.add(new TargetDef("sbavailable", "o.available"))
+			.add(new TargetDef("sbcoordinate", "o.pointprojection"));
+
+		schema.add(stationBegin);
+
+		TargetDefList stationEnd = TargetDefList
+			.init("stationend")
+			.add(new TargetDef("sename", "d.name"))
+			.add(new TargetDef("setype", "d.stationtype"))
+			.add(new TargetDef("secode", "d.stationcode"))
+			.add(new TargetDef("seorigin", "d.origin"))
+			.add(new TargetDef("seactive", "d.active"))
+			.add(new TargetDef("seavailable", "d.available"))
+			.add(new TargetDef("secoordinate", "d.pointprojection"));
+
+		schema.add(stationEnd);
+
+		TargetDefList edge = TargetDefList
+			.init("edge")
+			.add(new TargetDef("ename", "i.name"))
+			.add(new TargetDef("etype", "i.stationtype"))
+			.add(new TargetDef("ecode", "i.stationcode"))
+			.add(new TargetDef("eorigin", "i.origin"))
+			.add(new TargetDef("eactive", "i.active"))
+			.add(new TargetDef("eavailable", "i.available"))
+			.add(new TargetDef("egeometry", "e.linegeometry"))
+			.add(new TargetDef("ebegin", stationBegin))
+			.add(new TargetDef("eend", stationEnd));
+
+		schema.add(edge);
+
 		TargetDefList stationtype = TargetDefList
 			.init("stationtype")
 			.add(new TargetDef("stations", station));

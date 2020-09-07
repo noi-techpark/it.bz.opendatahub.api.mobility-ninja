@@ -85,8 +85,7 @@ public class QueryBuilder {
 
 	@SuppressWarnings("rawtypes")
 	public QueryBuilder setParameterIfNotEmptyAnd(String name, Object value, String sqlPart, boolean condition) {
-		return setParameterIf(name, value, sqlPart, value != null
-													&& (value instanceof Collection)
+		return setParameterIf(name, value, sqlPart, value instanceof Collection
 													&& !((Collection)value).isEmpty()
 													&& condition);
 	}
@@ -241,7 +240,7 @@ public class QueryBuilder {
 	}
 
 	public static Set<String> csvToSet(final String csv) {
-		Set<String> resultSet = new HashSet<String>();
+		Set<String> resultSet = new HashSet<>();
 		for (String value : csv.split(",")) {
 			value = value.trim();
 			if (value.equals("*")) {

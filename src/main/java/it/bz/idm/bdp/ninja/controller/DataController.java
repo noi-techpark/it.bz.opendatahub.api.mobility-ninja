@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.security.SecurityUtils;
+import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -74,8 +75,7 @@ public class DataController {
 	@Value("${ninja.response.max-allowed-size-mb}")
 	private int maxAllowedSizeInMB;
 
-	public static enum ErrorCode implements ErrorCodeInterface {
-		WRONG_REPRESENTATION("Please choose 'flat' or 'tree' as representation. '%s' is not allowed."),
+	public enum ErrorCode implements ErrorCodeInterface {
 		DATE_PARSE_ERROR(
 				"Invalid date given. Format must be %s, where [] denotes optionality. Do not forget, single digits must be leaded by 0. Error message: %s.");
 
@@ -151,7 +151,6 @@ public class DataController {
 		}
 	}
 
-
 	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
 	public @ResponseBody String requestOpenApiSpec() {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
@@ -164,21 +163,40 @@ public class DataController {
 
 	@GetMapping(value = "/{representation}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestStationTypes(@PathVariable final String representation) {
-		final List<Map<String, Object>> queryResult =  new DataFetcher().fetchStationTypes();
+		Representation rep = Representation.get(representation);
+		final List<Map<String, Object>> queryResult;
+		if (rep.isEdge()) {
+			queryResult = new DataFetcher().fetchEdgeTypes(rep);
+		} else {
+			queryResult = new DataFetcher().fetchStationTypes(rep);
+		}
 		String url = ninjaBaseUrl + "/" + representation + "/";
+		Map<String, Object> selfies;
 		for (Map<String, Object> row : queryResult) {
 			row.put("description", null);
-			if (isFlatRepresentation(representation)) {
-				row.put("self.stations", url + row.get("id"));
-				row.put("self.stations+datatypes", url + row.get("id") + "/*");
-				row.put("self.stations+datatypes+measurements", url + row.get("id") + "/*/latest");
-			} else {
-				Map<String, Object> selfies = new HashMap<String, Object>();
-				selfies.put("stations", url + row.get("id"));
-				selfies.put("stations+datatypes", url + row.get("id") + "/*");
-				selfies.put("stations+datatypes+measurements", url + row.get("id") + "/*/latest");
-				row.put("self", selfies);
+			switch (rep) {
+				case FLAT_NODE:
+					row.put("self.stations", url + row.get("id"));
+					row.put("self.stations+datatypes", url + row.get("id") + "/*");
+					row.put("self.stations+datatypes+measurements", url + row.get("id") + "/*/latest");
+				break;
+				case TREE_NODE:
+					selfies = new HashMap<>();
+					selfies.put("stations", url + row.get("id"));
+					selfies.put("stations+datatypes", url + row.get("id") + "/*");
+					selfies.put("stations+datatypes+measurements", url + row.get("id") + "/*/latest");
+					row.put("self", selfies);
+				break;
+				case FLAT_EDGE:
+					row.put("self.edges", url + row.get("id"));
+				break;
+				case TREE_EDGE:
+					selfies = new HashMap<>();
+					selfies.put("edges", url + row.get("id"));
+					row.put("self", selfies);
+				break;
 			}
+
 		}
 		return DataFetcher.serializeJSON(queryResult);
 	}
@@ -193,7 +211,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final boolean flat = isFlatRepresentation(representation);
+		final Representation repr = Representation.get(representation);
 
 		dataFetcher.setIgnoreNull(!showNull);
 		dataFetcher.setLimit(limit);
@@ -201,8 +219,13 @@ public class DataController {
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
 		dataFetcher.setDistinct(distinct);
-		final List<Map<String, Object>> queryResult = dataFetcher.fetchStations(stationTypes, flat);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, flat, showNull, TREE_STATIONS);
+		final List<Map<String, Object>> queryResult;
+		if (repr == Representation.FLAT_EDGE || repr == Representation.TREE_EDGE) {
+			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
+		} else {
+			queryResult = dataFetcher.fetchStations(stationTypes, repr);
+		}
+		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -216,7 +239,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final boolean flat = isFlatRepresentation(representation);
+		final Representation repr = Representation.get(representation);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -228,8 +251,8 @@ public class DataController {
 		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication(auth));
 		dataFetcher.setDistinct(distinct);
 
-		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsAndTypes(stationTypes, dataTypes, flat);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, flat, showNull, TREE_DATATYPE);
+		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsAndTypes(stationTypes, dataTypes, repr);
+		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_DATATYPE);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -243,7 +266,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final boolean flat = isFlatRepresentation(representation);
+		final Representation repr = Representation.get(representation);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -256,8 +279,8 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
-				dataTypes, null, null, flat);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, flat, showNull, TREE_FULL);
+				dataTypes, null, null, repr);
+		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_FULL);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -272,7 +295,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final boolean flat = isFlatRepresentation(representation);
+		final Representation repr = Representation.get(representation);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -288,32 +311,29 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
-				dataTypes, dateTimeFrom.toLocalDateTime(), dateTimeTo.toLocalDateTime(), flat);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, flat, showNull, TREE_FULL);
+				dataTypes, dateTimeFrom.toLocalDateTime(), dateTimeTo.toLocalDateTime(), repr);
+		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_FULL);
 		return DataFetcher.serializeJSON(result);
 	}
 
-	private boolean isFlatRepresentation(final String representation) {
-		if (representation.equalsIgnoreCase("flat")) {
-			return true;
-		}
-		if (representation.equalsIgnoreCase("tree")) {
-			return false;
-		}
-		throw new SimpleException(ErrorCode.WRONG_REPRESENTATION, representation);
-	}
-
 	private Map<String, Object> buildResult(final List<Map<String, Object>> queryResult, final long offset,
-			final long limit, final boolean flat, final boolean showNull, final List<String> tree) {
-		final Map<String, Object> result = new HashMap<String, Object>();
+			final long limit, final Representation representation, final boolean showNull, final List<String> tree) {
+		final Map<String, Object> result = new HashMap<>();
 		result.put("offset", offset);
 		result.put("limit", limit);
 
-		if (flat) {
-			result.put("data", queryResult);
-		} else {
-			result.put("data", ResultBuilder.build(!showNull, queryResult,
+		switch(representation) {
+			case FLAT_NODE:
+				result.put("data", queryResult);
+				break;
+			case TREE_NODE:
+				result.put("data", ResultBuilder.build(!showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), tree, maxAllowedSizeInMB));
+				break;
+			case FLAT_EDGE:
+			case TREE_EDGE:
+				result.put("data", queryResult);
+				break;
 		}
 		return result;
 	}

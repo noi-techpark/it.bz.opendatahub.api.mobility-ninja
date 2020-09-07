@@ -16,7 +16,7 @@ public class MiniParser {
 	private String input;
 	protected Token ast = null;
 
-	public static enum ErrorCode implements ErrorCodeInterface {
+	public enum ErrorCode implements ErrorCodeInterface {
 		SYNTAX_ERROR 	         ("Syntax error at position %d with character %s: %s");
 
 		private final String msg;
@@ -65,7 +65,7 @@ public class MiniParser {
 	}
 
 	protected boolean consume(int times) {
-		for (int i = 0; i < times; i++) {
+		for (int j = 0; j < times; j++) {
 			if (!consume()) {
 				return false;
 			}
@@ -95,8 +95,8 @@ public class MiniParser {
 
 	protected String encode(String chars) {
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < chars.length(); i++) {
-			sb.append(encode(chars.charAt(i)));
+		for (int j = 0; j < chars.length(); j++) {
+			sb.append(encode(chars.charAt(j)));
 		}
 		return sb.toString();
 	}
@@ -110,8 +110,8 @@ public class MiniParser {
 
 	protected void expect(String expChars) {
 		boolean found = false;
-		for (int i = 0; i < expChars.length(); i++) {
-			if (c == expChars.charAt(i)) {
+		for (int j = 0; j < expChars.length(); j++) {
+			if (c == expChars.charAt(j)) {
 				found = true;
 				break;
 			}
@@ -156,8 +156,8 @@ public class MiniParser {
 	}
 
 	protected boolean match(String exp) {
-		for (int i = 0; i < exp.length(); i++) {
-			if (!match(exp.charAt(i), i)) {
+		for (int j = 0; j < exp.length(); j++) {
+			if (!match(exp.charAt(j), j)) {
 				return false;
 			}
 		}
