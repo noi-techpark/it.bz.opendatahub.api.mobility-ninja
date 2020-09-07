@@ -154,6 +154,88 @@ public class ResultBuilder {
 		return stationTypes;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> buildEdges(boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema,
+			List<String> hierarchy, int maxAllowedSizeInMB) {
+		AtomicLong size = new AtomicLong(0);
+
+		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
+
+		if (queryResult == null || queryResult.isEmpty()) {
+			return new HashMap<>();
+		}
+
+		List<String> currValues = new ArrayList<>();
+		List<String> prevValues = new ArrayList<>();
+
+		for (int i = 0; i < hierarchy.size(); i++) {
+			prevValues.add("");
+		}
+
+		Map<String, Object> edgeTypes = new HashMap<>();
+		Map<String, Object> edges = null;
+
+		Map<String, Object> edgeType = null;
+		Map<String, Object> edge = null;
+		Map<String, Object> origin = null;
+		Map<String, Object> destination = null;
+
+		for (Map<String, Object> rec : queryResult) {
+
+			currValues.clear();
+			int i = 0;
+			boolean levelSet = false;
+			int renewLevel = hierarchy.size();
+			for (String alias : hierarchy) {
+				String value = (String) rec.get(alias);
+				if (value == null) {
+					throw new RuntimeException(alias + " not found in select. Unable to build hierarchy.");
+				}
+				currValues.add(value);
+				if (!levelSet && !value.equals(prevValues.get(i))) {
+					renewLevel = i;
+					levelSet = true;
+				}
+				i++;
+			}
+
+			switch (renewLevel) {
+				case 0:
+					edgeType = makeObj(schema, rec, "edgetype", false, size);
+				case 1:
+					edge = makeObj(schema, rec, "edge", ignoreNull, size);
+					origin = makeObj(schema, rec, "stationbegin", ignoreNull, size);
+					destination = makeObj(schema, rec, "stationend", ignoreNull, size);
+			}
+			if (origin != null && !origin.isEmpty()) {
+				edge.put("ebegin", origin);
+			}
+			if (destination != null && !destination.isEmpty()) {
+				edge.put("eend", destination);
+			}
+			if (edge != null && !edge.isEmpty()) {
+				edges = (Map<String, Object>) edgeType.get("edges");
+				if (edges == null) {
+					edges = new HashMap<>();
+					edgeType.put("edges", edges);
+				}
+				edges.put(currValues.get(1), edge);
+			}
+			if (edgeType != null && !edgeType.isEmpty()) {
+				edgeTypes.put(currValues.get(0), edgeType);
+			}
+
+			prevValues.clear();
+			prevValues.addAll(currValues);
+
+			if (maxAllowedSize > 0 && maxAllowedSize < size.get()) {
+				throw new SimpleException(ErrorCode.RESPONSE_SIZE, maxAllowedSizeInMB);
+			}
+		}
+		System.out.println(size);
+		return edgeTypes;
+	}
+
 	public static Map<String, Object> makeObj(Schema schema, Map<String, Object> record, String defName, boolean ignoreNull, AtomicLong sizeEstimate) {
 		TargetDefList def = schema.getOrNull(defName);
 		Map<String, Object> result = new TreeMap<>();

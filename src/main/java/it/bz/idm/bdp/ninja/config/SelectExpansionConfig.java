@@ -123,6 +123,12 @@ public class SelectExpansionConfig {
 
 		schema.add(stationtype);
 
+		TargetDefList edgetype = TargetDefList
+			.init("edgetype")
+			.add(new TargetDef("edges", edge));
+
+		schema.add(edgetype);
+
 		se = new SelectExpansion();
 		se.setSchema(schema);
 

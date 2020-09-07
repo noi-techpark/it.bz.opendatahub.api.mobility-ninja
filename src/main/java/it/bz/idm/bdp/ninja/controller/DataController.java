@@ -220,12 +220,14 @@ public class DataController {
 		dataFetcher.setSelect(select);
 		dataFetcher.setDistinct(distinct);
 		final List<Map<String, Object>> queryResult;
-		if (repr == Representation.FLAT_EDGE || repr == Representation.TREE_EDGE) {
+		final Map<String, Object> result;
+		if (repr.isEdge()) {
 			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
+			result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
 		} else {
 			queryResult = dataFetcher.fetchStations(stationTypes, repr);
+			result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
 		}
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -323,6 +325,7 @@ public class DataController {
 		result.put("limit", limit);
 
 		switch(representation) {
+			case FLAT_EDGE:
 			case FLAT_NODE:
 				result.put("data", queryResult);
 				break;
@@ -330,9 +333,9 @@ public class DataController {
 				result.put("data", ResultBuilder.build(!showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), tree, maxAllowedSizeInMB));
 				break;
-			case FLAT_EDGE:
 			case TREE_EDGE:
-				result.put("data", queryResult);
+				result.put("data", ResultBuilder.buildEdges(!showNull, queryResult,
+					dataFetcher.getQuery().getSelectExpansion().getSchema(), tree, maxAllowedSizeInMB));
 				break;
 		}
 		return result;

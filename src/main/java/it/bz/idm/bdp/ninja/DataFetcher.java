@@ -377,7 +377,8 @@ public class DataFetcher {
 				.init(select, where, distinct, "edge", "stationbegin", "stationend")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
-				.expandSelect()
+				.addSqlIf("i.stationtype as _stationtype, i.stationcode as _stationcode", !representation.isFlat())
+				.expandSelectPrefix(", ", !representation.isFlat())
 				.addSql("from edge e")
 				.addSql("join station i on e.edge_data_id = i.id")
 				.addSql("join station o on e.origin_id = o.id")
@@ -385,6 +386,8 @@ public class DataFetcher {
 				.addSql("where true")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				.expandWhere()
+				.expandGroupByIf("_stationtype, _stationcode", !representation.isFlat())
+				.addSqlIf("order by _stationtype, _stationcode", !representation.isFlat())
 				.addLimit(limit)
 				.addOffset(offset);
 		long timeBuild = timer.stop();
