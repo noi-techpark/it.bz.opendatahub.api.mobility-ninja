@@ -275,9 +275,9 @@ public class ResultBuilder {
 
 							break;
 						case LIST:
-							List<Object> newList = (List<Object>) parent.getOrDefault(mapTypeValue, new ArrayList<>());
+							List<Object> newList = (List<Object>) parent.getOrDefault(lookup.getParentTargetName(), new ArrayList<>());
 							if (newList.isEmpty()) {
-								parent.put(mapTypeValue, newList);
+								parent.put(lookup.getParentTargetName(), newList);
 							}
 							newList.add(curObject);
 							break;
@@ -371,6 +371,10 @@ public class ResultBuilder {
 		rec1.put("_datatypename", "t1");
 		rec1.put("sname", "edgename1");
 		rec1.put("tname", "t1");
+		rec1.put("mperiod", 200);
+		rec1.put("mvalidtime", 13);
+		rec1.put("mtransactiontime", 88);
+		// rec1.put("mvalue", 1111);
 
 		Map<String, Object> rec2 = new HashMap<>();
 		rec2.put("_stationtype", "AAA");
@@ -378,6 +382,10 @@ public class ResultBuilder {
 		rec2.put("_datatypename", "t2");
 		rec2.put("sname", "edgename2");
 		rec2.put("tname", "t2");
+		rec2.put("mperiod", 100);
+		rec2.put("mvalidtime", 133);
+		rec1.put("mtransactiontime", 8899);
+		rec2.put("mvalue", 2222);
 
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
