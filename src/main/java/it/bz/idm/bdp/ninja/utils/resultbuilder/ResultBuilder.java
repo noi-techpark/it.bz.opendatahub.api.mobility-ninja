@@ -4,22 +4,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
+import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Target;
-import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDef;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
-// TODO Make this generic, create a makeObjRecursive method
 public class ResultBuilder {
 
 	public enum ErrorCode implements ErrorCodeInterface {
-		RESPONSE_SIZE("Response size of %d MB exceeded. Please rephrase your request. Use a flat representation, WHERE, SELECT, LIMIT with OFFSET or a narrow time interval.");
+		RESPONSE_SIZE("Response size of %d MB exceeded. Please rephrase your request. Use a flat representation, WHERE, SELECT, LIMIT with OFFSET or a narrow time interval."),
+		WRONG_TREE_BUILDING_KEY_TYPE("The column '%s' used to build the TREE representation must be of type STRING");
 
 		private final String msg;
 
@@ -34,8 +35,7 @@ public class ResultBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> build(boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema,
-			List<String> hierarchy, int maxAllowedSizeInMB) {
+	public static Map<String, Object> build(boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema, List<String> hierarchy, int maxAllowedSizeInMB) {
 		AtomicLong size = new AtomicLong(0);
 
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
@@ -154,11 +154,36 @@ public class ResultBuilder {
 		return stationTypes;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static Map<String, Object> buildEdges(boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema,
-			List<String> hierarchy, int maxAllowedSizeInMB) {
-		AtomicLong size = new AtomicLong(0);
+	public static int calculateLevel(Map<String, Object> rec, List<String> hierarchy, List<String> prevValues, List<String> currValues) {
 
+		if (prevValues.isEmpty()) {
+			for (int i = 0; i < hierarchy.size(); i++) {
+				prevValues.add("");
+			}
+		}
+
+		currValues.clear();
+		int i = 0;
+		boolean levelSet = false;
+		int renewLevel = hierarchy.size();
+		for (String colname : hierarchy) {
+			String value = (String) rec.get(colname);
+			if (value == null) {
+				throw new RuntimeException(colname + " not found in select. Unable to build hierarchy.");
+			}
+			currValues.add(value);
+			if (!levelSet && !value.equals(prevValues.get(i))) {
+				renewLevel = i;
+				levelSet = true;
+			}
+			i++;
+		}
+		return renewLevel;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> buildGeneric(String entryPoint, String exitPoint, boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
+		AtomicLong size = new AtomicLong(0);
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
 
 		if (queryResult == null || queryResult.isEmpty()) {
@@ -167,62 +192,97 @@ public class ResultBuilder {
 
 		List<String> currValues = new ArrayList<>();
 		List<String> prevValues = new ArrayList<>();
+		List<String> hierarchyTriggerKeys = schema.getHierarchyTriggerKeys(entryPoint, exitPoint);
+		int maxLevel = hierarchyTriggerKeys.size();
+		Map<String, List<Target>> catalog = new HashMap<>();
+		Map<String, Object> result = new HashMap<>();
 
-		for (int i = 0; i < hierarchy.size(); i++) {
-			prevValues.add("");
+		// Should be present inside the definition, just entrypoint needed
+		List<List<String>> hierarchy = schema.getHierarchy(entryPoint, exitPoint);
+
+
+		Map<String, Map<String, Object>> cache = new HashMap<>();
+		Map<String, Object> firstResultRecord = queryResult.get(0);
+
+		for (String key : hierarchyTriggerKeys) {
+			if (firstResultRecord.get(key) instanceof String)
+				continue;
+
+			throw new SimpleException(ErrorCode.WRONG_TREE_BUILDING_KEY_TYPE, key);
 		}
 
-		Map<String, Object> edgeTypes = new HashMap<>();
-		Map<String, Object> edges = null;
 
-		Map<String, Object> edgeType = null;
-		Map<String, Object> edge = null;
-		Map<String, Object> origin = null;
-		Map<String, Object> destination = null;
+		// create catalog of Targets, since each record in this result set contains exactly the same names
+		for (List<String> level : hierarchy) {
+			for (String targetDefListName : level) {
+				Set<String> targetDefNames = schema.getOrNull(targetDefListName).getFinalNames();
+				List<Target> currentTargetList = new ArrayList<>();
+				for (String targetName : firstResultRecord.keySet()) {
+					Target target = new Target(targetName);
+					if (targetDefNames.contains(target.getName())) {
+						currentTargetList.add(target);
+						catalog.putIfAbsent(targetDefListName, currentTargetList);
+						cache.putIfAbsent(targetDefListName, new HashMap<>());
+					}
+				}
+			}
+		}
+
+		// We should check for all these prerequisites before starting the record loop to generate the result set
+		// we can also limit the possible levels, if we see that it stops always at 2 (for datatypes, not here in edges, just an example)
+		// and that the first two levels are mandatory, so it must never be lower than those
 
 		for (Map<String, Object> rec : queryResult) {
 
-			currValues.clear();
-			int i = 0;
-			boolean levelSet = false;
-			int renewLevel = hierarchy.size();
-			for (String alias : hierarchy) {
-				String value = (String) rec.get(alias);
-				if (value == null) {
-					throw new RuntimeException(alias + " not found in select. Unable to build hierarchy.");
+			int renewLevel = calculateLevel(rec, hierarchyTriggerKeys, prevValues, currValues);
+
+			for (int i = renewLevel; i <= maxLevel; i++) {
+				for (String targetDefListName : hierarchy.get(i)) {
+					Map<String, Object> curObject = makeObj2(catalog.get(targetDefListName), rec, ignoreNull, size);
+					cache.put(targetDefListName, curObject);
 				}
-				currValues.add(value);
-				if (!levelSet && !value.equals(prevValues.get(i))) {
-					renewLevel = i;
-					levelSet = true;
-				}
-				i++;
 			}
 
-			switch (renewLevel) {
-				case 0:
-					edgeType = makeObj(schema, rec, "edgetype", false, size);
-				case 1:
-					edge = makeObj(schema, rec, "edge", ignoreNull, size);
-					origin = makeObj(schema, rec, "stationbegin", ignoreNull, size);
-					destination = makeObj(schema, rec, "stationend", ignoreNull, size);
-			}
-			if (origin != null && !origin.isEmpty()) {
-				edge.put("ebegin", origin);
-			}
-			if (destination != null && !destination.isEmpty()) {
-				edge.put("eend", destination);
-			}
-			if (edge != null && !edge.isEmpty()) {
-				edges = (Map<String, Object>) edgeType.get("edges");
-				if (edges == null) {
-					edges = new HashMap<>();
-					edgeType.put("edges", edges);
+			for (int i = maxLevel; i >= renewLevel; i--) {
+				for (String targetDefListName : hierarchy.get(i)) {
+					Map<String, Object> curObject = cache.get(targetDefListName);
+					if (curObject == null || curObject.isEmpty()) {
+						continue;
+					}
+					LookUp lookup = schema.get(targetDefListName).getLookUp();
+					Map<String, Object> parent = cache.get(lookup.getParentDefListName());
+					if (parent == null) {
+						parent = result;
+					}
+					String mapTypeValue = (String) rec.get(lookup.getMapTypeKey());
+					switch (lookup.getType()) {
+						case INLINE:
+							parent.put(lookup.getParentTargetName(), curObject);
+							break;
+						case MAP:
+							if (lookup.getParentTargetName() == null) {
+								parent.put(mapTypeValue, curObject);
+								break;
+							}
+
+							Map<String, Object> parentSub = (Map<String, Object>) parent.getOrDefault(lookup.getParentTargetName(), new TreeMap<>());
+							if (parentSub.isEmpty()) {
+								parent.put(lookup.getParentTargetName(), parentSub);
+								parentSub.put(mapTypeValue, curObject);
+							} else {
+								parentSub.putIfAbsent(mapTypeValue, curObject);
+							}
+
+							break;
+						case LIST:
+							List<Object> newList = (List<Object>) parent.getOrDefault(mapTypeValue, new ArrayList<>());
+							if (newList.isEmpty()) {
+								parent.put(mapTypeValue, newList);
+							}
+							newList.add(curObject);
+							break;
+					}
 				}
-				edges.put(currValues.get(1), edge);
-			}
-			if (edgeType != null && !edgeType.isEmpty()) {
-				edgeTypes.put(currValues.get(0), edgeType);
 			}
 
 			prevValues.clear();
@@ -233,7 +293,7 @@ public class ResultBuilder {
 			}
 		}
 		System.out.println(size);
-		return edgeTypes;
+		return result;
 	}
 
 	public static Map<String, Object> makeObj(Schema schema, Map<String, Object> record, String defName, boolean ignoreNull, AtomicLong sizeEstimate) {
@@ -267,44 +327,68 @@ public class ResultBuilder {
 		return result;
 	}
 
+	public static Map<String, Object> makeObj2(List<Target> targetCatalog, Map<String, Object> record, boolean ignoreNull, AtomicLong sizeEstimate) {
+
+		if (targetCatalog == null || targetCatalog.isEmpty() || record == null || record.isEmpty()) {
+			return new TreeMap<>();
+		}
+
+		Map<String, Object> result = new TreeMap<>();
+		int size = 0;
+
+		for (Target target : targetCatalog) {
+			Object cellData = record.get(target.getName());
+
+			if (ignoreNull && cellData == null)
+				continue;
+
+			if (target.hasJson()) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> jsonObj = (Map<String, Object>) result.getOrDefault(target.getName(), new TreeMap<>());
+				jsonObj.put(target.getJson(), cellData);
+				size += target.getJson().length();
+				if (jsonObj.size() == 1) {
+					result.put(target.getName(), jsonObj);
+					size += target.getName().length();
+				}
+			} else {
+				result.put(target.getName(), cellData);
+				size += target.getName().length();
+			}
+			size += cellData == null ? 0 : cellData.toString().length();
+		}
+
+		sizeEstimate.getAndAdd(size);
+		return result;
+	}
 
 	public static void main(String[] args) {
-		Schema schema = new Schema();
-		TargetDefList defListC = new TargetDefList("C")
-				.add(new TargetDef("h", "C.h").sqlBefore("before"));
-		TargetDefList defListD = new TargetDefList("D")
-				.add(new TargetDef("d", "D.d").sqlAfter("after"));
-		TargetDefList defListB = new TargetDefList("B")
-				.add(new TargetDef("x", "B.x").alias("x_replaced"))
-				.add(new TargetDef("y", defListC));
-		TargetDefList defListA = new TargetDefList("A")
-				.add(new TargetDef("a", "A.a"))
-				.add(new TargetDef("b", "A.b"))
-				.add(new TargetDef("c", defListB));
-		TargetDefList defListMain = new TargetDefList("main")
-				.add(new TargetDef("t", defListA));
-		schema.add(defListA);
-		schema.add(defListB);
-		schema.add(defListC);
-		schema.add(defListD);
-		schema.add(defListMain);
+		Schema schema = new SelectExpansionConfig().getSelectExpansion().getSchema();
 
-		AtomicLong size = new AtomicLong(0);
+		Map<String, Object> rec1 = new HashMap<>();
+		rec1.put("_stationtype", "AAA");
+		rec1.put("_stationcode", "123");
+		rec1.put("_datatypename", "t1");
+		rec1.put("sname", "edgename1");
+		rec1.put("tname", "t1");
 
-		Map<String, Object> rec = new HashMap<>();
-		rec.put("a", "3");
-		rec.put("b", null);
-		rec.put("x.abc", "0");
-		rec.put("h", "v");
-		System.out.println(makeObj(schema, rec, "A", false, size).toString());
-		System.out.println(makeObj(schema, rec, "A", true, size).toString());
-		System.out.println();
-		System.out.println(makeObj(schema, rec, "B", false, size).toString());
-		System.out.println(makeObj(schema, rec, "B", true, size).toString());
-		System.out.println();
-		System.out.println(makeObj(schema, rec, "C", false, size).toString());
-		System.out.println(makeObj(schema, rec, "C", true, size).toString());
-		System.out.println(size);
+		Map<String, Object> rec2 = new HashMap<>();
+		rec2.put("_stationtype", "AAA");
+		rec2.put("_stationcode", "456");
+		rec2.put("_datatypename", "t2");
+		rec2.put("sname", "edgename2");
+		rec2.put("tname", "t2");
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+		resultList.add(rec2);
+
+		// System.out.println(resultList);
+		System.out.println(buildGeneric("stationtype", null, false, resultList, schema, 1000));
+
+		// List<List<String>> result = schema.getHierarchy("stationtype", "stationend");
+		// System.out.println(result);
+		// System.out.println(schema.getHierarchyTriggerKeys("edgetype", "edge"));
 	}
 
 }

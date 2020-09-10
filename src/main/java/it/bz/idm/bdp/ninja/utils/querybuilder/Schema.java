@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
+
+import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUp;
+import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUpType;
 
 /**
  * Schema
@@ -17,6 +21,9 @@ public class Schema {
 	private Map<String, TargetDefList> schema = new TreeMap<>();
 	private Map<String, String> targetDefNameToAliasMap = new TreeMap<>();
 	private Map<String, List<TargetDef>> aliasOrNameToTargetDefMap = new TreeMap<>();
+	private List<List<String>> hierarchy = new ArrayList<>();
+	private List<String> hierarchyTriggerKeys = new ArrayList<>();
+
 
 	public Schema add(final TargetDefList targetDefList) {
 		if (targetDefList == null) {
@@ -131,6 +138,30 @@ public class Schema {
 		return this;
 	}
 
+	// XXX Cache results
+	public List<List<String>> getHierarchy(String entryPoint, String exitPoint) {
+		hierarchy.clear();
+		hierarchyTriggerKeys.clear();
+		buildLevelRec(get(entryPoint), exitPoint, 0);
+		return hierarchy;
+	}
+
+	public List<List<String>> getHierarchy(String entryPoint) {
+		return getHierarchy(entryPoint, null);
+	}
+
+	// XXX Cache results
+	public List<String> getHierarchyTriggerKeys(String entryPoint, String exitPoint) {
+		hierarchy.clear();
+		hierarchyTriggerKeys.clear();
+		buildLevelRec(get(entryPoint), exitPoint, 0);
+		return hierarchyTriggerKeys;
+	}
+
+	public List<String> getHierarchyTriggerKeys(String entryPoint) {
+		return getHierarchyTriggerKeys(entryPoint, null);
+	}
+
 	private void _addToMapList(final String nameOrAlias, TargetDef targetDef) {
 		List<TargetDef> list = aliasOrNameToTargetDefMap.get(nameOrAlias);
 		if (list == null) {
@@ -142,4 +173,30 @@ public class Schema {
 		}
 	}
 
+	private void buildLevelRec(TargetDefList entryPoint, String exitPoint, int curLevel) {
+		List<String> level = hierarchy.size() > curLevel ? hierarchy.get(curLevel) : new ArrayList<>();
+		level.add(entryPoint.getName());
+
+		if (hierarchy.size() <= curLevel) {
+			hierarchy.add(level);
+
+			LookUp lookup = entryPoint.getLookUp();
+			if (lookup.getType() == LookUpType.MAP)
+				hierarchyTriggerKeys.add(lookup.getMapTypeKey());
+		}
+
+		if (exitPoint != null && exitPoint.equals(entryPoint.getName())) {
+			return;
+		}
+
+		for (Entry<String, TargetDef> entry : entryPoint.getAll().entrySet()) {
+			if (entry.getValue().hasTargetDefList()) {
+				curLevel++;
+				for (TargetDefList tdl : entry.getValue().getTargetLists()) {
+					buildLevelRec(tdl, exitPoint, curLevel);
+				}
+				curLevel--;
+			}
+		}
+	}
 }

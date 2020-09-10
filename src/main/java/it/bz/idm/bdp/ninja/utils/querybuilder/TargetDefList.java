@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUp;
+
 /**
  * A TargetDefList is a hierarchy of {@link TargetDef}, where a target definition
  * can either be a simple column, or a pointer to another {@link TargetDefList}.
@@ -34,6 +36,8 @@ import java.util.Set;
 public class TargetDefList {
 
 	private final String name;
+	private boolean isLeaf = true;
+	private LookUp lookUp = null;
 
 	/**
 	 * The key of this map is the result of {@link TargetDef#getFinalName()}.
@@ -41,7 +45,7 @@ public class TargetDefList {
 	 * For example, mvalue_double --> measurements.double_value
 	 * This will be rewritten to "measurements.double_value AS mvalue_double"
 	 */
-	private Map<String, TargetDef> finalNameMap = new HashMap<String, TargetDef>();
+	private Map<String, TargetDef> finalNameMap = new HashMap<>();
 
 	public TargetDefList(final String name) {
 		if (name == null || name.isEmpty()) {
@@ -58,6 +62,15 @@ public class TargetDefList {
 		return name;
 	}
 
+	public TargetDefList setLookUp(LookUp lookUp) {
+		this.lookUp = lookUp;
+		return this;
+	}
+
+	public LookUp getLookUp() {
+		return lookUp;
+	}
+
 	public TargetDefList add(final TargetDef targetDef) {
 		if (targetDef == null) {
 			throw new RuntimeException("TargetDef must be non-null");
@@ -66,6 +79,9 @@ public class TargetDefList {
 			throw new RuntimeException("TargetDef '" + targetDef.getFinalName() + "' already exists. Aliases and names must be unique (also between each other)");
 		}
 		finalNameMap.put(targetDef.getFinalName(), targetDef);
+		if (targetDef.hasTargetDefList()) {
+			isLeaf = false;
+		}
 		return this;
 	}
 
@@ -79,6 +95,10 @@ public class TargetDefList {
 
 	public Set<String> getFinalNames() {
 		return finalNameMap.keySet();
+	}
+
+	public boolean isLeaf() {
+		return isLeaf;
 	}
 
 	@Override

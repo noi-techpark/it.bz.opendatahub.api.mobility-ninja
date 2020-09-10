@@ -377,7 +377,7 @@ public class DataFetcher {
 				.init(select, where, distinct, "edge", "stationbegin", "stationend")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
-				.addSqlIf("i.stationtype as _stationtype, i.stationcode as _stationcode", !representation.isFlat())
+				.addSqlIf("i.stationtype as _edgetype, i.stationcode as _edgecode", !representation.isFlat())
 				.expandSelectPrefix(", ", !representation.isFlat())
 				.addSql("from edge e")
 				.addSql("join station i on e.edge_data_id = i.id")
@@ -386,8 +386,8 @@ public class DataFetcher {
 				.addSql("where true")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				.expandWhere()
-				.expandGroupByIf("_stationtype, _stationcode", !representation.isFlat())
-				.addSqlIf("order by _stationtype, _stationcode", !representation.isFlat())
+				.expandGroupByIf("_edgetype, _edgecode", !representation.isFlat())
+				.addSqlIf("order by _edgetype, _edgecode", !representation.isFlat())
 				.addLimit(limit)
 				.addOffset(offset);
 		long timeBuild = timer.stop();
@@ -407,7 +407,7 @@ public class DataFetcher {
 
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
-		logStats("fetchStations", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		logStats("fetchEdges", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}

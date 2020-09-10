@@ -3,6 +3,8 @@ package it.bz.idm.bdp.ninja.config;
 import it.bz.idm.bdp.ninja.utils.miniparser.Consumer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
+import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUp;
+import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUpType;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDef;
@@ -18,6 +20,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList measurement = TargetDefList
 			.init("measurement")
+			.setLookUp(new LookUp(LookUpType.LIST, "datatype", "tmeasurements", null))
 			.add(new TargetDef("mvalidtime", "me.timestamp"))
 			.add(new TargetDef("mtransactiontime", "me.created_on"))
 			.add(new TargetDef("mperiod", "me.period"));
@@ -26,6 +29,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList measurementdouble = TargetDefList
 			.init("measurementdouble")
+			.setLookUp(new LookUp(LookUpType.INLINE, "datatype", "tmeasurements", null))
 			.add(new TargetDef("mvalue_double", "me.double_value")
 				.sqlAfter("null::character varying as mvalue_string")
 				.alias("mvalue"));
@@ -34,6 +38,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList measurementstring = TargetDefList
 			.init("measurementstring")
+			.setLookUp(new LookUp(LookUpType.INLINE, "datatype", "tmeasurements", null))
 			.add(new TargetDef("mvalue_string", "me.string_value")
 				.sqlBefore("null::double precision as mvalue_double")
 				.alias("mvalue"));
@@ -42,6 +47,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList datatype = TargetDefList
 			.init("datatype")
+			.setLookUp(new LookUp(LookUpType.MAP, "station", "sdatatype", "_datatypename"))
 			.add(new TargetDef("tname", "t.cname"))
 			.add(new TargetDef("tunit", "t.cunit"))
 			.add(new TargetDef("ttype", "t.rtype"))
@@ -53,6 +59,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList parent = TargetDefList
 			.init("parent")
+			.setLookUp(new LookUp(LookUpType.INLINE, "station", "parent", null))
 			.add(new TargetDef("pname", "p.name"))
 			.add(new TargetDef("ptype", "p.stationtype"))
 			.add(new TargetDef("pcode", "p.stationcode"))
@@ -66,6 +73,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList station = TargetDefList
 			.init("station")
+			.setLookUp(new LookUp(LookUpType.MAP, "stationtype", "stations", "_stationcode"))
 			.add(new TargetDef("sname", "s.name"))
 			.add(new TargetDef("stype", "s.stationtype"))
 			.add(new TargetDef("scode", "s.stationcode"))
@@ -81,6 +89,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList stationBegin = TargetDefList
 			.init("stationbegin")
+			.setLookUp(new LookUp(LookUpType.INLINE, "edge", "ebegin", null))
 			.add(new TargetDef("sbname", "o.name"))
 			.add(new TargetDef("sbtype", "o.stationtype"))
 			.add(new TargetDef("sbcode", "o.stationcode"))
@@ -93,6 +102,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList stationEnd = TargetDefList
 			.init("stationend")
+			.setLookUp(new LookUp(LookUpType.INLINE, "edge", "eend", null))
 			.add(new TargetDef("sename", "d.name"))
 			.add(new TargetDef("setype", "d.stationtype"))
 			.add(new TargetDef("secode", "d.stationcode"))
@@ -105,6 +115,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList edge = TargetDefList
 			.init("edge")
+			.setLookUp(new LookUp(LookUpType.MAP, "edgetype", "edges", "_edgecode"))
 			.add(new TargetDef("ename", "i.name"))
 			.add(new TargetDef("etype", "i.stationtype"))
 			.add(new TargetDef("ecode", "i.stationcode"))
@@ -119,12 +130,14 @@ public class SelectExpansionConfig {
 
 		TargetDefList stationtype = TargetDefList
 			.init("stationtype")
+			.setLookUp(new LookUp(LookUpType.MAP, null, null, "_stationtype"))
 			.add(new TargetDef("stations", station));
 
 		schema.add(stationtype);
 
 		TargetDefList edgetype = TargetDefList
 			.init("edgetype")
+			.setLookUp(new LookUp(LookUpType.MAP, null, null, "_edgetype"))
 			.add(new TargetDef("edges", edge));
 
 		schema.add(edgetype);

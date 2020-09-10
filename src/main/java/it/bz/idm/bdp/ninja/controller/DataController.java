@@ -32,7 +32,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.security.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
+import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -95,30 +95,6 @@ public class DataController {
 	private static final String DEFAULT_OFFSET = "0";
 	private static final String DEFAULT_SHOWNULL = "false";
 	private static final String DEFAULT_DISTINCT = "true";
-
-	private static final List<String> TREE_STATIONS = new ArrayList<String>() {
-		private static final long serialVersionUID = -1699134802805589710L;
-		{
-			add("_stationtype");
-			add("_stationcode");
-		}
-	};
-
-	private static final List<String> TREE_DATATYPE = new ArrayList<String>() {
-		private static final long serialVersionUID = 5080748129639971674L;
-		{
-			addAll(TREE_STATIONS);
-			add("_datatypename");
-		}
-	};
-
-	private static final List<String> TREE_FULL = new ArrayList<String>() {
-		private static final long serialVersionUID = 39536715440489931L;
-		{
-			addAll(TREE_DATATYPE);
-			add("_datatypename");
-		}
-	};
 
 	private static DateTimeFormatter DATE_FORMAT = new DateTimeFormatterBuilder().appendPattern(DATETIME_FORMAT_PATTERN)
 			.parseDefaulting(ChronoField.HOUR_OF_DAY, 0).parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
@@ -223,10 +199,10 @@ public class DataController {
 		final Map<String, Object> result;
 		if (repr.isEdge()) {
 			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
-			result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
+			result = buildResult("edgetype", "edge", queryResult, offset, limit, repr, showNull);
 		} else {
 			queryResult = dataFetcher.fetchStations(stationTypes, repr);
-			result = buildResult(queryResult, offset, limit, repr, showNull, TREE_STATIONS);
+			result = buildResult("stationtype", "station", queryResult, offset, limit, repr, showNull);
 		}
 		return DataFetcher.serializeJSON(result);
 	}
@@ -254,7 +230,7 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsAndTypes(stationTypes, dataTypes, repr);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_DATATYPE);
+		final Map<String, Object> result = buildResult("stationtype", "datatype", queryResult, offset, limit, repr, showNull);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -282,7 +258,7 @@ public class DataController {
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
 				dataTypes, null, null, repr);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_FULL);
+		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
 		return DataFetcher.serializeJSON(result);
 	}
 
@@ -314,30 +290,32 @@ public class DataController {
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
 				dataTypes, dateTimeFrom.toLocalDateTime(), dateTimeTo.toLocalDateTime(), repr);
-		final Map<String, Object> result = buildResult(queryResult, offset, limit, repr, showNull, TREE_FULL);
+		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
 		return DataFetcher.serializeJSON(result);
 	}
 
-	private Map<String, Object> buildResult(final List<Map<String, Object>> queryResult, final long offset,
-			final long limit, final Representation representation, final boolean showNull, final List<String> tree) {
+	private Map<String, Object> buildResult(String entryPoint, String exitPoint, final List<Map<String, Object>> queryResult, final long offset,
+			final long limit, final Representation representation, final boolean showNull) {
 		final Map<String, Object> result = new HashMap<>();
 		result.put("offset", offset);
 		result.put("limit", limit);
-
+		Timer timer = new Timer();
+		timer.start();
 		switch(representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
-				result.put("data", ResultBuilder.build(!showNull, queryResult,
-					dataFetcher.getQuery().getSelectExpansion().getSchema(), tree, maxAllowedSizeInMB));
+				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, !showNull, queryResult,
+					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 			case TREE_EDGE:
-				result.put("data", ResultBuilder.buildEdges(!showNull, queryResult,
-					dataFetcher.getQuery().getSelectExpansion().getSchema(), tree, maxAllowedSizeInMB));
+				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, !showNull, queryResult,
+					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 		}
+		System.out.println("TIME TO BUILD: " + timer.stop());
 		return result;
 	}
 
