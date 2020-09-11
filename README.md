@@ -135,23 +135,69 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 
 The server will startup and listen on `http://localhost:8081`.
 
-## Station Types / Categories
+## API Entry Point
 
-### I want to get all station types as a list
+### I want to see what this API provides
 
 ```
 GET /
 ```
 
+## Station and Edge Types / Categories
+
+### I want to get all station or edge types
+
+The API provides data about nodes and edges on a map. The node is a measurement
+station, and the connection between stations are called edges. The first path
+variable is the [representation](#representation).
+
+For compactness, we will use only flat representations throughout this tutorial.
+
+Examples:
+```
+GET /tree,node/
+GET /flat,node/
+GET /tree,edge/
+GET /flat,edge/
+```
+
+## Edges
+
+An edge is a connection between two stations and some descriptive fields
+attached. In addition it contains geometries, that describe the connection on a
+map.
+
+An edge is (for historical reasons) internally represented with three stations,
+a start station, an end station and a station that represents the description of
+the edge. Therefore we have three prefixes of JSON fields:
+- fields with prefix `e` are part of the edge descriptions
+- fields with prefix `sb` are part of the beginning station
+- fields with prefix `se` are part of the ending station
+
+### I want to get all edges of a certain category
+
+```
+GET /flat,edge/Linkstation
+```
+
+### I want to get a specific edge of a certain category
+
+```
+/flat,edge/LinkStation?where=ename.eq."tis -> cfirmiano"
+```
+
+
 ## Stations
 
 Please note, that the response is limited. However, you can [set another limit
-or disable it completely](#pagination). The first path variable is the
-[representation](#representation), which can be either `flat` or `tree`. For
-compactness, we will use only flat representations throughout this tutorial.
+or disable it completely](#pagination).
 
 ### I want to get all e-charging stations including details
 
+```
+GET /node,flat/EChargingStation
+```
+is the same as
 ```
 GET /flat/EChargingStation
 ```
@@ -373,10 +419,14 @@ GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?shownull=true
 
 ## Representation
 
-We have two types of representations: `flat` and `tree`. The former one shows
-each JSON object with all selected attributes at the first level. Deeper levels
-represent complex data types, such as `coordinates` and `jsonb`. Only the first
-level can be selected or filtered.
+We have two types of representations to choose from: (given as comma separated
+values):
+- `flat` or `tree`
+- `node` or `edge` (`node` is the default and can be omitted)
+
+The flat one shows each JSON object with all selected attributes at the first
+level. Deeper levels represent complex data types, such as `coordinates` and
+`jsonb`. Only the first level can be selected or filtered.
 
 Example with `select=stype,dtype,mvalue,smetadata`:
 
@@ -419,14 +469,21 @@ which do not match inside a hierarchy, this representation is suited for you.
 }
 ```
 
-The `tree` representation, shows a hierarchy of the following kind:
+The `tree` representation, shows a hierarchy of the following kind for nodes:
 
 ```
 station types / categories
-└── stations
+└── stations (incl. parent and metadata)
     └── data types
         └── measurements
 ```
+
+...and the following hierarchy for edges:
+```
+edge types / categories
+└── edges (incl. start and end station)
+```
+
 
 NB: The `tree` is more expensive to generate on the server and use within your
 application, but the response size can be much smaller due to nesting and thus
