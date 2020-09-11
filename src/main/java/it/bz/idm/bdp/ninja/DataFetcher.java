@@ -578,7 +578,7 @@ public class DataFetcher {
 		hierarchy.add("_stationcode");
 		hierarchy.add("_datatypename");
 
-		System.out.println(JsonStream.serialize(ResultBuilder.build(true, queryResult, se.getSchema(), hierarchy, 0)));
+		System.out.println(JsonStream.serialize(ResultBuilder.build("stationtype", null, true, queryResult, se.getSchema(), 10000)));
 	}
 
 }

@@ -59,7 +59,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList parent = TargetDefList
 			.init("parent")
-			.setLookUp(new LookUp(LookUpType.INLINE, "station", "parent", null))
+			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sparent", null))
 			.add(new TargetDef("pname", "p.name"))
 			.add(new TargetDef("ptype", "p.stationtype"))
 			.add(new TargetDef("pcode", "p.stationcode"))

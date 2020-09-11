@@ -62,6 +62,10 @@ public class TargetDefList {
 		return name;
 	}
 
+	// TODO The lookup configuration could be build partially automatic during schema.compile
+	//      This would be less error-prone. It could be part of the add(TargetDef) function
+	//      We could add a new function --> add(TargetDef, Lookup) where we might fill most of
+	//      The lookup automatically.
 	public TargetDefList setLookUp(LookUp lookUp) {
 		this.lookUp = lookUp;
 		return this;

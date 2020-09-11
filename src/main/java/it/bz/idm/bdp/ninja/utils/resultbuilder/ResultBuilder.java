@@ -6,13 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
-import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Target;
-import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -32,126 +29,6 @@ public class ResultBuilder {
 		public String getMsg() {
 			return "TREE BUILDING: " + msg;
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static Map<String, Object> build(boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema, List<String> hierarchy, int maxAllowedSizeInMB) {
-		AtomicLong size = new AtomicLong(0);
-
-		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
-
-		if (queryResult == null || queryResult.isEmpty()) {
-			return new HashMap<>();
-		}
-
-		List<String> currValues = new ArrayList<>();
-		List<String> prevValues = new ArrayList<>();
-
-		for (int i = 0; i < hierarchy.size(); i++) {
-			prevValues.add("");
-		}
-
-		Map<String, Object> stationTypes = new HashMap<>();
-		Map<String, Object> stations = null;
-		Map<String, Object> datatypes = null;
-		List<Object> measurements = null;
-
-		Map<String, Object> stationType = null;
-		Map<String, Object> station = null;
-		Map<String, Object> parent = null;
-		Map<String, Object> datatype = null;
-		Map<String, Object> measurement = null;
-		Map<String, Object> mvalueAndFunctions = null;
-
-		for (Map<String, Object> rec : queryResult) {
-
-			currValues.clear();
-			int i = 0;
-			boolean levelSet = false;
-			int renewLevel = hierarchy.size();
-			for (String alias : hierarchy) {
-				String value = (String) rec.get(alias);
-				if (value == null) {
-					throw new RuntimeException(alias + " not found in select. Unable to build hierarchy.");
-				}
-				currValues.add(value);
-				if (!levelSet && !value.equals(prevValues.get(i))) {
-					renewLevel = i;
-					levelSet = true;
-				}
-				i++;
-			}
-
-			switch (renewLevel) {
-				case 0:
-					stationType = makeObj(schema, rec, "stationtype", false, size);
-				case 1:
-					station = makeObj(schema, rec, "station", ignoreNull, size);
-					parent = makeObj(schema, rec, "parent", ignoreNull, size);
-				case 2:
-					if (hierarchy.size() > 2) {
-						datatype = makeObj(schema, rec, "datatype", ignoreNull, size);
-					}
-				default:
-					if (hierarchy.size() > 3) {
-						measurement = makeObj(schema, rec, "measurement", ignoreNull, size);
-
-						/*
-						 * We only need one measurement-type here ("measurementdouble"), since we look
-						 * only for final names, that is we do not consider mvalue_double and
-						 * mvalue_string here, but reduce both before handling to mvalue. See makeObj
-						 * for details.
-						 */
-						mvalueAndFunctions = makeObj(schema, rec, "measurementdouble", ignoreNull, size);
-
-						for (Entry<String, Object> entry : mvalueAndFunctions.entrySet()) {
-							if (entry.getValue() != null || !ignoreNull) {
-								measurement.put(entry.getKey(), entry.getValue());
-							}
-						}
-					}
-			}
-
-			if (measurement != null && !measurement.isEmpty()) {
-				measurements = (List<Object>) datatype.get("tmeasurements");
-				if (measurements == null) {
-					measurements = new ArrayList<>();
-					datatype.put("tmeasurements", measurements);
-				}
-				measurements.add(measurement);
-			}
-			if (datatype != null && !datatype.isEmpty()) {
-				datatypes = (Map<String, Object>) station.get("sdatatypes");
-				if (datatypes == null) {
-					datatypes = new HashMap<>();
-					station.put("sdatatypes", datatypes);
-				}
-				datatypes.put(currValues.get(2), datatype);
-			}
-			if (!parent.isEmpty()) {
-				station.put("sparent", parent);
-			}
-			if (!station.isEmpty()) {
-				stations = (Map<String, Object>) stationType.get("stations");
-				if (stations == null) {
-					stations = new HashMap<>();
-					stationType.put("stations", stations);
-				}
-				stations.put(currValues.get(1), station);
-			}
-			if (!stationType.isEmpty()) {
-				stationTypes.put(currValues.get(0), stationType);
-			}
-
-			prevValues.clear();
-			prevValues.addAll(currValues);
-
-			if (maxAllowedSize > 0 && maxAllowedSize < size.get()) {
-				throw new SimpleException(ErrorCode.RESPONSE_SIZE, maxAllowedSizeInMB);
-			}
-		}
-		System.out.println(size);
-		return stationTypes;
 	}
 
 	public static int calculateLevel(Map<String, Object> rec, List<String> hierarchy, List<String> prevValues, List<String> currValues) {
@@ -182,7 +59,7 @@ public class ResultBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> buildGeneric(String entryPoint, String exitPoint, boolean showNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
+	public static Map<String, Object> build(String entryPoint, String exitPoint, boolean showNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
 		AtomicLong size = new AtomicLong(0);
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
 
@@ -237,7 +114,7 @@ public class ResultBuilder {
 
 			for (int level = renewLevel; level <= maxLevel; level++) {
 				for (String targetDefListName : hierarchy.get(level)) {
-					Map<String, Object> curObject = makeObj2(catalog.get(targetDefListName), rec, showNull, size);
+					Map<String, Object> curObject = makeObj(catalog.get(targetDefListName), rec, showNull, size);
 					cache.put(targetDefListName, curObject);
 				}
 			}
@@ -294,42 +171,10 @@ public class ResultBuilder {
 				throw new SimpleException(ErrorCode.RESPONSE_SIZE, maxAllowedSizeInMB);
 			}
 		}
-		System.out.println(size);
 		return result;
 	}
 
-	public static Map<String, Object> makeObj(Schema schema, Map<String, Object> record, String defName, boolean ignoreNull, AtomicLong sizeEstimate) {
-		TargetDefList def = schema.getOrNull(defName);
-		Map<String, Object> result = new TreeMap<>();
-		int size = 0;
-		for (Entry<String, Object> entry : record.entrySet()) {
-			if (ignoreNull && entry.getValue() == null)
-				continue;
-
-			Target target = new Target(entry.getKey());
-
-			if (def.getFinalNames().contains(target.getName())) {
-				if (target.hasJson()) {
-					@SuppressWarnings("unchecked")
-					Map<String, Object> jsonObj = (Map<String, Object>) result.getOrDefault(target.getName(), new TreeMap<String, Object>());
-					jsonObj.put(target.getJson(), entry.getValue());
-					size += target.getJson().length();
-					if (jsonObj.size() == 1) {
-						result.put(target.getName(), jsonObj);
-						size += target.getName().length();
-					}
-				} else {
-					result.put(target.getName(), entry.getValue());
-					size += target.getName().length();
-				}
-				size += entry.getValue() == null ? 0 : entry.getValue().toString().length();
-			}
-		}
-		sizeEstimate.getAndAdd(size);
-		return result;
-	}
-
-	public static Map<String, Object> makeObj2(List<Target> targetCatalog, Map<String, Object> record, boolean showNull, AtomicLong sizeEstimate) {
+	private static Map<String, Object> makeObj(List<Target> targetCatalog, Map<String, Object> record, boolean showNull, AtomicLong sizeEstimate) {
 
 		if (targetCatalog == null || targetCatalog.isEmpty() || record == null || record.isEmpty()) {
 			return new TreeMap<>();
@@ -363,43 +208,4 @@ public class ResultBuilder {
 		sizeEstimate.getAndAdd(size);
 		return result;
 	}
-
-	public static void main(String[] args) {
-		Schema schema = new SelectExpansionConfig().getSelectExpansion().getSchema();
-
-		Map<String, Object> rec1 = new HashMap<>();
-		rec1.put("_stationtype", "AAA");
-		rec1.put("_stationcode", "123");
-		rec1.put("_datatypename", "t1");
-		rec1.put("sname", "edgename1");
-		rec1.put("tname", "t1");
-		rec1.put("mperiod", 200);
-		rec1.put("mvalidtime", 13);
-		rec1.put("mtransactiontime", 88);
-		rec1.put("mvalue", 1111);
-
-		Map<String, Object> rec2 = new HashMap<>();
-		rec2.put("_stationtype", "AAA");
-		rec2.put("_stationcode", "456");
-		rec2.put("_datatypename", "t2");
-		rec2.put("sname", "edgename2");
-		rec2.put("tname", "t2");
-		rec2.put("mperiod", 100);
-		rec2.put("mvalidtime", 133);
-		rec2.put("mtransactiontime", 8899);
-		rec2.put("mvalue", 2222);
-
-		List<Map<String, Object>> resultList = new ArrayList<>();
-		resultList.add(rec1);
-		resultList.add(rec2);
-
-		// TODO Move this to an unit test class
-		// System.out.println(resultList);
-		System.out.println(buildGeneric("stationtype", null, false, resultList, schema, 1000));
-
-		// List<List<String>> result = schema.getHierarchy("stationtype", "stationend");
-		// System.out.println(result);
-		// System.out.println(schema.getHierarchyTriggerKeys("edgetype", "edge"));
-	}
-
 }

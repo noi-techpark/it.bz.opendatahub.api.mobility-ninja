@@ -1,6 +1,7 @@
 package it.bz.idm.bdp.ninja;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -140,7 +141,7 @@ public class SelectExpansionTests {
 		// More select definitions than aliases
 		List<String> res = seFlat.getUsedTargetNames();
 		assertEquals("a", res.get(0));
-		assertTrue(res.size() == 1);
+		assertEquals(1, res.size());
 
 		// Alias that cannot be found
 		try {
@@ -154,34 +155,42 @@ public class SelectExpansionTests {
 
 	@Test
 	public void testOpenDataHubConfigJSONList() {
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.()");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null)");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null,null)");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null,x,null)");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(1,2,3)");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(1,hallo)");
-		seOpenDataHub.expand("smetadata", "station");
+		try {
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.()");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null)");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null,null)");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(null,x,null)");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(1,2,3)");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.in.(1,hallo)");
+			seOpenDataHub.expand("smetadata", "station");
+		} catch (Exception e) {
+			fail();
+		}
 	}
 
 	@Test
 	public void testOpenDataHubConfigJSON() {
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.\"\"");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.null");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.-1");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.hallo");
-		seOpenDataHub.expand("smetadata", "station");
-		seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.\".......\"");
-		seOpenDataHub.expand("smetadata", "station");
+		try {
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.\"\"");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.null");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.-1");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.hallo");
+			seOpenDataHub.expand("smetadata", "station");
+			seOpenDataHub.setWhereClause("smetadata.aa.bbb.eq.\".......\"");
+			seOpenDataHub.expand("smetadata", "station");
+		} catch (Exception e) {
+			fail();
+		}
 	}
 
 	@Test
@@ -202,7 +211,7 @@ public class SelectExpansionTests {
 		seNestedBig.expand("a", "A", "C");
 		List<String> res = seNestedBig.getUsedTargetNames();
 		assertEquals("a", res.get(0));
-		assertTrue(res.size() == 1);
+		assertEquals(1, res.size());
 	}
 
 	@Test
@@ -210,7 +219,7 @@ public class SelectExpansionTests {
 		seNestedBig.expand("x_replaced", "B");
 		List<String> res = seNestedBig.getUsedTargetNames();
 		assertEquals("x_replaced", res.get(0));
-		assertTrue(res.size() == 1);
+		assertEquals(1, res.size());
 	}
 
 	/* The original name must be replaced, and should therefore no longer be accessible */
@@ -230,7 +239,7 @@ public class SelectExpansionTests {
 		seNestedBig.expand("x_replaced", "B");
 		List<String> res = seNestedBig.getUsedTargetNames();
 		assertEquals("x_replaced", res.get(0));
-		assertTrue(res.size() == 1);
+		assertEquals(1, res.size());
 		assertEquals("B.x as x_replaced", seNestedBig.getExpansion("B"));
 	}
 
@@ -240,7 +249,7 @@ public class SelectExpansionTests {
 
 		List<String> res = seNested.getUsedDefNames();
 		assertEquals("A", res.get(0));
-		assertTrue(res.size() == 1);
+		assertEquals(1, res.size());
 	}
 
 	@Test
@@ -249,9 +258,9 @@ public class SelectExpansionTests {
 		assertEquals("a", seNested.getUsedTargetNames().get(0));
 		assertEquals("A", seNested.getUsedDefNames().get(0));
 		assertEquals("A.a as a", seNested.getExpansion().get("A"));
-		assertTrue(seNested.getUsedTargetNames().size() == 1);
-		assertTrue(seNested.getUsedDefNames().size() == 1);
-		assertTrue(seNested.getExpansion().size() == 1);
+		assertEquals(1, seNested.getUsedTargetNames().size());
+		assertEquals(1, seNested.getUsedDefNames().size());
+		assertEquals(1, seNested.getExpansion().size());
 
 		try {
 			seNested.expand("a", "B");
@@ -265,9 +274,9 @@ public class SelectExpansionTests {
 		assertEquals("b", seNested.getUsedTargetNames().get(1));
 		assertEquals("A", seNested.getUsedDefNames().get(0));
 		assertEquals("A.a as a, A.b as b", seNested.getExpansion().get("A"));
-		assertTrue(seNested.getUsedTargetNames().size() == 2);
-		assertTrue(seNested.getUsedDefNames().size() == 1);
-		assertTrue(seNested.getExpansion().size() == 1);
+		assertEquals(2, seNested.getUsedTargetNames().size());
+		assertEquals(1, seNested.getUsedDefNames().size());
+		assertEquals(1, seNested.getExpansion().size());
 
 		seNested.expand("x, y", "A", "B", "C");
 		assertEquals("a", seNested.getUsedTargetNames().get(0));
@@ -298,9 +307,9 @@ public class SelectExpansionTests {
 		assertTrue(expA.contains("max(A.a) as \"max(a)\""));
 		assertTrue(expA.contains("min(A.a) as \"min(a)\""));
 		assertTrue(expA.contains("A.a as a"));
-		assertTrue(seNested.getUsedTargetNames().size() == 1);
-		assertTrue(seNested.getUsedDefNames().size() == 1);
-		assertTrue(seNested.getExpansion().size() == 1);
+		assertEquals(1, seNested.getUsedTargetNames().size());
+		assertEquals(1, seNested.getUsedDefNames().size());
+		assertEquals(1, seNested.getExpansion().size());
 		assertEquals("a", seNested.getGroupByTargetNames().get(0));
 	}
 
@@ -314,9 +323,9 @@ public class SelectExpansionTests {
 		assertTrue(expA.contains("max(A.a) as \"max(a)\""));
 		assertTrue(expA.contains("min(A.a) as \"min(a)\""));
 
-		assertTrue(seNested.getUsedTargetNames().size() == 1);
-		assertTrue(seNested.getUsedDefNames().size() == 1);
-		assertTrue(seNested.getExpansion().size() == 1);
+		assertEquals(1, seNested.getUsedTargetNames().size());
+		assertEquals(1, seNested.getUsedDefNames().size());
+		assertEquals(1, seNested.getExpansion().size());
 	}
 
 	@Test
@@ -329,9 +338,9 @@ public class SelectExpansionTests {
 		assertTrue(expA.contains("max((A.a#>'{b,d}')::double precision) as \"max(a.b.d)\""));
 		assertTrue(expA.contains("min((A.a#>'{b,c}')::double precision) as \"min(a.b.c)\""));
 
-		assertTrue(seNested.getUsedTargetNames().size() == 1);
-		assertTrue(seNested.getUsedDefNames().size() == 1);
-		assertTrue(seNested.getExpansion().size() == 1);
+		assertEquals(1, seNested.getUsedTargetNames().size());
+		assertEquals(1, seNested.getUsedDefNames().size());
+		assertEquals(1, seNested.getExpansion().size());
 	}
 
 	@Test
@@ -394,7 +403,7 @@ public class SelectExpansionTests {
 		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(1).getPayload("typedvalue") instanceof Integer);
 		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(2).getPayload("typedvalue") instanceof Double);
 		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(3).getPayload("typedvalue") instanceof String);
-		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(4).getPayload("typedvalue") == null);
+		assertNull(seMinimal.getUsedAliasesInWhere().get("a").get(4).getPayload("typedvalue"));
 	}
 
 }

@@ -307,11 +307,11 @@ public class DataController {
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
-				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, showNull, queryResult,
+				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 			case TREE_EDGE:
-				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, showNull, queryResult,
+				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 		}

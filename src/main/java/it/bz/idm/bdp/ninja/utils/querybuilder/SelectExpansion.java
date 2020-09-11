@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import it.bz.idm.bdp.ninja.utils.miniparser.Consumer;
 import it.bz.idm.bdp.ninja.utils.miniparser.ConsumerExtended;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
-import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -605,7 +603,6 @@ public class SelectExpansion {
 	}
 
 	public static void main(String[] args) {
-		AtomicLong size = new AtomicLong(0);
 		SelectExpansion se = new SelectExpansion();
 		Schema schema = new Schema();
 		TargetDefList defListC = new TargetDefList("C")
@@ -712,14 +709,6 @@ public class SelectExpansion {
 		System.out.println(se.getUsedDefNames());
 		System.out.println(se.getWhereSql());
 		System.out.println();
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "A", false, size).toString());
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "A", true, size).toString());
-		System.out.println();
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "B", false, size).toString());
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "B", true, size).toString());
-		System.out.println();
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "C", false, size).toString());
-		System.out.println(ResultBuilder.makeObj(se.getSchema(), rec, "C", true, size).toString());
 
 		//// {A=A.a as a, A.b as b, B=B.x as x, X=X.h as h}
 		//// [a, b, c, x, h, y]
