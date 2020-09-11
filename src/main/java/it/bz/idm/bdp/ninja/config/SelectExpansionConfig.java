@@ -29,7 +29,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList measurementdouble = TargetDefList
 			.init("measurementdouble")
-			.setLookUp(new LookUp(LookUpType.INLINE, "datatype", "tmeasurements", null))
+			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_double", "me.double_value")
 				.sqlAfter("null::character varying as mvalue_string")
 				.alias("mvalue"));
@@ -38,7 +38,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList measurementstring = TargetDefList
 			.init("measurementstring")
-			.setLookUp(new LookUp(LookUpType.INLINE, "datatype", "tmeasurements", null))
+			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_string", "me.string_value")
 				.sqlBefore("null::double precision as mvalue_double")
 				.alias("mvalue"));

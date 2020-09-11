@@ -259,6 +259,9 @@ public class ResultBuilder {
 						case INLINE:
 							parent.put(lookup.getParentTargetName(), curObject);
 							break;
+						case MERGE:
+							parent.put(lookup.getParentTargetName(), curObject.get(lookup.getParentTargetName()));
+							break;
 						case MAP:
 							if (lookup.getParentTargetName() == null) {
 								parent.put(mapTypeValue, curObject);
@@ -374,7 +377,7 @@ public class ResultBuilder {
 		rec1.put("mperiod", 200);
 		rec1.put("mvalidtime", 13);
 		rec1.put("mtransactiontime", 88);
-		// rec1.put("mvalue", 1111);
+		rec1.put("mvalue", 1111);
 
 		Map<String, Object> rec2 = new HashMap<>();
 		rec2.put("_stationtype", "AAA");
@@ -384,13 +387,14 @@ public class ResultBuilder {
 		rec2.put("tname", "t2");
 		rec2.put("mperiod", 100);
 		rec2.put("mvalidtime", 133);
-		rec1.put("mtransactiontime", 8899);
+		rec2.put("mtransactiontime", 8899);
 		rec2.put("mvalue", 2222);
 
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
 		resultList.add(rec2);
 
+		// TODO Move this to an unit test class
 		// System.out.println(resultList);
 		System.out.println(buildGeneric("stationtype", null, false, resultList, schema, 1000));
 
