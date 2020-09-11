@@ -182,7 +182,7 @@ public class ResultBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> buildGeneric(String entryPoint, String exitPoint, boolean ignoreNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
+	public static Map<String, Object> buildGeneric(String entryPoint, String exitPoint, boolean showNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
 		AtomicLong size = new AtomicLong(0);
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
 
@@ -192,14 +192,13 @@ public class ResultBuilder {
 
 		List<String> currValues = new ArrayList<>();
 		List<String> prevValues = new ArrayList<>();
-		List<String> hierarchyTriggerKeys = schema.getHierarchyTriggerKeys(entryPoint, exitPoint);
-		int maxLevel = hierarchyTriggerKeys.size();
 		Map<String, List<Target>> catalog = new HashMap<>();
 		Map<String, Object> result = new HashMap<>();
 
 		// Should be present inside the definition, just entrypoint needed
 		List<List<String>> hierarchy = schema.getHierarchy(entryPoint, exitPoint);
-
+		List<String> hierarchyTriggerKeys = schema.getHierarchyTriggerKeys(entryPoint, exitPoint);
+		int maxLevel = hierarchy.size() - 1;
 
 		Map<String, Map<String, Object>> cache = new HashMap<>();
 		Map<String, Object> firstResultRecord = queryResult.get(0);
@@ -213,8 +212,8 @@ public class ResultBuilder {
 
 
 		// create catalog of Targets, since each record in this result set contains exactly the same names
-		for (List<String> level : hierarchy) {
-			for (String targetDefListName : level) {
+		for (List<String> targetDefListNames : hierarchy) {
+			for (String targetDefListName : targetDefListNames) {
 				Set<String> targetDefNames = schema.getOrNull(targetDefListName).getFinalNames();
 				List<Target> currentTargetList = new ArrayList<>();
 				for (String targetName : firstResultRecord.keySet()) {
@@ -236,15 +235,15 @@ public class ResultBuilder {
 
 			int renewLevel = calculateLevel(rec, hierarchyTriggerKeys, prevValues, currValues);
 
-			for (int i = renewLevel; i <= maxLevel; i++) {
-				for (String targetDefListName : hierarchy.get(i)) {
-					Map<String, Object> curObject = makeObj2(catalog.get(targetDefListName), rec, ignoreNull, size);
+			for (int level = renewLevel; level <= maxLevel; level++) {
+				for (String targetDefListName : hierarchy.get(level)) {
+					Map<String, Object> curObject = makeObj2(catalog.get(targetDefListName), rec, showNull, size);
 					cache.put(targetDefListName, curObject);
 				}
 			}
 
-			for (int i = maxLevel; i >= renewLevel; i--) {
-				for (String targetDefListName : hierarchy.get(i)) {
+			for (int level = maxLevel; level >= renewLevel; level--) {
+				for (String targetDefListName : hierarchy.get(level)) {
 					Map<String, Object> curObject = cache.get(targetDefListName);
 					if (curObject == null || curObject.isEmpty()) {
 						continue;
@@ -330,7 +329,7 @@ public class ResultBuilder {
 		return result;
 	}
 
-	public static Map<String, Object> makeObj2(List<Target> targetCatalog, Map<String, Object> record, boolean ignoreNull, AtomicLong sizeEstimate) {
+	public static Map<String, Object> makeObj2(List<Target> targetCatalog, Map<String, Object> record, boolean showNull, AtomicLong sizeEstimate) {
 
 		if (targetCatalog == null || targetCatalog.isEmpty() || record == null || record.isEmpty()) {
 			return new TreeMap<>();
@@ -342,7 +341,7 @@ public class ResultBuilder {
 		for (Target target : targetCatalog) {
 			Object cellData = record.get(target.getName());
 
-			if (ignoreNull && cellData == null)
+			if (!showNull && cellData == null)
 				continue;
 
 			if (target.hasJson()) {

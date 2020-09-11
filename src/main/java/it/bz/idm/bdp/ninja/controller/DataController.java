@@ -199,7 +199,7 @@ public class DataController {
 		final Map<String, Object> result;
 		if (repr.isEdge()) {
 			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
-			result = buildResult("edgetype", "edge", queryResult, offset, limit, repr, showNull);
+			result = buildResult("edgetype", null, queryResult, offset, limit, repr, showNull);
 		} else {
 			queryResult = dataFetcher.fetchStations(stationTypes, repr);
 			result = buildResult("stationtype", "station", queryResult, offset, limit, repr, showNull);
@@ -307,11 +307,11 @@ public class DataController {
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
-				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, !showNull, queryResult,
+				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 			case TREE_EDGE:
-				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, !showNull, queryResult,
+				result.put("data", ResultBuilder.buildGeneric(entryPoint, exitPoint, showNull, queryResult,
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 		}
