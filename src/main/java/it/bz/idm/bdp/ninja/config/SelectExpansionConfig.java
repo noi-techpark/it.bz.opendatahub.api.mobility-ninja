@@ -47,7 +47,7 @@ public class SelectExpansionConfig {
 
 		TargetDefList datatype = TargetDefList
 			.init("datatype")
-			.setLookUp(new LookUp(LookUpType.MAP, "station", "sdatatype", "_datatypename"))
+			.setLookUp(new LookUp(LookUpType.MAP, "station", "sdatatypes", "_datatypename"))
 			.add(new TargetDef("tname", "t.cname"))
 			.add(new TargetDef("tunit", "t.cunit"))
 			.add(new TargetDef("ttype", "t.rtype"))
