@@ -152,10 +152,10 @@ paths:
         - Mobility V2
       summary: View station or edge details of a given type
       description:
-        You can put multiple stationtypes as comma-seperated lists. The response
-        contains stations (prefix <code>s</code>) and their parent-stations
-        (prefix <code>p</code>). Each JSON attribute is prefixed with the first
-        letter of that object.
+        You can put multiple edgetypes as comma-seperated lists. The response
+        contains edges (prefix <code>e</code>) and their beginning and ending
+        station (prefix <code>sb</code> and <code>se</code>). Each JSON
+        attribute is prefixed with the first letter of that object.
       parameters:
         - $ref: "#/components/parameters/representationedge"
         - $ref: "#/components/parameters/stationTypes"
