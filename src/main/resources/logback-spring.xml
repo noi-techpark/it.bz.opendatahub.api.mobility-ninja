@@ -3,6 +3,9 @@
 
 	<springProfile name="local">
 		<include resource="org/springframework/boot/logging/logback/base.xml"/>
+		<logger name="it.bz.idm.bdp.ninja">
+			<level value="DEBUG"/>
+		</logger>
 	</springProfile>
 
 	<springProfile name="default">

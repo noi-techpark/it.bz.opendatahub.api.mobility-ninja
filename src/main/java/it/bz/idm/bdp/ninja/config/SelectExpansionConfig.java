@@ -122,7 +122,9 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("eorigin", "i.origin"))
 			.add(new TargetDef("eactive", "i.active"))
 			.add(new TargetDef("eavailable", "i.available"))
-			.add(new TargetDef("egeometry", "e.linegeometry"))
+			// See https://postgis.net/docs/ST_AsGeoJSON.html
+			// We use a 9 decimal digits precision and option #3 (= 1:bounding box + 2:short CRS)
+			.add(new TargetDef("egeometry", "st_asgeojson(st_transform(e.linegeometry, 4326), 9, 3)::jsonb"))
 			.add(new TargetDef("ebegin", stationBegin))
 			.add(new TargetDef("eend", stationEnd));
 
