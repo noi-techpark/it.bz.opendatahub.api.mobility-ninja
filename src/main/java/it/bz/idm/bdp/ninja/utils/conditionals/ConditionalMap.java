@@ -1,0 +1,90 @@
+package it.bz.idm.bdp.ninja.utils.conditionals;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ConditionalMap {
+
+	private Map<String, Object> map;
+
+	public ConditionalMap(final Map<String, Object> map) {
+		if (map == null)
+			this.map = new HashMap<>();
+		else
+			this.map = map;
+	}
+
+	public ConditionalMap() {
+		this(null);
+	}
+
+	public static ConditionalMap init(final Map<String, Object> map) {
+		return new ConditionalMap(map);
+	}
+
+	public static ConditionalMap init() {
+		return init(null);
+	}
+
+	/**
+	 * Set a parameter with <code>name</code> and <code>value</code> and add
+	 * <code>sqlPart</code> to the end of the SQL string, if the
+	 * <code>condition</code> holds.
+	 *
+	 * @param name of the parameter
+	 * @param value of the parameter
+	 * @param condition that must hold
+	 * @return {@link ConditionalMap}
+	 */
+	public ConditionalMap putIfNotNull(String name, Object value) {
+		return putIfNotNullAnd(name, value, true);
+	}
+
+	public ConditionalMap putIfNotNullAnd(String name, Object value, boolean condition) {
+		return putIf(name, value, value != null && condition);
+	}
+
+	public ConditionalMap putIfNotEmpty(String name, Object value) {
+		return putIfNotEmptyAnd(name, value, true);
+	}
+
+	@SuppressWarnings("rawtypes")
+	public ConditionalMap putIfNotEmptyAnd(String name, Object value, boolean condition) {
+		return putIf(name, value, value instanceof Collection
+								  && !((Collection)value).isEmpty()
+								  && condition);
+	}
+
+	/**
+	 * Set a parameter with <code>name</code> and <code>value</code> and add
+	 * <code>sqlPart</code> to the end of the SQL string, if the
+	 * <code>condition</code> holds.
+	 *
+	 * @param name of the parameter
+	 * @param value of the parameter
+	 * @param condition that must hold
+	 * @return {@link ConditionalMap}
+	 */
+	public ConditionalMap putIf(String name, Object value, boolean condition) {
+		if (condition) {
+			put(name, value);
+		}
+		return this;
+	}
+
+	/**
+	 * Set a parameter with <code>name</code> and <code>value</code>, if
+	 * it is not null or empty.
+	 *
+	 * @param name of the parameter
+	 * @param value of the parameter
+	 * @return {@link ConditionalMap}
+	 */
+	public ConditionalMap put(String name, Object value) {
+		if (name != null && !name.isEmpty()) {
+			map.put(name, value);
+		}
+		return this;
+	}
+}
