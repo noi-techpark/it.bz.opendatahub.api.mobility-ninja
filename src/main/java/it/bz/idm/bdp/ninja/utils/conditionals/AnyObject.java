@@ -1,4 +1,4 @@
-package it.bz.idm.bdp.ninja.utils.catalog;
+package it.bz.idm.bdp.ninja.utils.conditionals;
 
 import java.util.ArrayList;
 import java.util.Collection;
