@@ -115,7 +115,7 @@ paths:
     get:
       tags:
         - Mobility V2
-      summary: View station or edge details of a given type
+      summary: View station details of a given type
       description:
         You can put multiple stationtypes as comma-seperated lists. The response
         contains stations (prefix <code>s</code>) and their parent-stations
@@ -150,7 +150,7 @@ paths:
     get:
       tags:
         - Mobility V2
-      summary: View station or edge details of a given type
+      summary: View edge details of a given type
       description:
         You can put multiple edgetypes as comma-seperated lists. The response
         contains edges (prefix <code>e</code>) and their beginning and ending
@@ -4520,7 +4520,7 @@ components:
         Do you want to have the result in a <code>tree</code> or
         <code>flat</code> representation? The type of the map element is
         <code>node</code> (=station) or can also be omitted, since it is the
-        default. Add them as comma-separated values.
+        default.
       required: true
       schema:
         type: string
@@ -4531,7 +4531,7 @@ components:
       description:
         Do you want to have the result in a <code>tree</code> or
         <code>flat</code> representation? The type of the map element is
-        <code>edge</code>. Add them as comma-separated values.
+        <code>edge</code>.
       required: true
       schema:
         type: string
