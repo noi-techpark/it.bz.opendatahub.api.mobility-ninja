@@ -158,7 +158,7 @@ paths:
         attribute is prefixed with the first letter of that object.
       parameters:
         - $ref: "#/components/parameters/representationedge"
-        - $ref: "#/components/parameters/stationTypes"
+        - $ref: "#/components/parameters/edgeTypes"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
         - $ref: "#/components/parameters/select"
