@@ -32,7 +32,7 @@ public class JsonIterPostgresSupport {
 			@Override
 			public void encode(Object obj, JsonStream stream) throws IOException {
 				Point point = (Point) obj;
-				Map<String, Object> result = new HashMap<String, Object>();
+				Map<String, Object> result = new HashMap<>();
 				result.put("srid", point.getSrid());
 				result.put("x", point.getX());
 				result.put("y", point.getY());

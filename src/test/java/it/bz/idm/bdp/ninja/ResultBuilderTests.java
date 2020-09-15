@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
+import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDef;
@@ -58,32 +59,32 @@ public class ResultBuilderTests {
 	public void testOpenDataHubMobility() {
 		se.expand("tname", "datatype");
 
-		queryResult.add(mapOf(
-			"_stationtype", "parking",
-			"_stationcode", "walther",
-			"_datatypename", "occ1",
-			"tname", "o")
-		);
-
-		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
-				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
-
-		queryResult.add(mapOf(
+		queryResult.add(ConditionalMap.mapOf(
 			"_stationtype", "parking",
 			"_stationcode", "walther",
 			"_datatypename", "occ1",
 			"tname", "o"
-		));
+		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
 				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
 
-		queryResult.add(mapOf(
+		queryResult.add(ConditionalMap.mapOf(
+			"_stationtype", "parking",
+			"_stationcode", "walther",
+			"_datatypename", "occ1",
+			"tname", "o"
+		).get());
+
+		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
+				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
+
+		queryResult.add(ConditionalMap.mapOf(
 			"_stationtype", "parking",
 			"_stationcode", "walther",
 			"_datatypename", "occ2",
 			"tname", "x"
-		));
+		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}, occ2={tname=x}}}}}}",
 				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
@@ -139,7 +140,7 @@ public class ResultBuilderTests {
 	@Test
 	public void testNewGenericResultBuilder() {
 
-		Map<String, Object> rec1 = mapOf(
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
 			"_stationtype", "AAA",
 			"_stationcode", "123",
 			"_datatypename", "t1",
@@ -149,9 +150,9 @@ public class ResultBuilderTests {
 			"mvalidtime", 13,
 			"mtransactiontime", 88,
 			"mvalue", 1111
-			);
+			).get();
 
-		Map<String, Object> rec2 = mapOf(
+		Map<String, Object> rec2 = ConditionalMap.mapOf(
 			"_stationtype", "AAA",
 			"_stationcode", "456",
 			"_datatypename", "t2",
@@ -161,7 +162,7 @@ public class ResultBuilderTests {
 			"mvalidtime", 133,
 			"mtransactiontime", 8899,
 			"mvalue", 2222
-			);
+			).get();
 
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
@@ -170,14 +171,5 @@ public class ResultBuilderTests {
 		assertEquals("{AAA={stations={123={sdatatypes={t1={tmeasurements=[{mperiod=200, mtransactiontime=88, mvalidtime=13, mvalue=1111}], tname=t1}}, sname=edgename1}, 456={sdatatypes={t2={tmeasurements=[{mperiod=100, mtransactiontime=8899, mvalidtime=133, mvalue=2222}], tname=t2}}, sname=edgename2}}}}",
 			ResultBuilder.build("stationtype", null, false, resultList, se.getSchema(), 1000).toString());
 	}
-
-	// Taken from https://github.com/json-iterator/java/blob/master/src/test/java/com/jsoniter/any/TestMap.java
-	private static Map<String, Object> mapOf(Object... args) {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        for (int i = 0; i < args.length; i += 2) {
-            map.put((String) args[i], args[i + 1]);
-        }
-        return map;
-    }
 
 }

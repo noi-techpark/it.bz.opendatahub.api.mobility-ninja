@@ -87,4 +87,33 @@ public class ConditionalMap {
 		}
 		return this;
 	}
+
+	public Map<String, Object> get() {
+		return map;
+	}
+
+	public ConditionalMap putAll(Map<String, Object> map) {
+		this.map.putAll(map);
+		return this;
+	}
+
+	public ConditionalMap putAllIfNotNull(Map<String, Object> map) {
+		if (map != null)
+			this.map.putAll(map);
+		return this;
+	}
+
+	public static ConditionalMap mapOf(Object... args) {
+		ConditionalMap map = new ConditionalMap();
+		for (int i = 0; i < args.length; i += 2) {
+            map.put((String) args[i], args[i + 1]);
+        }
+        return map;
+    }
+
+	public static void main(String[] args) {
+		ConditionalMap cm = ConditionalMap.init();
+		Map<String, Object> t = new HashMap<>();
+		cm.putAll(t);
+	}
 }

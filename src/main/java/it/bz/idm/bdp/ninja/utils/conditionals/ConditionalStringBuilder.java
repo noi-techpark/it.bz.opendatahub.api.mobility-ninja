@@ -45,7 +45,9 @@ public class ConditionalStringBuilder {
 	}
 
 	/**
-	 * Append <code>string</code> to the end of the buffer.
+	 * Append <code>string</code> to the end of the buffer, if the string is
+	 * not null and not empty.
+	 *
 	 * @param string  string
 	 * @return {@link ConditionalStringBuilder}
 	 */
@@ -54,8 +56,8 @@ public class ConditionalStringBuilder {
 	}
 
 	/**
-	 * Append <code>string</code> to the end of the buffer, if
-	 * <code>condition</code> holds.
+	 * Append <code>string</code> to the end of the buffer, if the string is
+	 * not null, not empty and the <code>condition</code> holds.
 	 *
 	 * @param string string
 	 * @return {@link ConditionalStringBuilder}
@@ -96,4 +98,5 @@ public class ConditionalStringBuilder {
 	public String toString() {
 		return builder.toString();
 	}
+
 }

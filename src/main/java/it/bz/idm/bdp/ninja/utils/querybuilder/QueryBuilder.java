@@ -1,12 +1,14 @@
 package it.bz.idm.bdp.ninja.utils.querybuilder;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+
+import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
+import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalStringBuilder;
 
 /**
  * Create a SQL string, depending on given conditions, a select list, an optional where-clause and
@@ -16,14 +18,15 @@ import java.util.StringJoiner;
  */
 public class QueryBuilder {
 
-	private StringBuilder sql = new StringBuilder();
+	private ConditionalStringBuilder sql = new ConditionalStringBuilder();
 	private static SelectExpansion se;
-	private Map<String, Object> parameters = new HashMap<>();
+	private ConditionalMap parameters = new ConditionalMap();
 
 	public QueryBuilder(final String select, final String where, final boolean isDistinct, String... selectDefNames) {
 		if (QueryBuilder.se == null) {
 			throw new RuntimeException("Missing Select Expansion. Run QueryBuilder.setup before initialization.");
 		}
+		sql.setSeparator(" ");
 		reset(select, where, isDistinct, selectDefNames);
 	}
 
@@ -118,9 +121,7 @@ public class QueryBuilder {
 	 * @return {@link QueryBuilder}
 	 */
 	public QueryBuilder setParameter(String name, Object value) {
-		if (name != null && !name.isEmpty()) {
-			parameters.put(name, value);
-		}
+		parameters.put(name, value);
 		return this;
 	}
 
@@ -130,10 +131,7 @@ public class QueryBuilder {
 	 * @return {@link QueryBuilder}
 	 */
 	public QueryBuilder addSql(String sqlPart) {
-		if (sqlPart != null && !sqlPart.isEmpty()) {
-			sql.append(" ");
-			sql.append(sqlPart);
-		}
+		sql.add(sqlPart);
 		return this;
 	}
 
@@ -145,26 +143,17 @@ public class QueryBuilder {
 	 * @return {@link QueryBuilder}
 	 */
 	public QueryBuilder addSqlIf(String sqlPart, boolean condition) {
-		if (sqlPart != null && !sqlPart.isEmpty() && condition) {
-			sql.append(" ");
-			sql.append(sqlPart);
-		}
+		sql.addIf(sqlPart, condition);
 		return this;
 	}
 
 	public QueryBuilder addSqlIfAlias(String sqlPart, String alias) {
-		if (sqlPart != null && !sqlPart.isEmpty() && se.getUsedTargetNames().contains(alias)) {
-			sql.append(" ");
-			sql.append(sqlPart);
-		}
+		sql.addIf(sqlPart, se.getUsedTargetNames().contains(alias));
 		return this;
 	}
 
 	public QueryBuilder addSqlIfDefinition(String sqlPart, String selectDefName) {
-		if (sqlPart != null && !sqlPart.isEmpty() && se.getUsedDefNames().contains(selectDefName)) {
-			sql.append(" ");
-			sql.append(sqlPart);
-		}
+		sql.addIf(sqlPart, se.getUsedDefNames().contains(selectDefName));
 		return this;
 	}
 
@@ -176,7 +165,8 @@ public class QueryBuilder {
 	 * @return {@link QueryBuilder}
 	 */
 	public QueryBuilder addSqlIfNotNull(String sqlPart, Object object) {
-		return addSqlIf(sqlPart, object != null);
+		sql.addIfNotNull(sqlPart, object);
+		return this;
 	}
 
 	/**
@@ -186,9 +176,7 @@ public class QueryBuilder {
 	 * @return {@link QueryBuilder}
 	 */
 	public QueryBuilder addSql(String... sqlPart) {
-		for (int i = 0; i < sqlPart.length; i++) {
-			addSql(sqlPart[i]);
-		}
+		sql.add(sqlPart);
 		return this;
 	}
 
@@ -216,10 +204,8 @@ public class QueryBuilder {
 			sj.add(expansion);
 		}
 		if (sj.length() > 0) {
-			sql.append(" ");
-			if (condition)
-				sql.append(prefix);
-			sql.append(sj.toString());
+			sql.addIf(prefix, condition);
+			sql.add(sj.toString());
 		}
 		return this;
 	}
@@ -262,14 +248,14 @@ public class QueryBuilder {
 	}
 
 	public Map<String, Object> getParameters() {
-		return parameters;
+		return parameters.get();
 	}
 
 	public QueryBuilder expandWhere() {
 		String sqlWhere = se.getWhereSql();
 		addSqlIfNotNull(" and " + sqlWhere, sqlWhere);
 		if (se.getWhereParameters() != null) {
-			parameters.putAll(se.getWhereParameters());
+			parameters.get().putAll(se.getWhereParameters());
 		}
 		return this;
 	}

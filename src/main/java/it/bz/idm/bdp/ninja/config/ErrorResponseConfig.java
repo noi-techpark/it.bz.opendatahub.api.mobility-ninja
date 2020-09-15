@@ -23,8 +23,6 @@
 package it.bz.idm.bdp.ninja.config;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
@@ -36,6 +34,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
 /**
@@ -51,37 +50,35 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 	@ExceptionHandler
 	public ResponseEntity<Object> handleException(Exception ex) {
 		ex.printStackTrace(System.err);
-		return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex, ex.getMessage());
+		return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex);
 	}
 
 	@ExceptionHandler
 	public ResponseEntity<Object> handleException(SimpleException ex) {
-		return buildResponse(HttpStatus.BAD_REQUEST, ex, ex.getMessage());
+		return buildResponse(HttpStatus.BAD_REQUEST, ex);
 	}
 
 	@ExceptionHandler
 	public ResponseEntity<Object> handleException(DataAccessException ex) {
 		Throwable cause = ex.getCause();
 		if (cause instanceof PSQLException) {
-			return buildResponse(HttpStatus.BAD_REQUEST, (PSQLException) cause, ((PSQLException) cause).getMessage());
+			return buildResponse(HttpStatus.BAD_REQUEST, (PSQLException) cause);
 		}
-		return buildResponse(HttpStatus.BAD_REQUEST, ex, ex.getCause().getMessage());
+		return buildResponse(HttpStatus.BAD_REQUEST, ex);
 	}
 
-	private ResponseEntity<Object> buildResponse(final HttpStatus httpStatus, final Exception exception, final String logRef) {
+	private ResponseEntity<Object> buildResponse(final HttpStatus httpStatus, final Exception exception) {
 		String message = (exception == null || exception.getMessage() == null) ? exception.getClass().getSimpleName() : exception.getMessage();
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("message", message);
-		map.put("timestamp", new Date());
-		map.put("code", httpStatus.value());
-		map.put("error", httpStatus.getReasonPhrase());
+		ConditionalMap map = ConditionalMap
+			.init()
+			.put("message", message)
+			.put("timestamp", new Date())
+			.put("code", httpStatus.value())
+			.put("error", httpStatus.getReasonPhrase());
 		if (exception instanceof SimpleException) {
 			SimpleException se = (SimpleException) exception;
-			if (se.getDescription() != null)
-				map.put("description", se.getDescription());
-			if (se.getData() != null && !se.getData().isEmpty()) {
-				map.put("info", se.getData());
-			}
+			map.putIfNotNull("description", se.getDescription());
+			map.putIfNotEmpty("info", se.getData());
 		} else if (exception instanceof PSQLException) {
 			PSQLException cause = (PSQLException) exception;
 			switch(cause.getSQLState()) {
@@ -90,7 +87,7 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 					map.put("hint", "Query for smaller response chunks. Use SELECT, WHERE, LIMIT with OFFSET, or a narrow time interval.");
 					break;
 				default:
-					map.put("message", message.replaceAll("\\n", ""));
+					map.put("message", message.replace("\\n", ""));
 					map.put("description", "Error from the database backend");
 			}
 
@@ -99,6 +96,6 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 		if (log.isDebugEnabled()) {
 			exception.printStackTrace(System.err);
 		}
-		return new ResponseEntity<Object>(map, httpStatus);
+		return new ResponseEntity<>(map, httpStatus);
 	}
 }

@@ -9,7 +9,7 @@ public class Token {
 	String name;
 	String value;
 	Map<String, Object> payload;
-	List<Token> children = new ArrayList<Token>();
+	List<Token> children = new ArrayList<>();
 
 	public Token(String name, String value) {
 		super();
@@ -157,11 +157,7 @@ public class Token {
 				return false;
 		}
 
-		if(!c.after(token)) {
-			return false;
-		}
-
-		return true;
+		return c.after(token);
 	}
 
 	@Override
@@ -241,7 +237,7 @@ public class Token {
 
 	public void addPayload(String key, Object value) {
 		if (payload == null) {
-			payload = new HashMap<String, Object>();
+			payload = new HashMap<>();
 		}
 		payload.put(key, value);
 	}
