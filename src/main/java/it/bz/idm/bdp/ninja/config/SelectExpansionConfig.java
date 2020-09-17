@@ -67,7 +67,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("pcode", "p.stationcode"))
 			.add(new TargetDef("porigin", "p.origin"))
 			.add(new TargetDef("pactive", "p.active"))
-			.add(new TargetDef("pavailable", "p.available"))
 			.add(new TargetDef("pcoordinate", "p.pointprojection"))
 			.add(new TargetDef("pmetadata", "pm.json"));
 
@@ -81,7 +80,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("scode", "s.stationcode"))
 			.add(new TargetDef("sorigin", "s.origin"))
 			.add(new TargetDef("sactive", "s.active"))
-			.add(new TargetDef("savailable", "s.available"))
 			.add(new TargetDef("scoordinate", "s.pointprojection"))
 			.add(new TargetDef("smetadata", "m.json"))
 			.add(new TargetDef("sparent", parent))
@@ -97,7 +95,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("sbcode", "o.stationcode"))
 			.add(new TargetDef("sborigin", "o.origin"))
 			.add(new TargetDef("sbactive", "o.active"))
-			.add(new TargetDef("sbavailable", "o.available"))
 			.add(new TargetDef("sbcoordinate", "o.pointprojection"));
 
 		schema.add(stationBegin);
@@ -110,7 +107,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("secode", "d.stationcode"))
 			.add(new TargetDef("seorigin", "d.origin"))
 			.add(new TargetDef("seactive", "d.active"))
-			.add(new TargetDef("seavailable", "d.available"))
 			.add(new TargetDef("secoordinate", "d.pointprojection"));
 
 		schema.add(stationEnd);
@@ -123,7 +119,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("ecode", "i.stationcode"))
 			.add(new TargetDef("eorigin", "i.origin"))
 			.add(new TargetDef("eactive", "i.active"))
-			.add(new TargetDef("eavailable", "i.available"))
 			// See https://postgis.net/docs/ST_AsGeoJSON.html
 			// We use a 9 decimal digits precision and option #3 (= 1:bounding box + 2:short CRS)
 			.add(new TargetDef("egeometry", "st_transform(e.linegeometry, 4326)")

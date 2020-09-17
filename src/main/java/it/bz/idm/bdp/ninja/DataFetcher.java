@@ -14,14 +14,12 @@ import org.springframework.stereotype.Component;
 
 import com.jsoniter.output.JsonStream;
 
+import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
-import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
-import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
-import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDef;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
@@ -479,70 +477,7 @@ public class DataFetcher {
 
 
 	public static void main(String[] args) {
-		SelectExpansion se = new SelectExpansion();
-		Schema schema = new Schema();
-
-		TargetDefList measurement = TargetDefList.init("measurement")
-				.add(new TargetDef("mvalidtime", "me.timestamp"))
-				.add(new TargetDef("mtransactiontime", "me.created_on"))
-				.add(new TargetDef("mperiod", "me.period"));
-
-		schema.add(measurement);
-
-		TargetDefList measurementdouble = TargetDefList.init("measurementdouble")
-				.add(new TargetDef("mvalue_double", "me.double_value")
-						.setSelectFormat("%s, null::character varying as mvalue_string")
-						.alias("mvalue"));
-
-		schema.add(measurementdouble);
-
-		TargetDefList measurementstring = TargetDefList.init("measurementstring")
-				.add(new TargetDef("mvalue_string", "me.string_value")
-						.setSelectFormat("null::double precision as mvalue_double, %s")
-						.alias("mvalue"));
-
-		schema.add(measurementstring);
-
-		TargetDefList datatype = TargetDefList.init("datatype")
-				.add(new TargetDef("tname", "t.cname"))
-				.add(new TargetDef("tunit", "t.cunit"))
-				.add(new TargetDef("ttype", "t.rtype"))
-				.add(new TargetDef("tdescription", "t.description"))
-				.add(new TargetDef("tmetadata", "tm.json"))
-				.add(new TargetDef("tmeasurements", measurement));
-
-		schema.add(datatype);
-
-		TargetDefList parent = TargetDefList.init("parent").add(new TargetDef("pname", "p.name"))
-				.add(new TargetDef("ptype", "p.stationtype"))
-				.add(new TargetDef("pcode", "p.stationcode"))
-				.add(new TargetDef("porigin", "p.origin"))
-				.add(new TargetDef("pactive", "p.active"))
-				.add(new TargetDef("pavailable", "p.available"))
-				.add(new TargetDef("pcoordinate", "p.pointprojection"))
-				.add(new TargetDef("pmetadata", "pm.json"));
-
-		schema.add(parent);
-
-		TargetDefList station = TargetDefList.init("station").add(new TargetDef("sname", "s.name"))
-				.add(new TargetDef("stype", "s.stationtype"))
-				.add(new TargetDef("scode", "s.stationcode"))
-				.add(new TargetDef("sorigin", "s.origin"))
-				.add(new TargetDef("sactive", "s.active"))
-				.add(new TargetDef("savailable", "s.available"))
-				.add(new TargetDef("scoordinate", "s.pointprojection"))
-				.add(new TargetDef("smetadata", "m.json"))
-				.add(new TargetDef("sparent", parent))
-				.add(new TargetDef("sdatatypes", datatype));
-
-		schema.add(station);
-
-		TargetDefList stationtype = TargetDefList.init("stationtype")
-				.add(new TargetDef("stations", station));
-
-		schema.add(stationtype);
-
-		se.setSchema(schema);
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 
 		se.expand("*", "station", "parent", "measurementdouble");
 		System.out.println(se.getExpansion());
