@@ -65,6 +65,19 @@ public class DataController {
 
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
+	private static final String DEFAULT_LIMIT = "200";
+	private static final String DEFAULT_OFFSET = "0";
+	private static final String DEFAULT_SHOWNULL = "false";
+	private static final String DEFAULT_DISTINCT = "true";
+	private static final String DEFAULT_TIMEZONE = "UTC";
+
+	private static final DateTimeFormatter DATE_FORMAT = new DateTimeFormatterBuilder()
+		.appendPattern(DATETIME_FORMAT_PATTERN)
+		.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+		.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+		.parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+		.parseDefaulting(ChronoField.NANO_OF_SECOND, 0)
+		.toFormatter();
 
 	@Value("${ninja.baseurl}")
 	private String ninjaBaseUrl;
@@ -74,6 +87,9 @@ public class DataController {
 
 	@Value("${ninja.response.max-allowed-size-mb}")
 	private int maxAllowedSizeInMB;
+
+	@Autowired
+	DataFetcher dataFetcher;
 
 	public enum ErrorCode implements ErrorCodeInterface {
 		DATE_PARSE_ERROR(
@@ -91,51 +107,14 @@ public class DataController {
 		}
 	}
 
-	private static final String DEFAULT_LIMIT = "200";
-	private static final String DEFAULT_OFFSET = "0";
-	private static final String DEFAULT_SHOWNULL = "false";
-	private static final String DEFAULT_DISTINCT = "true";
-	private static final String DEFAULT_TIMEZONE = "UTC";
-
-	private static DateTimeFormatter DATE_FORMAT = new DateTimeFormatterBuilder().appendPattern(DATETIME_FORMAT_PATTERN)
-			.parseDefaulting(ChronoField.HOUR_OF_DAY, 0).parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-			.parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0).parseDefaulting(ChronoField.NANO_OF_SECOND, 0)
-			.toFormatter();
-
-	protected static ZonedDateTime getDateTime(final String dateString) {
-		try {
-			try {
-				return ZonedDateTime.from(DATE_FORMAT.parse(dateString));
-			} catch (DateTimeException e) {
-				return LocalDateTime.from(DATE_FORMAT.parse(dateString)).atZone(ZoneId.of("Z"));
-			}
-		} catch (final DateTimeParseException e) {
-			throw new SimpleException(ErrorCode.DATE_PARSE_ERROR, DATETIME_FORMAT_PATTERN.replace("'", ""),
-					e.getMessage());
-		}
-	}
-
-	@Autowired
-	DataFetcher dataFetcher;
-
 	@GetMapping(value = "", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestRoot() {
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream in = classloader.getResourceAsStream("root.json");
-		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
-			String result = scanner.useDelimiter("\\A").next();
-			return result.replace("__URL__", ninjaBaseUrl);
-		}
+		return DataController.loadFile("root.json", "__URL__", ninjaBaseUrl);
 	}
 
 	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
 	public @ResponseBody String requestOpenApiSpec() {
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream in = classloader.getResourceAsStream("openapi3.yml");
-		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
-			String result = scanner.useDelimiter("\\A").next();
-			return result.replace("__ODH_SERVER_URL__", ninjaHostUrl);
-		}
+		return DataController.loadFile("openapi3.yml", "__ODH_SERVER_URL__", ninjaHostUrl);
 	}
 
 	@GetMapping(value = "/{representation}", produces = "application/json;charset=UTF-8")
@@ -299,6 +278,19 @@ public class DataController {
 		return DataFetcher.serializeJSON(result);
 	}
 
+	protected static ZonedDateTime getDateTime(final String dateString) {
+		try {
+			try {
+				return ZonedDateTime.from(DATE_FORMAT.parse(dateString));
+			} catch (DateTimeException e) {
+				return LocalDateTime.from(DATE_FORMAT.parse(dateString)).atZone(ZoneId.of("Z"));
+			}
+		} catch (final DateTimeParseException e) {
+			throw new SimpleException(ErrorCode.DATE_PARSE_ERROR, DATETIME_FORMAT_PATTERN.replace("'", ""),
+					e.getMessage());
+		}
+	}
+
 	private Map<String, Object> buildResult(String entryPoint, String exitPoint, final List<Map<String, Object>> queryResult, final long offset,
 			final long limit, final Representation representation, final boolean showNull) {
 		final Map<String, Object> result = new HashMap<>();
@@ -324,4 +316,15 @@ public class DataController {
 		return result;
 	}
 
+	private static String loadFile(final String filename, String... replacements) {
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		InputStream in = classloader.getResourceAsStream(filename);
+		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
+			String result = scanner.useDelimiter("\\A").next();
+			for (int i = 0; i < replacements.length; i += 2) {
+				result = result.replace(replacements[i], replacements[i + 1]);
+			}
+			return result;
+		}
+	}
 }
