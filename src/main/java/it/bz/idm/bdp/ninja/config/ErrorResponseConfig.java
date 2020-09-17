@@ -96,6 +96,6 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 		if (log.isDebugEnabled()) {
 			exception.printStackTrace(System.err);
 		}
-		return new ResponseEntity<>(map, httpStatus);
+		return new ResponseEntity<>(map.get(), httpStatus);
 	}
 }
