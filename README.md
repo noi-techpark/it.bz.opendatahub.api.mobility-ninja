@@ -3,11 +3,21 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-#### Table of Contents
 
 - [I want to run the Ninja web-service](#i-want-to-run-the-ninja-web-service)
-- [Station Types / Categories](#station-types--categories)
-  - [I want to get all station types as a list](#i-want-to-get-all-station-types-as-a-list)
+  - [Prerequisites](#prerequisites)
+  - [How to setup NOI Authentication Server locally?](#how-to-setup-noi-authentication-server-locally)
+    - [How to register this application in your local authentication server?](#how-to-register-this-application-in-your-local-authentication-server)
+    - [How to create a user or assign a user the necessary roles for this application?](#how-to-create-a-user-or-assign-a-user-the-necessary-roles-for-this-application)
+    - [How to create a client to generate tokens for testing purposes?](#how-to-create-a-client-to-generate-tokens-for-testing-purposes)
+  - [How to start local development server?](#how-to-start-local-development-server)
+- [API Entry Point](#api-entry-point)
+  - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
+- [Station and Edge Types / Categories](#station-and-edge-types--categories)
+  - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
+- [Edges](#edges)
+  - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
+  - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
 - [Stations](#stations)
   - [I want to get all e-charging stations including details](#i-want-to-get-all-e-charging-stations-including-details)
   - [I want to get all e-charging stations and their plugs including details](#i-want-to-get-all-e-charging-stations-and-their-plugs-including-details)
@@ -19,12 +29,14 @@
   - [I want to get historical occupancy values of all parking lots from a certain period](#i-want-to-get-historical-occupancy-values-of-all-parking-lots-from-a-certain-period)
 - [Pagination](#pagination)
 - [Filtering with SELECT and WHERE](#filtering-with-select-and-where)
+- [Functions / Aggregation / Grouping](#functions--aggregation--grouping)
   - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
   - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
   - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
   - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
   - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
   - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
+- [Time Zones](#time-zones)
 - [Null values](#null-values)
 - [Representation](#representation)
 - [Authentication](#authentication)
@@ -408,6 +420,22 @@ We use a JSON selector and JSON filters here:
 ```
 GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
 ```
+
+## Time Zones
+
+We use UTC as default time zone, but it is now possible to get timestamp
+reponses in any timezone. Use `timezone=Europe/Rome` for instance. See
+[java.time.ZoneId](https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html)
+for details. If the browser replaces `+` with spaces, the API tries to insert
+`+` again, and searches then for matching zone IDs.
+
+```
+GET /flat/ParkingStation/occupied/latest?timezone=UTC-2
+```
+
+Please note, that `metadata`
+are kept as is, date or time representations inside it are stored as simple
+strings, and therefore not recognized as date or time.
 
 ## Null values
 
