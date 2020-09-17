@@ -3,6 +3,11 @@ package it.bz.idm.bdp.ninja.utils.queryexecutor;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.DateTimeException;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.postgis.PGgeometry;
@@ -17,10 +22,22 @@ import com.jsoniter.JsonIterator;
 public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 
 	private static boolean ignoreNull = false;
+	private static ZoneId zoneId = ZoneOffset.UTC;
 	private static Map<String, String> targetDefNameToAliasMap = null;
+
+	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
 
 	public static synchronized void setIgnoreNull(boolean ignoreNull) {
 		ColumnMapRowMapper.ignoreNull = ignoreNull;
+	}
+
+	public static synchronized void setTimeZone(String zone) {
+		try {
+			ColumnMapRowMapper.zoneId = ZoneId.of(zone);
+		} catch (DateTimeException e) {
+			zone = zone.replace(" ", "+");
+			ColumnMapRowMapper.zoneId = ZoneId.of(zone);
+		}
 	}
 
 	public static synchronized void setTargetDefNameToAliasMap(Map<String, String> map) {
@@ -106,6 +123,9 @@ public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 				default:
 					throw new RuntimeException("PGobject type " + pgObjType + " not supported!");
 			}
+		} else if (obj instanceof Timestamp) {
+			Timestamp timestampObj = (Timestamp) obj;
+			return DATE_FORMAT.format(timestampObj.toInstant().atZone(zoneId));
 		}
 
 		return JdbcUtils.getResultSetValue(rs, index);

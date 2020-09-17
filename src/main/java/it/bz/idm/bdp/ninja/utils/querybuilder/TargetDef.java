@@ -23,9 +23,9 @@ public class TargetDef {
 	private final String name;
 	private final List<TargetDefList> targetDefLists;
 	private final String column;
-	private String sqlBefore;
-	private String sqlAfter;
 	private String alias;
+	private String selectFormat = "%s";
+	private String columnFormat = "%s";
 
 	public TargetDef(final String name, final String column) {
 		if (name == null || name.isEmpty() || column == null || column.isEmpty()) {
@@ -71,12 +71,32 @@ public class TargetDef {
 		return this;
 	}
 
-	public String getSqlBefore() {
-		return this.sqlBefore;
+	public TargetDef setSelectFormat(final String format) {
+		if (format == null || format.isEmpty() || !format.contains("%s")) {
+			throw new RuntimeException("A TargetDef select format must contain exactly one '%s', because it is used in String.format later");
+		}
+		this.selectFormat = format;
+		return this;
 	}
 
-	public String getSqlAfter() {
-		return this.sqlAfter;
+	public String getSelectFormat() {
+		return this.selectFormat;
+	}
+
+	public TargetDef setColumnFormat(final String format) {
+		if (format == null || format.isEmpty() || !format.contains("%s")) {
+			throw new RuntimeException("A TargetDef column format must contain exactly one '%s', because it is used in String.format later");
+		}
+		this.columnFormat = format;
+		return this;
+	}
+
+	public String getColumnFormat() {
+		return this.columnFormat;
+	}
+
+	public String getColumnFormatted() {
+		return String.format(this.columnFormat, this.column);
 	}
 
 	/**
@@ -89,26 +109,8 @@ public class TargetDef {
 		return alias == null ? name : alias;
 	}
 
-	public TargetDef sqlBefore(final String sqlBefore) {
-		this.sqlBefore = sqlBefore;
-		return this;
-	}
-
-	public TargetDef sqlAfter(final String sqlAfter) {
-		this.sqlAfter = sqlAfter;
-		return this;
-	}
-
 	public boolean hasAlias() {
 		return alias != null;
-	}
-
-	public boolean hasSqlBefore() {
-		return sqlBefore != null;
-	}
-
-	public boolean hasSqlAfter() {
-		return sqlAfter != null;
 	}
 
 	public boolean hasTargetDefList() {

@@ -1,6 +1,7 @@
 package it.bz.idm.bdp.ninja;
 
-import java.time.LocalDateTime;
+import java.time.DateTimeException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ public class DataFetcher {
 	private static final Logger log = LoggerFactory.getLogger(DataFetcher.class);
 
 	public enum ErrorCode implements ErrorCodeInterface {
+		WRONG_TIMEZONE ("'%s' is not a valid time zone understandable by java.time.ZoneId."),
 		WHERE_WRONG_DATA_TYPE ("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given."),
 		METHOD_NOT_ALLOWED_FOR_NODE_REPR ("Method '%s' not allowed with NODE representation."),
 		METHOD_NOT_ALLOWED_FOR_EDGE_REPR ("Method '%s' not allowed with EDGE representation.");
@@ -113,7 +115,7 @@ public class DataFetcher {
 		return serialize;
 	}
 
-	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, LocalDateTime from, LocalDateTime to, final Representation representation) {
+	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
 		if (representation.isEdge()) {
 			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStationsTypesAndMeasurement(History)");
@@ -159,8 +161,8 @@ public class DataFetcher {
 				 .addSql("where true")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameterIfNotNull("from", from, "and timestamp >= :from")
-				 .setParameterIfNotNull("to", to, "and timestamp < :to")
+				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
 				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
@@ -193,8 +195,8 @@ public class DataFetcher {
 				 .addSql("where true")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameterIfNotNull("from", from, "and timestamp >= :from")
-				 .setParameterIfNotNull("to", to, "and timestamp < :to")
+				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
 				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
@@ -425,6 +427,7 @@ public class DataFetcher {
 			logging.putAll(extraData);
 		}
 		log.info("query_execution", v("payload", logging));
+		log.debug(sql);
 	}
 
 	public QueryBuilder getQuery() {
@@ -466,6 +469,15 @@ public class DataFetcher {
 		this.distinct = distinct;
 	}
 
+	public void setTimeZone(String timeZone) {
+		try {
+			ColumnMapRowMapper.setTimeZone(timeZone);
+		} catch (DateTimeException e) {
+			throw new SimpleException(ErrorCode.WRONG_TIMEZONE, timeZone);
+		}
+	}
+
+
 	public static void main(String[] args) {
 		SelectExpansion se = new SelectExpansion();
 		Schema schema = new Schema();
@@ -479,13 +491,15 @@ public class DataFetcher {
 
 		TargetDefList measurementdouble = TargetDefList.init("measurementdouble")
 				.add(new TargetDef("mvalue_double", "me.double_value")
-						.sqlAfter("null::character varying as mvalue_string").alias("mvalue"));
+						.setSelectFormat("%s, null::character varying as mvalue_string")
+						.alias("mvalue"));
 
 		schema.add(measurementdouble);
 
 		TargetDefList measurementstring = TargetDefList.init("measurementstring")
 				.add(new TargetDef("mvalue_string", "me.string_value")
-						.sqlBefore("null::double precision as mvalue_double").alias("mvalue"));
+						.setSelectFormat("null::double precision as mvalue_double, %s")
+						.alias("mvalue"));
 
 		schema.add(measurementstring);
 

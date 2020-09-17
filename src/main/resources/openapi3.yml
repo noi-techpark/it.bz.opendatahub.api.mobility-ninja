@@ -243,6 +243,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/timezone"
       responses:
         200:
           description: OK
@@ -284,6 +285,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/timezone"
       responses:
         200:
           description: OK
@@ -4604,6 +4606,13 @@ components:
         type: integer
         format: int64
         default: 0
+    timezone:
+      name: timezone
+      in: query
+      description: Set an optional timezone for all response timestamps. See java.time.ZoneId for further information.
+      schema:
+        type: string
+        default: UTC
     select:
       name: select
       in: query

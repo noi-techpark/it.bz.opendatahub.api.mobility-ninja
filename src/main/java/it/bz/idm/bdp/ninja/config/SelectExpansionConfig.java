@@ -21,8 +21,10 @@ public class SelectExpansionConfig {
 		TargetDefList measurement = TargetDefList
 			.init("measurement")
 			.setLookUp(new LookUp(LookUpType.LIST, "datatype", "tmeasurements", null))
-			.add(new TargetDef("mvalidtime", "me.timestamp"))
-			.add(new TargetDef("mtransactiontime", "me.created_on"))
+			.add(new TargetDef("mvalidtime", "me.timestamp")
+					.setColumnFormat("timezone('UTC', %s)"))
+			.add(new TargetDef("mtransactiontime", "me.created_on")
+					.setColumnFormat("timezone('UTC', %s)"))
 			.add(new TargetDef("mperiod", "me.period"));
 
 		schema.add(measurement);
@@ -31,7 +33,7 @@ public class SelectExpansionConfig {
 			.init("measurementdouble")
 			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_double", "me.double_value")
-				.sqlAfter("null::character varying as mvalue_string")
+				.setSelectFormat("%s, null::character varying as mvalue_string")
 				.alias("mvalue"));
 
 		schema.add(measurementdouble);
@@ -40,7 +42,7 @@ public class SelectExpansionConfig {
 			.init("measurementstring")
 			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_string", "me.string_value")
-				.sqlBefore("null::double precision as mvalue_double")
+				.setSelectFormat("null::double precision as mvalue_double, %s")
 				.alias("mvalue"));
 
 		schema.add(measurementstring);
@@ -124,7 +126,8 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("eavailable", "i.available"))
 			// See https://postgis.net/docs/ST_AsGeoJSON.html
 			// We use a 9 decimal digits precision and option #3 (= 1:bounding box + 2:short CRS)
-			.add(new TargetDef("egeometry", "st_asgeojson(st_transform(e.linegeometry, 4326), 9, 3)::jsonb"))
+			.add(new TargetDef("egeometry", "st_transform(e.linegeometry, 4326)")
+				.setColumnFormat("st_asgeojson(%s, 9, 3)::jsonb"))
 			.add(new TargetDef("ebegin", stationBegin))
 			.add(new TargetDef("eend", stationEnd));
 

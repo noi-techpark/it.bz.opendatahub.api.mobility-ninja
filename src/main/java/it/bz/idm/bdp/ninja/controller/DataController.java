@@ -95,6 +95,7 @@ public class DataController {
 	private static final String DEFAULT_OFFSET = "0";
 	private static final String DEFAULT_SHOWNULL = "false";
 	private static final String DEFAULT_DISTINCT = "true";
+	private static final String DEFAULT_TIMEZONE = "UTC";
 
 	private static DateTimeFormatter DATE_FORMAT = new DateTimeFormatterBuilder().appendPattern(DATETIME_FORMAT_PATTERN)
 			.parseDefaulting(ChronoField.HOUR_OF_DAY, 0).parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
@@ -242,7 +243,8 @@ public class DataController {
 			@RequestParam(value = "select", required = false) final String select,
 			@RequestParam(value = "where", required = false) final String where,
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
 		final Representation repr = Representation.get(representation);
 
@@ -255,6 +257,7 @@ public class DataController {
 		dataFetcher.setSelect(select);
 		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication(auth));
 		dataFetcher.setDistinct(distinct);
+		dataFetcher.setTimeZone(timeZone);
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
 				dataTypes, null, null, repr);
@@ -271,7 +274,8 @@ public class DataController {
 			@RequestParam(value = "select", required = false) final String select,
 			@RequestParam(value = "where", required = false) final String where,
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
 		final Representation repr = Representation.get(representation);
 
@@ -287,9 +291,10 @@ public class DataController {
 		dataFetcher.setSelect(select);
 		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication(auth));
 		dataFetcher.setDistinct(distinct);
+		dataFetcher.setTimeZone(timeZone);
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
-				dataTypes, dateTimeFrom.toLocalDateTime(), dateTimeTo.toLocalDateTime(), repr);
+				dataTypes, dateTimeFrom.toOffsetDateTime(), dateTimeTo.toOffsetDateTime(), repr);
 		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
 		return DataFetcher.serializeJSON(result);
 	}

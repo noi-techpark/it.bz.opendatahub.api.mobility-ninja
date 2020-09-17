@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
@@ -13,10 +14,30 @@ import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 
 public class QueryBuilderTests {
 
+	private SelectExpansion se = new SelectExpansion();
+
+	@Before
+	public void setUpBefore() throws Exception {
+		Schema schema = new Schema();
+		TargetDefList defC = TargetDefList.init("C")
+				.add(new TargetDef("d", "C.d"));
+		TargetDefList defB = TargetDefList.init("B")
+				.add(new TargetDef("x", "B.x"))
+				.add(new TargetDef("y", defC));
+		TargetDefList defA = TargetDefList.init("A")
+				.add(new TargetDef("a", "A.a"))
+				.add(new TargetDef("b", defB))
+				.add(new TargetDef("c", "A.c"));
+		schema.add(defA);
+		schema.add(defB);
+		schema.add(defC);
+		se.setSchema(schema);
+	}
+
 	@Test
 	public void testExpandSelect() {
 		String res = QueryBuilder
-				.init("a, x", null, true, "A", "B")
+				.init(se, "a, x", null, true, "A", "B")
 				.expandSelect()
 				.getSql();
 
@@ -51,24 +72,20 @@ public class QueryBuilderTests {
 		assertEquals("B.x as x", res.trim());
 	}
 
-	@Before
-	public void setUpBefore() throws Exception {
-		SelectExpansion se = new SelectExpansion();
-		Schema schema = new Schema();
-		TargetDefList defC = TargetDefList.init("C")
-				.add(new TargetDef("d", "C.d"));
-		TargetDefList defB = TargetDefList.init("B")
-				.add(new TargetDef("x", "B.x"))
-				.add(new TargetDef("y", defC));
-		TargetDefList defA = TargetDefList.init("A")
-				.add(new TargetDef("a", "A.a"))
-				.add(new TargetDef("b", defB))
-				.add(new TargetDef("c", "A.c"));
-		schema.add(defA);
-		schema.add(defB);
-		schema.add(defC);
-		se.setSchema(schema);
-		QueryBuilder.setup(se);
+	@Test
+	public void testOpenDataHubSelectFormat() {
+		SelectExpansion seOdh = new SelectExpansionConfig().getSelectExpansion();
+		String res = QueryBuilder
+			.init(seOdh, "mvalue", null, true, "measurements", "measurementdouble")
+			.addSql("SELECT")
+			.expandSelect()
+			.reset("mvalue", null, true, "measurements", "measurementstring")
+			.expandSelectPrefix(",")
+			.getSql();
+
+		assertEquals("SELECT me.double_value as mvalue, null::character varying as mvalue_string , null::double precision as mvalue_double, me.string_value as mvalue", res);
 	}
+
+
 
 }

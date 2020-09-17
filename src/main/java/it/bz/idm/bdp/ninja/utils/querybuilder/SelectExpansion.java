@@ -460,12 +460,7 @@ public class SelectExpansion {
 			}
 
 			String defName = target.getTargetDefListName();
-
-			String sqlSelect = expandedSelects.getOrDefault(defName, null);
-			String before = targetDef.hasSqlBefore() ? targetDef.getSqlBefore() + ", " : "";
-			String after = targetDef.hasSqlAfter() ? ", " + targetDef.getSqlAfter() : "";
 			String distinct = isDistinct ? "distinct " : "";
-
 			StringJoiner sj = new StringJoiner(", ");
 
 			/* Three types for column-targets exist:
@@ -485,14 +480,21 @@ public class SelectExpansion {
 				}
 			} else if (target.hasFunction()) { /* (2) Function */
 				hasFunctions = true;
-				sj.add(String.format("%s(%s%s) as \"%s(%s)\"", target.getFunc(), distinct, targetDef.getColumn(), target.getFunc(), targetDef.getFinalName()));
+				sj.add(String.format("%s(%s%s) as \"%s(%s)\"", target.getFunc(), distinct, targetDef.getColumnFormatted(), target.getFunc(), targetDef.getFinalName()));
 			} else { /* (3) Regular column */
-				sj.add(String.format("%s as %s", targetDef.getColumn(), targetDef.getFinalName()));
+				sj.add(String.format("%s as %s", targetDef.getColumnFormatted(), targetDef.getFinalName()));
 				if (! groupByCandidates.contains(targetDef.getName())) {
 					groupByCandidates.add(targetDef.getName());
 				}
 			}
-			expandedSelects.put(defName, (sqlSelect == null ? "" : sqlSelect + ", ") + before + sj + after);
+
+			String sqlSelect = expandedSelects.getOrDefault(defName, "");
+			if (! sqlSelect.isEmpty()) {
+				sqlSelect += ", ";
+			}
+
+			expandedSelects.put(defName, sqlSelect + String.format(targetDef.getSelectFormat(), sj));
+
 		}
 
 		/*
@@ -606,9 +608,9 @@ public class SelectExpansion {
 		SelectExpansion se = new SelectExpansion();
 		Schema schema = new Schema();
 		TargetDefList defListC = new TargetDefList("C")
-				.add(new TargetDef("h", "C.h").sqlBefore("before"));
+				.add(new TargetDef("h", "C.h").setSelectFormat("before, %s"));
 		TargetDefList defListD = new TargetDefList("D")
-				.add(new TargetDef("d", "D.d").sqlAfter("after"));
+				.add(new TargetDef("d", "D.d").setSelectFormat("%safter"));
 		TargetDefList defListB = new TargetDefList("B")
 				.add(new TargetDef("x", "B.x").alias("x_replaced"))
 				.add(new TargetDef("y", defListC));
@@ -640,7 +642,7 @@ public class SelectExpansion {
 		// {B=B.x as x}
 		// [x]
 		// [B]
-		se.expand("x, y", "B");
+		se.expand("x_replaced, y", "B");
 		System.out.println(se.getExpansion());
 		System.out.println(se.getUsedTargetNames());
 		System.out.println(se.getUsedDefNames());
@@ -713,7 +715,7 @@ public class SelectExpansion {
 		//// {A=A.a as a, A.b as b, B=B.x as x, X=X.h as h}
 		//// [a, b, c, x, h, y]
 		//// [A, B, X]
-		se.expand("x, y", "B");
+		se.expand("x_replaced, y", "B");
 		System.out.println(se.getExpansion());
 		System.out.println(se.getUsedTargetNames());
 		System.out.println(se.getUsedDefNames());

@@ -22,31 +22,34 @@ import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 
 public class ResultBuilderTests {
 
-	SelectExpansion se;
-	List<Map<String, Object>> queryResult;
+	private List<Map<String, Object>> queryResult;
+	private SelectExpansion seOpenDataHub;
 	private SelectExpansion seNestedMain;
 
 	@Before
 	public void setUpBefore() throws Exception {
-		se = new SelectExpansionConfig().getSelectExpansion();
+		seOpenDataHub = new SelectExpansionConfig().getSelectExpansion();
 
-		queryResult = new ArrayList<Map<String, Object>>();
+		queryResult = new ArrayList<>();
 
 		seNestedMain = new SelectExpansion();
 		Schema schemaNestedMain = new Schema();
 		TargetDefList defListC = new TargetDefList("C")
-				.add(new TargetDef("h", "C.h").sqlBefore("before"));
+			.add(new TargetDef("h", "C.h")
+				.setSelectFormat("before, %s"));
 		TargetDefList defListD = new TargetDefList("D")
-				.add(new TargetDef("d", "D.d").sqlAfter("after"));
+			.add(new TargetDef("d", "D.d")
+				.setSelectFormat("%s, after"));
 		TargetDefList defListB = new TargetDefList("B")
-				.add(new TargetDef("x", "B.x").alias("x_replaced"))
-				.add(new TargetDef("y", defListC));
+			.add(new TargetDef("x", "B.x")
+				.alias("x_replaced"))
+			.add(new TargetDef("y", defListC));
 		TargetDefList defListA = new TargetDefList("A")
-				.add(new TargetDef("a", "A.a"))
-				.add(new TargetDef("b", "A.b"))
-				.add(new TargetDef("c", defListB));
+			.add(new TargetDef("a", "A.a"))
+			.add(new TargetDef("b", "A.b"))
+			.add(new TargetDef("c", defListB));
 		TargetDefList defListMain = new TargetDefList("main")
-				.add(new TargetDef("t", defListA));
+			.add(new TargetDef("t", defListA));
 		schemaNestedMain.add(defListA);
 		schemaNestedMain.add(defListB);
 		schemaNestedMain.add(defListC);
@@ -57,7 +60,7 @@ public class ResultBuilderTests {
 
 	@Test
 	public void testOpenDataHubMobility() {
-		se.expand("tname", "datatype");
+		seOpenDataHub.expand("tname", "datatype");
 
 		queryResult.add(ConditionalMap.mapOf(
 			"_stationtype", "parking",
@@ -67,7 +70,7 @@ public class ResultBuilderTests {
 		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
-				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
+				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 		queryResult.add(ConditionalMap.mapOf(
 			"_stationtype", "parking",
@@ -77,7 +80,7 @@ public class ResultBuilderTests {
 		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
-				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
+				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 		queryResult.add(ConditionalMap.mapOf(
 			"_stationtype", "parking",
@@ -87,14 +90,14 @@ public class ResultBuilderTests {
 		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}, occ2={tname=x}}}}}}",
-				ResultBuilder.build("stationtype", "datatype", true, queryResult, se.getSchema(), 0).toString());
+				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 	}
 
 	@Test
 	public void testMakeObject() {
 		seNestedMain.expand("*", "main", "A", "B", "C", "D");
-		Map<String, Object> rec = new HashMap<String, Object>();
+		Map<String, Object> rec = new HashMap<>();
 		rec.put("a", "3");
 		rec.put("b", "7");
 		rec.put("d", "DDD");
@@ -125,7 +128,7 @@ public class ResultBuilderTests {
 	@Test
 	public void testMakeObjectJSON() {
 		seNestedMain.expand("x_replaced.address.cap, x_replaced.address.city", "A", "B");
-		Map<String, Object> rec = new HashMap<String, Object>();
+		Map<String, Object> rec = new HashMap<>();
 		rec.put("x_replaced.address.cap", 39100);
 		rec.put("x_replaced.address.city", "BZ");
 
@@ -169,7 +172,7 @@ public class ResultBuilderTests {
 		resultList.add(rec2);
 
 		assertEquals("{AAA={stations={123={sdatatypes={t1={tmeasurements=[{mperiod=200, mtransactiontime=88, mvalidtime=13, mvalue=1111}], tname=t1}}, sname=edgename1}, 456={sdatatypes={t2={tmeasurements=[{mperiod=100, mtransactiontime=8899, mvalidtime=133, mvalue=2222}], tname=t2}}, sname=edgename2}}}}",
-			ResultBuilder.build("stationtype", null, false, resultList, se.getSchema(), 1000).toString());
+			ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString());
 	}
 
 }

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.jsoniter.output.JsonStream;
 
 import it.bz.idm.bdp.ninja.utils.jsonserializer.JsonIterPostgresSupport;
-import it.bz.idm.bdp.ninja.utils.jsonserializer.JsonIterSqlTimestampSupport;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
@@ -42,12 +41,12 @@ public class NinjaConfig implements ApplicationListener<ContextRefreshedEvent> {
 		QueryExecutor.setup(jdbcTemplate);
 
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
+		ColumnMapRowMapper.setTimeZone("UTC");
 		ColumnMapRowMapper.setTargetDefNameToAliasMap(se.getSchema().getTargetDefNameToAliasMap());
 
 		if (!enableCompression4JSON) {
 			JsonStream.setIndentionStep(4);
 		}
-		JsonIterSqlTimestampSupport.enable("yyyy-MM-dd HH:mm:ss.SSSZ");
 		JsonIterPostgresSupport.enable();
 	}
 

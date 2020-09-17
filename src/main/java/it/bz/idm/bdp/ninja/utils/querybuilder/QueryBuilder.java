@@ -59,6 +59,7 @@ public class QueryBuilder {
 	}
 
 	public static QueryBuilder init(SelectExpansion selectExpansion, final String select, final String where, final boolean isDistinct, String... selectDefNames) {
+		QueryBuilder.se = null;
 		QueryBuilder.setup(selectExpansion);
 		return QueryBuilder.init(select, where, isDistinct, selectDefNames);
 	}
@@ -240,7 +241,7 @@ public class QueryBuilder {
 	}
 
 	public String getSql() {
-		return sql.toString();
+		return sql.toString().trim();
 	}
 
 	public SelectExpansion getSelectExpansion() {
