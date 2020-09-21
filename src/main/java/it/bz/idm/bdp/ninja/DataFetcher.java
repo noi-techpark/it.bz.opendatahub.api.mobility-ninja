@@ -86,7 +86,8 @@ public class DataFetcher {
 				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
+		// We need null values while tree building. We remove them during the output generation
+		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
 
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
@@ -209,7 +210,8 @@ public class DataFetcher {
 			 .addOffset(offset);
 		long timeBuild = timer.stop();
 
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
+		// We need null values while tree building. We remove them during the output generation
+		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
 
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
@@ -305,7 +307,8 @@ public class DataFetcher {
 			 .addOffset(offset);
 		long timeBuild = timer.stop();
 
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
+		// We need null values while tree building. We remove them during the output generation
+		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
 
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
@@ -394,7 +397,8 @@ public class DataFetcher {
 
 		log.debug(query.getSql());
 
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
+		// We need null values while tree building. We remove them during the output generation
+		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
 
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
@@ -403,7 +407,7 @@ public class DataFetcher {
 				.build(query.getSql());
 		long timeExec = timer.stop();
 
-		log.debug(queryResult.toString());
+		log.trace(queryResult.toString());
 
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
