@@ -4,7 +4,7 @@
 	<springProfile name="local">
 		<include resource="org/springframework/boot/logging/logback/base.xml"/>
 		<logger name="it.bz.idm">
-			<level value="TRACE"/>
+			<level value="DEBUG"/>
 		</logger>
 	</springProfile>
 
