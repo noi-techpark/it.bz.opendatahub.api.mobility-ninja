@@ -175,6 +175,10 @@ GET /flat,edge/
 
 ## Edges
 
+We expose only **available** edges, but for historical reasons the `eavailable`,
+`sbavailable` and `seavailable` fields are still accessible. Availability should
+have been an internal-only field to mark a station visible through the API.
+
 An edge is a connection between two stations and some descriptive fields
 attached. In addition it contains geometries, that describe the connection on a
 map.
@@ -200,6 +204,10 @@ GET /flat,edge/Linkstation
 
 
 ## Stations
+
+We expose only **available** stations, but for historical reasons the
+`savailable` fields are still accessible. Availability should have been an
+internal-only field to mark a station visible through the API.
 
 Please note, that the response is limited. However, you can [set another limit
 or disable it completely](#pagination).
