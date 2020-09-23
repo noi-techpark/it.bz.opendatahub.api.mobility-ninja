@@ -7,6 +7,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.TimeZone;
+
 import com.jsoniter.output.JsonStream;
 
 import it.bz.idm.bdp.ninja.utils.jsonserializer.JsonIterPostgresSupport;
@@ -39,6 +41,9 @@ public class NinjaConfig implements ApplicationListener<ContextRefreshedEvent> {
 		/* Set the query builder, JDBC template's row mapper and JSON parser up */
 		QueryBuilder.setup(se);
 		QueryExecutor.setup(jdbcTemplate);
+
+		/* Set the global timezone for this Java application */
+		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
 		ColumnMapRowMapper.setTimeZone("UTC");
