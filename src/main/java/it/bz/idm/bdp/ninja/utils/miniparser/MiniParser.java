@@ -252,13 +252,4 @@ public class MiniParser {
 	public Token getAst() {
 		return ast;
 	}
-
-//	public static void main(String[] args) {
-//		MiniParser mp = new MiniParser("and,or,xx");
-//		System.out.println(mp.matchConsume("and"));
-//		System.out.println(mp.matchConsume(','));
-//		System.out.println(mp.matchConsume("or"));
-//		mp.expect('.');
-//	}
-
 }

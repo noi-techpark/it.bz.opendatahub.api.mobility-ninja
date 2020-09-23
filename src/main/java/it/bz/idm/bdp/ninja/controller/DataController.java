@@ -296,8 +296,6 @@ public class DataController {
 		final Map<String, Object> result = new HashMap<>();
 		result.put("offset", offset);
 		result.put("limit", limit);
-		Timer timer = new Timer();
-		timer.start();
 		switch(representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
@@ -312,7 +310,6 @@ public class DataController {
 					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 		}
-		System.out.println("TIME TO BUILD: " + timer.stop());
 		return result;
 	}
 

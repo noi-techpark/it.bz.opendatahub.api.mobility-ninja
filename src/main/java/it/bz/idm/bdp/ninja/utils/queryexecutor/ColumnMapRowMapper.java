@@ -44,6 +44,7 @@ public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 		ColumnMapRowMapper.targetDefNameToAliasMap = map;
 	}
 
+	// FIXME Create a mapRow for tree building, otherwise we build a map first and then a tree
 	@Override
 	public Map<String, Object> mapRow(ResultSet rs, int rowNum) throws SQLException {
 		ResultSetMetaData rsmd = rs.getMetaData();
