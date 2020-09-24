@@ -22,8 +22,6 @@
  */
 package it.bz.idm.bdp.ninja.controller;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,10 +33,7 @@ import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -52,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.security.SecurityUtils;
+import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
@@ -63,8 +59,6 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 @RestController
 @RequestMapping(value = "")
 public class DataController {
-
-	private static final Logger log = LoggerFactory.getLogger(DataController.class);
 
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
@@ -116,7 +110,8 @@ public class DataController {
 	@GetMapping(value = "", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestRoot() {
 		if (fileRoot == null) {
-			fileRoot = DataController.loadFile("root.json", "__URL__", ninjaBaseUrl);
+			fileRoot = FileUtils.loadFile("root.json");
+			fileRoot = FileUtils.replacements(fileRoot, "__URL__", ninjaBaseUrl);
 		}
 		return fileRoot;
 	}
@@ -124,7 +119,8 @@ public class DataController {
 	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
 	public @ResponseBody String requestOpenApiSpec() {
 		if (fileSpec == null) {
-			fileSpec = DataController.loadFile("openapi3.yml", "__ODH_SERVER_URL__", ninjaHostUrl);
+			fileSpec = FileUtils.loadFile("openapi3.yml");
+			fileSpec = FileUtils.replacements(fileSpec, "__ODH_SERVER_URL__", ninjaHostUrl);
 		}
 		return fileSpec;
 	}
@@ -323,18 +319,5 @@ public class DataController {
 				break;
 		}
 		return result;
-	}
-
-	private static String loadFile(final String filename, String... replacements) {
-		log.debug("Loading file: {}.", filename);
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream in = classloader.getResourceAsStream(filename);
-		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
-			String result = scanner.useDelimiter("\\A").next();
-			for (int i = 0; i < replacements.length; i += 2) {
-				result = result.replace(replacements[i], replacements[i + 1]);
-			}
-			return result;
-		}
 	}
 }
