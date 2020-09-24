@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -61,6 +63,8 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 @RestController
 @RequestMapping(value = "")
 public class DataController {
+
+	private static final Logger log = LoggerFactory.getLogger(DataController.class);
 
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
@@ -90,6 +94,9 @@ public class DataController {
 	@Autowired
 	DataFetcher dataFetcher;
 
+	private String fileRoot;
+	private String fileSpec;
+
 	public enum ErrorCode implements ErrorCodeInterface {
 		DATE_PARSE_ERROR(
 				"Invalid date given. Format must be %s, where [] denotes optionality. Do not forget, single digits must be leaded by 0. Error message: %s.");
@@ -108,12 +115,18 @@ public class DataController {
 
 	@GetMapping(value = "", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestRoot() {
-		return DataController.loadFile("root.json", "__URL__", ninjaBaseUrl);
+		if (fileRoot == null) {
+			fileRoot = DataController.loadFile("root.json", "__URL__", ninjaBaseUrl);
+		}
+		return fileRoot;
 	}
 
 	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
 	public @ResponseBody String requestOpenApiSpec() {
-		return DataController.loadFile("openapi3.yml", "__ODH_SERVER_URL__", ninjaHostUrl);
+		if (fileSpec == null) {
+			fileSpec = DataController.loadFile("openapi3.yml", "__ODH_SERVER_URL__", ninjaHostUrl);
+		}
+		return fileSpec;
 	}
 
 	@GetMapping(value = "/{representation}", produces = "application/json;charset=UTF-8")
@@ -313,6 +326,7 @@ public class DataController {
 	}
 
 	private static String loadFile(final String filename, String... replacements) {
+		log.debug("Loading file: {}.", filename);
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream in = classloader.getResourceAsStream(filename);
 		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
