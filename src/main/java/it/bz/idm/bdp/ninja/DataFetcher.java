@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,15 +15,13 @@ import org.springframework.stereotype.Component;
 
 import com.jsoniter.output.JsonStream;
 
-import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
+import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
-import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
-import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -58,6 +57,7 @@ public class DataFetcher {
 	private String select;
 	private String where;
 	private boolean distinct;
+	private Map<String, String> aclWhereClauses = new HashMap<>();
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, final Representation representation) {
 		if (representation.isEdge()) {
@@ -139,6 +139,8 @@ public class DataFetcher {
 		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null");
 		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
 
+		String aclWhereclause = " and " + getAclWhereClause(roles);
+
 		if (useMeasurementDouble) {
 			query.addSql("select")
 				 .addSqlIf("distinct", distinct)
@@ -146,19 +148,14 @@ public class DataFetcher {
 				 .expandSelectPrefix(", ", !representation.isFlat())
 				 .addSqlIf("from measurementhistory me", from != null || to != null)
 				 .addSqlIf("from measurement me", from == null && to == null)
-				 .addSql("join bdppermissions pe on (",
-						 "(me.station_id = pe.station_id OR pe.station_id is null)",
-						 "AND (me.type_id = pe.type_id OR pe.type_id is null)",
-						 "AND (me.period = pe.period OR pe.period is null)",
-						 "AND pe.role_id in (select id from bdprole r where r.name in (:roles))",
-						 ")",
-						 "join station s on me.station_id = s.id")
+				 .addSql("join station s on me.station_id = s.id")
 				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 				 .addSql("where s.available = true")
+				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
@@ -181,19 +178,14 @@ public class DataFetcher {
 				 .expandSelectPrefix(", ", !representation.isFlat())
 				 .addSqlIf("from measurementstringhistory me", from != null || to != null)
 				 .addSqlIf("from measurementstring me", from == null && to == null)
-				 .addSql("join bdppermissions pe on (",
-						 "(me.station_id = pe.station_id OR pe.station_id is null)",
-						 "AND (me.type_id = pe.type_id OR pe.type_id is null)",
-						 "AND (me.period = pe.period OR pe.period is null)",
-						 "AND pe.role_id in (select id from bdprole r where r.name in (:roles))",
-						 ")",
-						 "join station s on me.station_id = s.id")
+				 .addSql("join station s on me.station_id = s.id")
 				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 				 .addSql("where s.available = true")
+				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
@@ -212,6 +204,8 @@ public class DataFetcher {
 			 .addLimit(limit)
 			 .addOffset(offset);
 		long timeBuild = timer.stop();
+
+		System.out.println(query.getSql());
 
 		// We need null values while tree building. We remove them during the output generation
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
@@ -232,7 +226,26 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	public List<Map<String, Object>> fetchStationsAndTypes(String stationTypeList, String dataTypeList, final Representation representation) {
+	private String getAclWhereClause(List<String> roles) {
+		if (aclWhereClauses.isEmpty()) {
+			for (String role : roles) {
+				String sql = FileUtils.loadFile("acl-rules/" + role + ".sql");
+				sql = sql.replaceAll("--.*\n", "\n").replaceAll("//.*\n", "\n");
+				aclWhereClauses.put(role, sql);
+			}
+		}
+
+		StringJoiner sj = new StringJoiner(" or ", "(", ")");
+
+		for (String whereClause : aclWhereClauses.values()) {
+			sj.add(whereClause);
+		}
+
+		return sj.toString();
+	}
+
+	public List<Map<String, Object>> fetchStationsAndTypes(String stationTypeList, String dataTypeList,
+			final Representation representation) {
 
 		if (representation.isEdge()) {
 			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStationsAndTypes");
@@ -486,59 +499,10 @@ public class DataFetcher {
 		}
 	}
 
-
 	public static void main(String[] args) {
-		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
-
-		se.expand("*", "station", "parent", "measurementdouble");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-		System.out.println(se.getWhereSql());
-
-		se.setWhereClause("");
-		se.expand("*", "station", "parent", "measurementstring");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-		System.out.println(se.getWhereSql());
-
-		List<Map<String, Object>> queryResult = new ArrayList<>();
-		Map<String, Object> rec1 = new HashMap<>();
-		rec1.put("_stationtype", "parking");
-		rec1.put("_stationcode", "walther-code");
-		rec1.put("_datatypename", "occ1");
-		rec1.put("stype", "parking");
-		rec1.put("sname", "walther");
-		rec1.put("pname", "bolzano1");
-		rec1.put("tname", "o");
-		rec1.put("mvalue", 1);
-		queryResult.add(rec1);
-
-		Map<String, Object> rec2 = new HashMap<>();
-		rec2.put("_stationtype", "parking");
-		rec2.put("_stationcode", "walther-code");
-		rec2.put("_datatypename", "occ1");
-		rec2.put("stype", "parking");
-		rec2.put("sname", "walther");
-		rec2.put("pname", "bolzano2");
-		rec2.put("tname", "o");
-		rec2.put("mvalue", 2);
-		queryResult.add(rec2);
-
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-		System.out.println(se.getWhereSql());
-
-//		System.out.println(se.makeObjectOrEmptyMap(rec1, false, "stationtype").toString());
-
-		List<String> hierarchy = new ArrayList<>();
-		hierarchy.add("_stationtype");
-		hierarchy.add("_stationcode");
-		hierarchy.add("_datatypename");
-
-		System.out.println(JsonStream.serialize(ResultBuilder.build("stationtype", null, true, queryResult, se.getSchema(), 10000)));
+		String sql = FileUtils.loadFile("acl-rules/GUEST.sql");
+		sql = sql.replaceAll("--.*\n", "\n").replaceAll("//.*\n", "\n");
+		System.out.println(sql);
 	}
 
 }
