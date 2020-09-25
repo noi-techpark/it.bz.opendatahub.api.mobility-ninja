@@ -12,7 +12,7 @@ pipeline {
         NINJA_QUERY_TIMEOUT_SEC = "60"
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
         LOG_APPLICATION_NAME = "ninja"
-        LOG_APPLICATION_VERSION = "0.9.0"
+        LOG_APPLICATION_VERSION = "1.0.0"
 
         SECURITY_ALLOWED_ORIGINS = "*"
         KEYCLOAK_URL = "https://auth.opendatahub.bz.it/auth/"

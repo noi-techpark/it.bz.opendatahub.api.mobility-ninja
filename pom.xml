@@ -6,9 +6,9 @@
 	<packaging>war</packaging>
 	<groupId>it.bz.opendatahub</groupId>
 	<artifactId>ninja</artifactId>
-	<version>0.9.0</version>
+	<version>1.0.0</version>
 	<name>ninja</name>
-	<description>Spring Boot</description>
+	<description>Open Data Hub Mobility API v2</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
