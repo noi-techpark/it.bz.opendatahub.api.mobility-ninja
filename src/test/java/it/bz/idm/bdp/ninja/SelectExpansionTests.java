@@ -374,7 +374,6 @@ public class SelectExpansionTests {
 			fail("Exception expected; syntax error after a.eq.1");
 		} catch (SimpleException e) {
 			// nothing to do
-			e.printStackTrace();
 		}
 
 		seMinimal.setWhereClause("a.bbi.(1,2,3,4,5,6).and(a.eq.0)");
