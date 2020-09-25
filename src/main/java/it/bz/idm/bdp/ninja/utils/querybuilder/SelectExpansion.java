@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -602,124 +601,6 @@ public class SelectExpansion {
 	@Override
 	public String toString() {
 		return "SelectSchema [schema=" + schema + "]";
-	}
-
-	public static void main(String[] args) {
-		SelectExpansion se = new SelectExpansion();
-		Schema schema = new Schema();
-		TargetDefList defListC = new TargetDefList("C")
-				.add(new TargetDef("h", "C.h").setSelectFormat("before, %s"));
-		TargetDefList defListD = new TargetDefList("D")
-				.add(new TargetDef("d", "D.d").setSelectFormat("%safter"));
-		TargetDefList defListB = new TargetDefList("B")
-				.add(new TargetDef("x", "B.x").alias("x_replaced"))
-				.add(new TargetDef("y", defListC));
-		TargetDefList defListA = new TargetDefList("A")
-				.add(new TargetDef("a", "A.a"))
-				.add(new TargetDef("b", "A.b"))
-				.add(new TargetDef("c", defListB));
-		TargetDefList defListMain = new TargetDefList("main")
-				.add(new TargetDef("t", defListA));
-		schema.add(defListA);
-		schema.add(defListB);
-		schema.add(defListC);
-		schema.add(defListD);
-		schema.add(defListMain);
-
-		se.setSchema(schema);
-
-		// se.addRewrite("measurement", "mvalue", "measurementdouble", "mvalue_double");
-		// se.addRewrite("measurement", "mvalue", "measurementstring", "mvalue_string");
-
-		//// {}
-		//// []
-		//// []
-		// se.expand("y", "B");
-		// System.out.println(se.getExpansion());
-		// System.out.println(se.getUsedAliases());
-		// System.out.println(se.getUsedDefNames());
-		//
-		// {B=B.x as x}
-		// [x]
-		// [B]
-		se.expand("x_replaced, y", "B");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-		System.out.println(se.getWhereSql());
-		System.out.println(se.getWhereParameters());
-		System.out.println(se.getGroupByTargetNames());
-		//
-		//// {A=A.a as a, A.b as b, B=B.x as x}
-		//// [a, b, c, x]
-		//// [A, B]
-		se.expand("a, b, c", "A", "B");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-
-		se.addOperator("number", "gt", "> %s");
-		se.addOperator("string", "eq", "= %s");
-		se.addOperator("string", "neq", "<> %s");
-		se.addOperator("number", "eq", "= %s");
-		se.addOperator("boolean", "eq", "= %s");
-		se.addOperator("number", "neq", "<> %s");
-		se.addOperator("null", "eq", "is null");
-		se.addOperator("null", "neq", "is not null");
-		se.addOperator("list", "in", "in (%s)");
-		se.addOperator("list", "bbi", "&& st_envelope(%s)");
-
-		se.setWhereClause("b.eq.true,and(or(a.eq.null,b.eq.5),a.bbi.(1,2,3,4),b.in.(lo,la,xx))");
-
-		se.addOperator("boolean", "eq", "%c = %v");
-		se.setWhereClause("a.eq.true");
-		se.expand("h", "A", "C", "B");
-
-		se.addOperator("json/string", "eq", "%c#>>'{%j}' = %v");
-		se.addOperator("json/boolean", "eq", "%c#>'{%j}' = %v");
-		se.addOperator("json/number", "eq", "(%c#>'{%j}')::double precision = %%v");
-		se.addOperator("json/list/number", "eq", "(%c#>'{%j}')::double precision = %v");
-		se.setWhereClause("a.b.c.eq.-.2");
-		se.setWhereClause("a.b.c.eq.\"\"");
-		// se.expand("min(h.a.b),max(h.a.b),h.a,h", "A", "C", "B");
-		// se.expand("min(h.a),max(h.a),min(x),h.a,h.a,count(h.a),y,a.b.c.d,x", "A", "C", "B");
-
-		// System.out.println(se.getExpansion());
-		// System.out.println(se.getUsedAliases());
-		// System.out.println(se.getUsedDefNames());
-		// System.out.println(se.getWhereSql());
-		// System.out.println(se.getWhereParameters());
-		// System.out.println(se.getGroupByColumns());
-
-		// se.setWhereClause("");
-		// se.expand("mvalue", "A", "D", "B");
-		// System.out.println(se.getExpansion());
-		// System.out.println(se.getUsedAliases());
-		// System.out.println(se.getUsedDefNames());
-		// System.out.println(se.getWhereSql());
-		// System.out.println(se.getWhereParameters());
-
-		// se.expand("*", "A", "B");
-		se.expand("*", "main", "A", "B", "C");
-		Map<String, Object> rec = new HashMap<>();
-		rec.put("a", "3");
-		rec.put("b", "7");
-		rec.put("x", "0");
-		rec.put("h", "v");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-		System.out.println(se.getWhereSql());
-		System.out.println();
-
-		//// {A=A.a as a, A.b as b, B=B.x as x, X=X.h as h}
-		//// [a, b, c, x, h, y]
-		//// [A, B, X]
-		se.expand("x_replaced, y", "B");
-		System.out.println(se.getExpansion());
-		System.out.println(se.getUsedTargetNames());
-		System.out.println(se.getUsedDefNames());
-
 	}
 
 	public void setDistinct(boolean isDistinct) {

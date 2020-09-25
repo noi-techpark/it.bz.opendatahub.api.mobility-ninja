@@ -197,8 +197,6 @@ public class DataFetcher {
 			 .addOffset(offset);
 		long timeBuild = timer.stop();
 
-		System.out.println(query.getSql());
-
 		// We need null values while tree building. We remove them during the output generation
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
 
@@ -500,11 +498,4 @@ public class DataFetcher {
 			throw new SimpleException(ErrorCode.WRONG_TIMEZONE, timeZone);
 		}
 	}
-
-	public static void main(String[] args) {
-		String sql = FileUtils.loadFile("acl-rules/GUEST.sql");
-		sql = sql.replaceAll("--.*\n", "\n").replaceAll("//.*\n", "\n");
-		System.out.println(sql);
-	}
-
 }

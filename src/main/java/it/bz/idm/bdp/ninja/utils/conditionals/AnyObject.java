@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.jsoniter.any.Any;
-
 enum AnyObjectType {
 	LIST,
 	MAP,
@@ -190,33 +188,6 @@ public class AnyObject {
 	@Override
 	public String toString() {
 		return String.format("AnyObject{type=%s, object=%s}", this.type, this.object);
-	}
-
-	public static void main(final String[] args) {
-		// final AnyObject a = new AnyObject();
-		// a.putRaw("t", "text");
-		// a.put("x", new AnyObject(AnyObjectType.LIST));
-		// System.out.println(a.get("x").asList().size());
-		// System.out.println(a.get("x").get(0));
-
-		List<Any> xx = new ArrayList<>();
-		Any yy = Any.wrap(100);
-		xx.add(yy);
-		Any any = Any.wrap(xx);
-
-		for (Any c : any.asMap().values()) {
-			System.out.println(c);
-		}
-
-	// 	System.out.println(a);
-
-	// 	final String xx = "hallo";
-	// 	final AnyObject c = new AnyObject(xx);
-	// 	System.out.println(c.asText());
-
-	// 	final AnyObject b = new AnyObject(Long.valueOf(100));
-
-	// 	System.out.println(b.asRaw());
 	}
 
 }

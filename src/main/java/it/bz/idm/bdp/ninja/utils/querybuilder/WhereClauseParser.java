@@ -221,24 +221,4 @@ public class WhereClauseParser extends MiniParser {
 		expect(EOL);
 		return ast;
 	}
-
-	public static void main(String[] args) {
-		String input;
-//		input = "a.b.c.eq.x=b";
-//		input = "and(x.eq.3,y.bbi.(1,2,3,4,5),or(z.neq.null,abc.in.(ciao,ha\\,llo),t.ire.\\.*77|e3))";
-//		input = "a.eq.1.and(a.eq.0)";
-		input = "smetadata.outlets.0.maxPower.eq.\".*\",x.gt.7";
-//		input = "a.3.c.in.(1,2)";
-//		input = "a.eq.0,b.neq.3,or(a.eq.3,b.eq.5)";
-//		input = "a.eq.0,b.neq.3,or(a.eq.3,b.eq.5),a.bbi.(1,2,3,4),d.eq.,f.in.()";
-//		input = "f.eq.(null,null,null)";
-//		input = "f_.eq.";//,or(a.eq.7,and(b.eq.9))";
-//		input = "a.eq.1.and(a.eq.0)";
-//		input = "or(scode.ire.TRENTO|rovere'to.*,mvalue.eq.0)";
-		WhereClauseParser we = new WhereClauseParser(input);
-		Token ast = we.parse();
-		System.out.println(ast.prettyFormat());
-		System.out.println(ast.format());
-
-	}
 }
