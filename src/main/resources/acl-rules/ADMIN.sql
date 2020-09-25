@@ -1,5 +1,2 @@
--- A filter rule that is always true, since an ADMIN sees all data
--- We concatenate all ACL rules with an OR logical operator
-(
-    1 = 1
-)
+-- This is just a placeholder which should not be overwritten
+-- An ADMIN sees all data, hence we do not have any filters here

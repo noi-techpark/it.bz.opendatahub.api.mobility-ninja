@@ -1,5 +1,6 @@
 package it.bz.idm.bdp.ninja;
 
+import java.io.File;
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -228,17 +229,27 @@ public class DataFetcher {
 
 	private String getAclWhereClause(List<String> roles) {
 		if (aclWhereClauses.isEmpty()) {
-			for (String role : roles) {
-				String sql = FileUtils.loadFile("acl-rules/" + role + ".sql");
-				sql = sql.replaceAll("--.*\n", "\n").replaceAll("//.*\n", "\n");
-				aclWhereClauses.put(role, sql);
+			File directoryPath = new File("acl-rules/");
+			for (File file : directoryPath.listFiles()) {
+				String filename = file.getName().toUpperCase();
+				if (filename.endsWith(".SQL")) {
+					String sql = FileUtils
+						.loadFile("acl-rules/" + filename)
+						.replaceAll("--.*\n", "\n")
+						.replaceAll("//.*\n", "\n");
+					aclWhereClauses.put(filename.substring(0, filename.length() - 4), sql);
+				}
 			}
+		}
+
+		if (roles.contains("ADMIN")) {
+			return null;
 		}
 
 		StringJoiner sj = new StringJoiner(" or ", "(", ")");
 
-		for (String whereClause : aclWhereClauses.values()) {
-			sj.add(whereClause);
+		for (String role : roles) {
+			sj.add(aclWhereClauses.get(role));
 		}
 
 		return sj.toString();
