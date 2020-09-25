@@ -1,7 +1,15 @@
 package it.bz.idm.bdp.ninja.utils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -22,6 +30,21 @@ public class FileUtils {
 		try (Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name())) {
 			return scanner.useDelimiter("\\A").next();
 		}
+	}
+
+	public static List<String> listFiles(final String path) {
+		List<String> result = new ArrayList<>();
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		try {
+			Enumeration<URL> resources = classloader.getResources(path);
+			while (resources.hasMoreElements()) {
+				File thePath = new File(resources.nextElement().toURI());
+				result.addAll(Arrays.asList(thePath.list()));
+			}
+		} catch (IOException | URISyntaxException e) {
+			/* Ignored; just return an empty array if the path does not exist */
+		}
+		return result;
 	}
 
 	public static String replacements(final String input, String... replacements) {

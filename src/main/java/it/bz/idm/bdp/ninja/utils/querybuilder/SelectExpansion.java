@@ -212,10 +212,10 @@ public class SelectExpansion {
 				case "OR":
 					sbFull.append("(");
 					context.push(new Context(t.getChildCount(), t.getName()));
-					log.debug("AND/OR" + context.getFirst());
+					log.trace("AND/OR {}", context.getFirst());
 					break;
 				case "CLAUSE": {
-					log.debug("CLAUSE");
+					log.trace("CLAUSE");
 					String alias = t.getChild("ALIAS").getValue();
 					String column = getColumn(alias, allowedTargetDefs);
 					if (column == null) {

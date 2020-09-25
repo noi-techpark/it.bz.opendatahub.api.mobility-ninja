@@ -1,6 +1,5 @@
 package it.bz.idm.bdp.ninja;
 
-import java.io.File;
 import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ public class DataFetcher {
 		METHOD_NOT_ALLOWED_FOR_EDGE_REPR ("Method '%s' not allowed with EDGE representation.");
 
 		private final String msg;
+
 		ErrorCode(String msg) {
 			this.msg = msg;
 		}
@@ -218,15 +218,17 @@ public class DataFetcher {
 
 	private String getAclWhereClause(List<String> roles) {
 		if (aclWhereClauses.isEmpty()) {
-			File directoryPath = new File("acl-rules/");
-			for (File file : directoryPath.listFiles()) {
-				String filename = file.getName().toUpperCase();
-				if (filename.endsWith(".SQL")) {
+			for (String filename : FileUtils.listFiles("acl-rules")) {
+				if (filename.equals("ADMIN.sql")) {
+					continue;
+				}
+
+				if (filename.endsWith(".sql")) {
 					String sql = FileUtils
 						.loadFile("acl-rules/" + filename)
 						.replaceAll("--.*\n", "\n")
 						.replaceAll("//.*\n", "\n");
-					aclWhereClauses.put(filename.substring(0, filename.length() - 4), sql);
+					aclWhereClauses.put(filename.substring(0, filename.length() - 4).toUpperCase(), sql);
 				}
 			}
 		}
