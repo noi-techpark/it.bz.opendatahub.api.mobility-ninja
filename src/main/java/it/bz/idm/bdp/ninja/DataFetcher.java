@@ -14,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.jsoniter.output.JsonStream;
-
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
@@ -107,15 +105,6 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	public static String serializeJSON(Object whatever) {
-		Map<String, Object> logging = new HashMap<>();
-		Timer timer = new Timer();
-		String serialize = JsonStream.serialize(whatever);
-		logging.put("serialization_time", Long.toString(timer.stop()));
-		log.info("json_serialization", v("payload", logging));
-		return serialize;
-	}
-
 	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
 		if (representation.isEdge()) {
@@ -140,7 +129,7 @@ public class DataFetcher {
 		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null");
 		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
 
-		String aclWhereclause = " and " + getAclWhereClause(roles);
+		String aclWhereclause = getAclWhereClause(roles);
 
 		if (useMeasurementDouble) {
 			query.addSql("select")
@@ -156,6 +145,7 @@ public class DataFetcher {
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 				 .addSql("where s.available = true")
+				 .addSqlIfNotNull("and", aclWhereclause)
 				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
@@ -186,6 +176,7 @@ public class DataFetcher {
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 				 .addSql("where s.available = true")
+				 .addSqlIfNotNull("and", aclWhereclause)
 				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))

@@ -22,6 +22,8 @@
  */
 package it.bz.idm.bdp.ninja.controller;
 
+import static net.logstash.logback.argument.StructuredArguments.v;
+
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,6 +37,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.jsoniter.output.JsonStream;
+
+import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
+import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -46,12 +56,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
+import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -62,6 +70,8 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 @RestController
 @RequestMapping(value = "")
 public class DataController {
+
+	private static final Logger log = LoggerFactory.getLogger(DataController.class);
 
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
@@ -165,7 +175,7 @@ public class DataController {
 			}
 
 		}
-		return DataFetcher.serializeJSON(queryResult);
+		return serializeJson(queryResult);
 	}
 
 	@GetMapping(value = "/{representation}/{stationTypes}", produces = "application/json;charset=UTF-8")
@@ -195,7 +205,7 @@ public class DataController {
 			queryResult = dataFetcher.fetchStations(stationTypes, repr);
 			result = buildResult("stationtype", "station", queryResult, offset, limit, repr, showNull);
 		}
-		return DataFetcher.serializeJSON(result);
+		return serializeJson(result);
 	}
 
 	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}", produces = "application/json;charset=UTF-8")
@@ -222,7 +232,7 @@ public class DataController {
 
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsAndTypes(stationTypes, dataTypes, repr);
 		final Map<String, Object> result = buildResult("stationtype", "datatype", queryResult, offset, limit, repr, showNull);
-		return DataFetcher.serializeJSON(result);
+		return serializeJson(result);
 	}
 
 	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/latest", produces = "application/json;charset=UTF-8")
@@ -252,7 +262,7 @@ public class DataController {
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
 				dataTypes, null, null, repr);
 		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
-		return DataFetcher.serializeJSON(result);
+		return serializeJson(result);
 	}
 
 	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/{from}/{to}", produces = "application/json;charset=UTF-8")
@@ -286,10 +296,10 @@ public class DataController {
 		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
 				dataTypes, dateTimeFrom.toOffsetDateTime(), dateTimeTo.toOffsetDateTime(), repr);
 		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
-		return DataFetcher.serializeJSON(result);
+		return serializeJson(result);
 	}
 
-	protected static ZonedDateTime getDateTime(final String dateString) {
+	private static ZonedDateTime getDateTime(final String dateString) {
 		try {
 			try {
 				return ZonedDateTime.from(DATE_FORMAT.parse(dateString));
@@ -346,5 +356,14 @@ public class DataController {
 			result.add("GUEST");
 		}
 		return result;
+	}
+
+	private static String serializeJson(Object whatever) {
+		Map<String, Object> logging = new HashMap<>();
+		Timer timer = new Timer();
+		String serialize = JsonStream.serialize(whatever);
+		logging.put("serialization_time", Long.toString(timer.stop()));
+		log.info("json_serialization", v("payload", logging));
+		return serialize;
 	}
 }
