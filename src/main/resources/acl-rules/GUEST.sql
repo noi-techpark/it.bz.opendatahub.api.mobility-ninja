@@ -15,7 +15,8 @@
 		'CarsharingStation',
 		'EChargingPlug',
 		'EChargingStation',
-		'Streetstation')
+		'Streetstation',
+        'Culture')
 
     -- station types that are only partly open, constrained by the origin
 	or (s.stationtype = 'Bicycle' and s.origin in ('ALGORAB', 'BIKE_SHARING_MERANO'))
