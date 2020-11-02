@@ -16,6 +16,7 @@
 		'EChargingPlug',
 		'EChargingStation',
 		'Streetstation',
+		'ParkingSensor',
         'Culture')
 
     -- station types that are only partly open, constrained by the origin
