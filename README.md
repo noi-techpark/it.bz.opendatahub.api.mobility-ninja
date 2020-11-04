@@ -151,13 +151,13 @@ GET /flat/*
 #### I want to get all most up-to-date measurements of all parking lots
 
 ```
-GET /flat/ParkingStation/*
+GET /flat/ParkingStation/*/latest
 ```
 
 #### I want to get all most up-to-date occupancy values of all parking lots
 
 ```
-GET /flat/ParkingStation/occupied
+GET /flat/ParkingStation/occupied/latest
 ```
 
 ### Stations, Data Types and historical Measurements
