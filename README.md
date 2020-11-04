@@ -1,153 +1,58 @@
-# API - Version 2
+# it.bz.opendatahub.api.mobility: API Version 2 (Ninja)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [I want to run the Ninja web-service](#i-want-to-run-the-ninja-web-service)
+- [Usage of the API](#usage-of-the-api)
+  - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
+  - [Station and Edge Types / Categories](#station-and-edge-types--categories)
+    - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
+  - [Edges](#edges)
+    - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
+    - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
+  - [Stations](#stations)
+    - [I want to get all e-charging stations including details](#i-want-to-get-all-e-charging-stations-including-details)
+    - [I want to get all e-charging stations and their plugs including details](#i-want-to-get-all-e-charging-stations-and-their-plugs-including-details)
+    - [I want to get all stations of any type including details](#i-want-to-get-all-stations-of-any-type-including-details)
+  - [Stations, Data Types and most up-to-date Measurements](#stations-data-types-and-most-up-to-date-measurements)
+    - [I want to get all most up-to-date measurements of all parking lots](#i-want-to-get-all-most-up-to-date-measurements-of-all-parking-lots)
+    - [I want to get all most up-to-date occupancy values of all parking lots](#i-want-to-get-all-most-up-to-date-occupancy-values-of-all-parking-lots)
+  - [Stations, Data Types and historical Measurements](#stations-data-types-and-historical-measurements)
+    - [I want to get historical occupancy values of all parking lots from a certain period](#i-want-to-get-historical-occupancy-values-of-all-parking-lots-from-a-certain-period)
+  - [Pagination](#pagination)
+  - [Filtering with SELECT and WHERE](#filtering-with-select-and-where)
+  - [Functions / Aggregation / Grouping](#functions--aggregation--grouping)
+    - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
+    - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
+    - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
+    - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
+    - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
+    - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
+  - [Time Zones](#time-zones)
+  - [Null values](#null-values)
+  - [Representation](#representation)
+  - [Authentication](#authentication)
+    - [I want to retrieve protected measurements (closed data)](#i-want-to-retrieve-protected-measurements-closed-data)
+  - [Additional Sample Queries](#additional-sample-queries)
+    - [show all echarging stations of bolzano](#show-all-echarging-stations-of-bolzano)
+    - [Show number of public, private and private with public access echarging stations](#show-number-of-public-private-and-private-with-public-access-echarging-stations)
+    - [Show the total number of plugs and how many are currently available](#show-the-total-number-of-plugs-and-how-many-are-currently-available)
+    - [Filter EchargingPlugs by voltage](#filter-echargingplugs-by-voltage)
+    - [Filter EchargingStations by payment method](#filter-echargingstations-by-payment-method)
+    - [Get all possible states of all echarging stations](#get-all-possible-states-of-all-echarging-stations)
+    - [Filter EchargingStations by state](#filter-echargingstations-by-state)
+- [Local development](#local-development)
   - [Prerequisites](#prerequisites)
-  - [How to setup NOI Authentication Server locally?](#how-to-setup-noi-authentication-server-locally)
+  - [Getting started](#getting-started)
+  - [How to setup NOI Authentication Server locally? (optional)](#how-to-setup-noi-authentication-server-locally-optional)
     - [How to register this application in your local authentication server?](#how-to-register-this-application-in-your-local-authentication-server)
     - [How to create a user or assign a user the necessary roles for this application?](#how-to-create-a-user-or-assign-a-user-the-necessary-roles-for-this-application)
     - [How to create a client to generate tokens for testing purposes?](#how-to-create-a-client-to-generate-tokens-for-testing-purposes)
-  - [How to start local development server?](#how-to-start-local-development-server)
-- [API Entry Point](#api-entry-point)
-  - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
-- [Station and Edge Types / Categories](#station-and-edge-types--categories)
-  - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
-- [Edges](#edges)
-  - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
-  - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
-- [Stations](#stations)
-  - [I want to get all e-charging stations including details](#i-want-to-get-all-e-charging-stations-including-details)
-  - [I want to get all e-charging stations and their plugs including details](#i-want-to-get-all-e-charging-stations-and-their-plugs-including-details)
-  - [I want to get all stations of any type including details](#i-want-to-get-all-stations-of-any-type-including-details)
-- [Stations, Data Types and most up-to-date Measurements](#stations-data-types-and-most-up-to-date-measurements)
-  - [I want to get all most up-to-date measurements of all parking lots](#i-want-to-get-all-most-up-to-date-measurements-of-all-parking-lots)
-  - [I want to get all most up-to-date occupancy values of all parking lots](#i-want-to-get-all-most-up-to-date-occupancy-values-of-all-parking-lots)
-- [Stations, Data Types and historical Measurements](#stations-data-types-and-historical-measurements)
-  - [I want to get historical occupancy values of all parking lots from a certain period](#i-want-to-get-historical-occupancy-values-of-all-parking-lots-from-a-certain-period)
-- [Pagination](#pagination)
-- [Filtering with SELECT and WHERE](#filtering-with-select-and-where)
-- [Functions / Aggregation / Grouping](#functions--aggregation--grouping)
-  - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
-  - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
-  - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
-  - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
-  - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
-  - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
-- [Time Zones](#time-zones)
-- [Null values](#null-values)
-- [Representation](#representation)
-- [Authentication](#authentication)
-  - [I want to retrieve protected measurements (closed data)](#i-want-to-retrieve-protected-measurements-closed-data)
-- [Additional Sample Queries](#additional-sample-queries)
-  - [show all echarging stations of bolzano](#show-all-echarging-stations-of-bolzano)
-  - [Show number of public, private and private with public access echarging stations](#show-number-of-public-private-and-private-with-public-access-echarging-stations)
-  - [Show the total number of plugs and how many are currently available](#show-the-total-number-of-plugs-and-how-many-are-currently-available)
-  - [Filter EchargingPlugs by voltage](#filter-echargingplugs-by-voltage)
-  - [Filter EchargingStations by payment method](#filter-echargingstations-by-payment-method)
-  - [Get all possible states of all echarging stations](#get-all-possible-states-of-all-echarging-stations)
-  - [Filter EchargingStations by state](#filter-echargingstations-by-state)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## I want to run the Ninja web-service
-
-### Prerequisites
-
-- Java JDK 1.8 or higher (e.g. [OpenJDK](https://openjdk.java.net/))
-- [Maven](https://maven.apache.org/) 3.x
-- Run [NOI Authentication server](https://github.com/noi-techpark/authentication-server) locally or connect to test environment
-
-### How to setup NOI Authentication Server locally?
-
-- [Here](https://github.com/noi-techpark/authentication-server) you can find how to run the server locally
-- Create a new realm following these [steps](https://github.com/noi-techpark/authentication-server/blob/master/docs/noi-authentication-server.md#realm)
-
-#### How to register this application in your local authentication server?
-
-1. Open the previously created realm
-2. Create a new client (Clients -> Create)
-
-| Property | Value           |
-| -------- | --------------- |
-| ClientID | odh-mobility-v2 |
-
-3. Client Settings
-
-| Property    | Value       |
-| ----------- | ----------- |
-| Access Type | bearer-only |
-
-4. Navigate to Roles
-
-Add following roles: BDP_ADMIN, BDP_BLC, BDP_MAD, BDP_CBZ
-
-#### How to create a user or assign a user the necessary roles for this application?
-
-1. Go to users
-2. Create user or select user (View users)
-3. Assign roles: Role Mappings -> Client Roles -> odh-mobility-v2
-
-#### How to create a client to generate tokens for testing purposes?
-
-1. Open the previously created realm
-2. Create a new client (Clients -> Create)
-
-| Property | Value               |
-| -------- | ------------------- |
-| ClientID | odh-mobility-client |
-
-3. Client Settings
-
-| Property                     | Value  |
-| ---------------------------- | ------ |
-| Access Type                  | public |
-| Standard Flow Enabled        | Off    |
-| Implicit Flow Enabled        | Off    |
-| Direct Access Grants Enabled | On     |
-
-4. Navigate to Scope
-
-| Property                                          | Value                                  |
-| ------------------------------------------------- | -------------------------------------- |
-| Full Scope Allowed                                | Off                                    |
-| Client Roles -> odh-mobility-v2 -> Assigned Roles | Move available roles to assigned roles |
-
-5. Generate a new token
-
-```sh
-curl --location --request POST 'http://localhost:8080/auth/realms/noi/protocol/openid-connect/token' \
---header 'Content-Type: application/x-www-form-urlencoded' \
---data-urlencode 'grant_type=password' \
---data-urlencode 'username={USERNAME}' \
---data-urlencode 'password={PASSWORD}' \
---data-urlencode 'client_id=odh-mobility-client'
-```
-
-### How to start local development server?
-
-Create `local` application properties profile.
-
-```bash
-cd src/main/resources
-touch application-local.properties
-```
-
-Configure at least the mandatory properties in the newly created `application-local.properties` file, such as:
-
-- spring.datasource.password
-
-Now you can start the application with:
-
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=local
-```
-
-The server will startup and listen on `http://localhost:8081`.
-
-## API Entry Point
+## Usage of the API
 
 ### I want to see what this API provides
 
@@ -155,9 +60,9 @@ The server will startup and listen on `http://localhost:8081`.
 GET /
 ```
 
-## Station and Edge Types / Categories
+### Station and Edge Types / Categories
 
-### I want to get all station or edge types
+#### I want to get all station or edge types
 
 The API provides data about nodes and edges on a map. The node is a measurement
 station, and the connection between stations are called edges. The first path
@@ -173,7 +78,7 @@ GET /tree,edge/
 GET /flat,edge/
 ```
 
-## Edges
+### Edges
 
 We expose only **available** edges, but for historical reasons the `eavailable`,
 `sbavailable` and `seavailable` fields are still accessible. Availability should
@@ -190,20 +95,20 @@ the edge. Therefore we have three prefixes of JSON fields:
 - fields with prefix `sb` are part of the beginning station
 - fields with prefix `se` are part of the ending station
 
-### I want to get all edges of a certain category
+#### I want to get all edges of a certain category
 
 ```
 GET /flat,edge/Linkstation
 ```
 
-### I want to get a specific edge of a certain category
+#### I want to get a specific edge of a certain category
 
 ```
 /flat,edge/LinkStation?where=ename.eq."tis -> cfirmiano"
 ```
 
 
-## Stations
+### Stations
 
 We expose only **available** stations, but for historical reasons the
 `savailable` fields are still accessible. Availability should have been an
@@ -212,7 +117,7 @@ internal-only field to mark a station visible through the API.
 Please note, that the response is limited. However, you can [set another limit
 or disable it completely](#pagination).
 
-### I want to get all e-charging stations including details
+#### I want to get all e-charging stations including details
 
 ```
 GET /node,flat/EChargingStation
@@ -222,7 +127,7 @@ is the same as
 GET /flat/EChargingStation
 ```
 
-### I want to get all e-charging stations and their plugs including details
+#### I want to get all e-charging stations and their plugs including details
 
 ```
 GET /flat/EChargingStation,EChargingPlug
@@ -235,34 +140,34 @@ avoid duplicate output, by simply fetching only plugs.
 GET /flat/EChargingPlug
 ```
 
-### I want to get all stations of any type including details
+#### I want to get all stations of any type including details
 
 ```
 GET /flat/*
 ```
 
-## Stations, Data Types and most up-to-date Measurements
+### Stations, Data Types and most up-to-date Measurements
 
-### I want to get all most up-to-date measurements of all parking lots
+#### I want to get all most up-to-date measurements of all parking lots
 
 ```
 GET /flat/ParkingStation/*
 ```
 
-### I want to get all most up-to-date occupancy values of all parking lots
+#### I want to get all most up-to-date occupancy values of all parking lots
 
 ```
 GET /flat/ParkingStation/occupied
 ```
 
-## Stations, Data Types and historical Measurements
+### Stations, Data Types and historical Measurements
 
 The URL pattern is `/station-types/data-types/from/to`, where `from` and `to`
 form a half-open interval, i.e., `[from, to)`. This is important, if we want to
 have a moving window over a timeline without selecting certain values multiple
 times.
 
-### I want to get historical occupancy values of all parking lots from a certain period
+#### I want to get historical occupancy values of all parking lots from a certain period
 
 ```
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02
@@ -280,7 +185,7 @@ The date format is `yyyy-MM-dd` or `yyyy-MM-ddThh:mm:ss.SSS`, where
 `Thh:mm:ss.SSS` is optional and any part of it can be shortened from
 left-to-right to any subset.
 
-## Pagination
+### Pagination
 
 You can limit your output by adding `limit` to your request, and paginate your
 results with an `offset`. If you want to disable the limit, set it to a negative
@@ -291,7 +196,7 @@ prevent excessive response times.
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?limit=100&offset=300
 ```
 
-## Filtering with SELECT and WHERE
+### Filtering with SELECT and WHERE
 
 It is possible to filter against JSON fields (columns in a database) with
 `select=alias,alias,alias,...`, or per record (rows in a database) with
@@ -355,7 +260,7 @@ the ordering inside the list is left-x, left-y, right-x, right-y and SRID
 NB: Currently it is not possible to distinguish between a JSON field containing `null`
 or a non-existing JSON field.
 
-## Functions / Aggregation / Grouping
+### Functions / Aggregation / Grouping
 
 You can use any SQL function within **select**, which takes only a single
 numeric value. All selected aliases, that are not within a function are used for
@@ -371,13 +276,13 @@ GET /flat/EChargingStation/*?select=tname,min(mvalue),max(mvalue),avg(mvalue),co
 NB: Currently only numeric functions are possible, we will not select anything
 from our string measurements.
 
-### I want to see only station names, data type names and the value of the measurement
+#### I want to see only station names, data type names and the value of the measurement
 
 ```
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?select=sname,tname,mvalue
 ```
 
-### I want to see only parking stations within a bounding box of a map
+#### I want to see only parking stations within a bounding box of a map
 
 ```
 GET /flat/ParkingStation/*?where=scoordinate.bbi.(11.63,46.0,11.65,47.0,4326)
@@ -390,7 +295,7 @@ need regardless, if they are within the bounding box or not.
 GET /flat/ParkingStation/*?where=or(scoordinate.bbi.(11.63,46.0,11.65,47.0,4326),scode.in.(69440GW,AB3))
 ```
 
-### I want to see all information where the measured value is greater than 100 and the station origin is FAMAS
+#### I want to see all information where the measured value is greater than 100 and the station origin is FAMAS
 
 ```
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?where=mvalue.gt.100,sorigin.eq.FAMAS
@@ -402,7 +307,7 @@ or `\"`. A special value is `null`. If you want to use it as a literal value,
 that is, the String itself, then you must put it into double-quotes, like
 `"null"`.
 
-### I want to see all information where the station code starts with "me" or "rovereto"
+#### I want to see all information where the station code starts with "me" or "rovereto"
 
 We use a key-insensitive regular expression here:
 
@@ -410,7 +315,7 @@ We use a key-insensitive regular expression here:
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?where=scode.ire.(ME|Rovereto)
 ```
 
-### I want active creative industry stations with their sector and website, but only if the have one
+#### I want active creative industry stations with their sector and website, but only if the have one
 
 We use a JSON selector and JSON filters here:
 
@@ -421,7 +326,7 @@ GET /flat/CreativeIndustry?where=sactive.eq.true,smetadata.website.neq.null,smet
 We check not only for `smetadata.website` to be present, but also to start with `http` to be sure it
 is not a description telling us, that the website is currently under development or similar things.
 
-### I want all creative industry station names, which do not have a sector assigned
+#### I want all creative industry station names, which do not have a sector assigned
 
 We use a JSON selector and JSON filters here:
 
@@ -429,7 +334,7 @@ We use a JSON selector and JSON filters here:
 GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
 ```
 
-## Time Zones
+### Time Zones
 
 We use UTC as default time zone, but it is now possible to get timestamp
 reponses in any timezone. Use `timezone=Europe/Rome` for instance. See
@@ -445,7 +350,7 @@ Please note, that `metadata`
 are kept as is, date or time representations inside it are stored as simple
 strings, and therefore not recognized as date or time.
 
-## Null values
+### Null values
 
 You can also see null-values within JSON, by adding `shownull=true` to your parameter list.
 
@@ -453,7 +358,7 @@ You can also see null-values within JSON, by adding `shownull=true` to your para
 GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?shownull=true
 ```
 
-## Representation
+### Representation
 
 We have two types of representations to choose from: (given as comma separated
 values):
@@ -464,14 +369,14 @@ The flat one shows each JSON object with all selected attributes at the first
 level. Deeper levels represent complex data types, such as `coordinates` and
 `jsonb`. Only the first level can be selected or filtered.
 
-Example with `select=stype,dtype,mvalue,smetadata`:
+Example with `select=stype,tname,mvalue,smetadata`:
 
 ```json
 {
   "data": [
     {
       "stype": "ParkingStation",
-      "dtype": "occupied",
+      "tname": "occupied",
       "mvalue": 300,
       "smetadata": {
         "capacity": 1200,
@@ -482,7 +387,7 @@ Example with `select=stype,dtype,mvalue,smetadata`:
 }
 ```
 
-As you can see, the station type `stype` and the data type `dtype` are on the
+As you can see, the station type `stype` and the data type `tname` are on the
 same level within the JSON object. These are first order attributes, whereas
 `smetadata` is a `jsonb`-typed column.
 
@@ -493,13 +398,13 @@ which do not match inside a hierarchy, this representation is suited for you.
 {
   "data": [
     {
-      "dtype": "ParkingStation"
+      "tname": "ParkingStation"
     },
     {
-      "dtype": "VMS"
+      "tname": "VMS"
     },
     {
-      "dtype": "EChargingStation"
+      "tname": "EChargingStation"
     }
   ]
 }
@@ -526,12 +431,12 @@ application, but the response size can be much smaller due to nesting and thus
 duplicate attribute elimination. However, some queries do not match that
 hierarchy, so the `flat` representation is more suited for them.
 
-## Authentication
+### Authentication
 
 We use a token based authentication (JWT) which can be retrieved from an OAuth
 2.0 server.
 
-### I want to retrieve protected measurements (closed data)
+#### I want to retrieve protected measurements (closed data)
 
 NB: Swagger does not support authentication yet, therefore we provide a `curl`
 example.
@@ -541,7 +446,7 @@ curl -X GET "https://example.com/tree/VMS/*" \
      -H 'Authorization: Bearer header.payload.signature'
 ```
 
-## Additional Sample Queries
+### Additional Sample Queries
 
 For better readability, we assume that all queries are configured as follows, if
 not otherwise stated: `shownull=false&distinct=true&limit=-1`.
@@ -550,13 +455,13 @@ NB: We need to count results on application level, because the API does
 currently not support aggregation, like `count` and other statistical methods
 involving `grouping`.
 
-### show all echarging stations of bolzano
+#### show all echarging stations of bolzano
 
 ```
 GET /flat/EChargingStation?where=sactive.eq.true,scoordinate.bbi.(11.27539,46.444913,11.432577,46.530384)
 ```
 
-### Show number of public, private and private with public access echarging stations
+#### Show number of public, private and private with public access echarging stations
 
 Since we want to count the results later, we need to set `distinct=false`.
 
@@ -564,7 +469,7 @@ Since we want to count the results later, we need to set `distinct=false`.
 GET /flat/EChargingStation?select=smetadata.accessType&where=sactive.eq.true&distinct=false
 ```
 
-### Show the total number of plugs and how many are currently available
+#### Show the total number of plugs and how many are currently available
 
 This means that the measured value `mvalue` must be equal `1`.
 
@@ -572,28 +477,124 @@ This means that the measured value `mvalue` must be equal `1`.
 GET /flat/EChargingPlug/*?select=scode&where=sactive.eq.true,tname.eq.echarging-plug-status,mvalue.eq.1
 ```
 
-### Filter EchargingPlugs by voltage
+#### Filter EchargingPlugs by voltage
 
 ```
 GET /flat/EChargingPlug?where=sactive.eq.true
 ```
 
-### Filter EchargingStations by payment method
+#### Filter EchargingStations by payment method
 
 ```
 GET /flat/EChargingStation?where=sactive.eq.true,smetadata.accessType.eq.PUBLIC
 ```
 
-### Get all possible states of all echarging stations
+#### Get all possible states of all echarging stations
 
 ```
 GET /flat/EChargingStation?select=smetadata.state
 ```
 
-### Filter EchargingStations by state
+#### Filter EchargingStations by state
 
 For example filter against `ACTIVE` states.
 
 ```
 GET /flat/EChargingPlug?where=sactive.eq.true,smetadata.state.eq.ACTIVE
+```
+
+----
+## Local development
+
+### Prerequisites
+
+- Java JDK 1.8 or higher (e.g. [OpenJDK](https://openjdk.java.net/))
+- [Maven](https://maven.apache.org/) 3.x
+- Run [NOI Authentication server](https://github.com/noi-techpark/authentication-server) locally or connect to test environment (optional)
+
+### Getting started
+
+Create `local` application properties profile.
+
+```bash
+cd src/main/resources
+touch application-local.properties
+```
+
+Configure at least the mandatory properties in the newly created `application-local.properties` file, such as:
+
+- spring.datasource.password
+
+Now you can start the application with:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+The server will startup and listen on `http://localhost:8081`.
+
+### How to setup NOI Authentication Server locally? (optional)
+
+- [Here](https://github.com/noi-techpark/authentication-server) you can find how to run the server locally
+- Create a new realm following these [steps](https://github.com/noi-techpark/authentication-server/blob/master/docs/noi-authentication-server.md#realm)
+
+#### How to register this application in your local authentication server?
+
+1. Open the previously created realm
+2. Create a new client (Clients -> Create)
+
+| Property | Value           |
+| -------- | --------------- |
+| ClientID | odh-mobility-v2 |
+
+3. Client Settings
+
+| Property    | Value       |
+| ----------- | ----------- |
+| Access Type | bearer-only |
+
+4. Navigate to Roles
+
+Add following roles: BDP_ADMIN, BDP_BLC, BDP_MAD, BDP_CBZ
+
+#### How to create a user or assign a user the necessary roles for this application?
+
+1. Go to users
+2. Create user or select user (View users)
+3. Assign roles: Role Mappings -> Client Roles -> odh-mobility-v2
+
+#### How to create a client to generate tokens for testing purposes?
+
+1. Open the previously created realm
+2. Create a new client (Clients -> Create)
+
+| Property | Value               |
+| -------- | ------------------- |
+| ClientID | odh-mobility-client |
+
+3. Client Settings
+
+| Property                     | Value  |
+| ---------------------------- | ------ |
+| Access Type                  | public |
+| Standard Flow Enabled        | Off    |
+| Implicit Flow Enabled        | Off    |
+| Direct Access Grants Enabled | On     |
+
+4. Navigate to Scope
+
+| Property                                          | Value                                  |
+| ------------------------------------------------- | -------------------------------------- |
+| Full Scope Allowed                                | Off                                    |
+| Client Roles -> odh-mobility-v2 -> Assigned Roles | Move available roles to assigned roles |
+
+5. Generate a new token
+
+```sh
+curl --location --request POST 'http://localhost:8080/auth/realms/noi/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'grant_type=password' \
+--data-urlencode 'username={USERNAME}' \
+--data-urlencode 'password={PASSWORD}' \
+--data-urlencode 'client_id=odh-mobility-client'
 ```
