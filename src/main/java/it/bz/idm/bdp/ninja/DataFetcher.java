@@ -443,9 +443,9 @@ public class DataFetcher {
 		logging.put("command", command);
 		logging.put("representation", repr);
 		logging.put("result_count", resultCount);
-		logging.put("build_time", Long.toString(buildTime));  // TODO make me a numeric
-		logging.put("execution_time", Long.toString(executionTime));
-		logging.put("full_time", Long.toString(executionTime + buildTime));
+		logging.put("build_time", Long.valueOf(buildTime));
+		logging.put("execution_time", Long.valueOf(executionTime));
+		logging.put("full_time", Long.valueOf(executionTime + buildTime));
 		logging.put("sql", sql);
 		if (extraData != null) {
 			logging.putAll(extraData);
