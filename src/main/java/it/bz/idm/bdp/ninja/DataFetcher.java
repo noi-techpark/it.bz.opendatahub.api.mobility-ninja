@@ -404,11 +404,11 @@ public class DataFetcher {
 				.expandSelectPrefix(", ", !representation.isFlat())
 				.addSql("from edge e")
 				.addSql("join station i on e.edge_data_id = i.id")
-				.addSqlIfDefinition("join station o on e.origin_id = o.id", "stationbegin")
-				.addSqlIfDefinition("join station d on e.destination_id = d.id", "stationend")
+				.addSqlIfDefinition("left join station o on e.origin_id = o.id", "stationbegin")
+				.addSqlIfDefinition("left join station d on e.destination_id = d.id", "stationend")
 				.addSql("where i.available = true")
-				.addSqlIfDefinition("and o.available = true", "stationbegin")
-				.addSqlIfDefinition("and d.available = true", "stationend")
+				.addSqlIfDefinition("and (o.available is null or o.available = true)", "stationbegin")
+				.addSqlIfDefinition("and (d.available is null or d.available = true)", "stationend")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				.expandWhere()
 				.expandGroupByIf("_edgetype, _edgecode", !representation.isFlat())
@@ -443,7 +443,7 @@ public class DataFetcher {
 		logging.put("command", command);
 		logging.put("representation", repr);
 		logging.put("result_count", resultCount);
-		logging.put("build_time", Long.toString(buildTime));
+		logging.put("build_time", Long.toString(buildTime));  // TODO make me a numeric
 		logging.put("execution_time", Long.toString(executionTime));
 		logging.put("full_time", Long.toString(executionTime + buildTime));
 		logging.put("sql", sql);
