@@ -124,6 +124,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("eorigin", "i.origin"))
 			.add(new TargetDef("eactive", "i.active"))
 			.add(new TargetDef("eavailable", "i.available"))
+			.add(new TargetDef("edirected", "e.directed"))
 			// See https://postgis.net/docs/ST_AsGeoJSON.html
 			// We use a 9 decimal digits precision and option #3 (= 1:bounding box + 2:short CRS)
 			.add(new TargetDef("egeometry", "st_transform(e.linegeometry, 4326)")
