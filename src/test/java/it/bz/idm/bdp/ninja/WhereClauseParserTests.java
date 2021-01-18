@@ -149,5 +149,13 @@ public class WhereClauseParserTests {
 		assertEquals("AND{CLAUSE{{ALIAS=smetadata}{JSONSEL=outlets.0.type}{OP=ire}{STRING=what.*ever}}}", ast.format());
 	}
 
+	@Test
+	public void testJsonWithSpecialChars() throws ParseException {
+		String input = "tmetadata.signal-codes.id.in.(0,25,73)";
+		WhereClauseParser we = new WhereClauseParser(input);
+		Token ast = we.parse();
+		assertEquals("AND{CLAUSE{{ALIAS=tmetadata}{JSONSEL=signal-codes.id}{OP=in}LIST{{NUMBER=0}{NUMBER=25}{NUMBER=73}}}}", ast.format());
+	}
+
 
 }

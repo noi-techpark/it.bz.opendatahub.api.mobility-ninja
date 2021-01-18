@@ -64,7 +64,7 @@ public class WhereClauseParser extends MiniParser {
 
 	private Token jsonSelector() {
 		Token res = doWhile("JSONSEL", t -> {
-			if (clashLetter() && clash('_') && clash('.') && clashDigit()) {
+			if (clashLetter() && clash('_') && clash('-') && clash('.') && clashDigit()) {
 				return false;
 			}
 			t.appendValue(c());
@@ -84,7 +84,7 @@ public class WhereClauseParser extends MiniParser {
 		try {
 			String numberCandidate = value.substring(indexBeforeOperator + 1);
 			Double.parseDouble(numberCandidate);
-			indexBeforeOperator -= numberCandidate.length();
+			indexBeforeOperator = value.lastIndexOf(".", indexBeforeOperator - 1);
 		} catch (NumberFormatException e) {
 			/* nothing to do, the other tokenizers will handled possible errors */
 		}
