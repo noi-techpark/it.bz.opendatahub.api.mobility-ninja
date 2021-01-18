@@ -91,7 +91,7 @@ public class SelectExpansion {
 		WHERE_SYNTAX_ERROR("Syntax Error in WHERE clause: %s"),
 		DIRTY_STATE("We are in a dirty state. Run expand() to clean up"),
 		EXPAND_INVALID_DATA("Provide valid alias and definition sets!"),
-		ALIAS_INVALID("The given alias '%s' is not valid. Only the following characters are allowed: 'a-z', 'A-Z', '0-9', '_' and '.'"),
+		ALIAS_INVALID("The given alias '%s' is not valid. Only the following characters are allowed: 'a-z', 'A-Z', '0-9', '_', '-' and '.'"),
 		SELECT_FUNC_NOJSON("It is currently not possible to use GROUPING with JSON fields. Remove any JSON selectors from your SELECT, if you want to use functions.");
 
 		private final String msg;

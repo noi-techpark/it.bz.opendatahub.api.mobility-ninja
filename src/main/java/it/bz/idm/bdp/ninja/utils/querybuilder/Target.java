@@ -6,7 +6,7 @@ package it.bz.idm.bdp.ninja.utils.querybuilder;
  */
 public class Target implements Comparable<Target> {
 	// Do not forget to update ErrorCode.ALIAS_INVALID in SelectExpansion
-	private static final String TARGET_FQN_VALIDATION = "[0-9a-zA-Z\\._]+";
+	private static final String TARGET_FQN_VALIDATION = "[0-9a-zA-Z\\._-]+";
 
 	private String name;
 	private String func;
