@@ -4,10 +4,10 @@ pipeline {
     environment {
         DOCKER_PROJECT_NAME = "ninja"
         DOCKER_IMAGE = '755952719952.dkr.ecr.eu-west-1.amazonaws.com/ninja'
-        DOCKER_TAG = "test-$BUILD_NUMBER"
+        DOCKER_TAG = "prod-$BUILD_NUMBER"
 
         SERVER_PORT = "1004"
-        NINJA_HOST_URL = "https://mobility.api.opendatahub.testingmachine.eu"
+        NINJA_HOST_URL = "https://mobility.api.opendatahub.bz.it"
         NINJA_BASE_URL = "${NINJA_HOST_URL}/v2"
         NINJA_QUERY_TIMEOUT_SEC = "60"
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
@@ -15,15 +15,17 @@ pipeline {
         LOG_APPLICATION_VERSION = "1.0.0"
 
         SECURITY_ALLOWED_ORIGINS = "*"
-        KEYCLOAK_URL = "https://auth.opendatahub.testingmachine.eu/auth/"
+        KEYCLOAK_URL = "https://auth.opendatahub.bz.it/auth/"
         KEYCLOAK_SSL_REQUIRED = "none"
         KEYCLOAK_REALM = "noi"
         KEYCLOAK_CLIENT_ID = "odh-mobility-v2"
-        KEYCLOAK_CLIENT_SECRET = credentials('ninja-test-keycloak-client-secret')
+        KEYCLOAK_CLIENT_SECRET = credentials('ninja-prod-keycloak-client-secret')
 
-        JDBC_URL = "jdbc:postgresql://test-pg-bdp.co90ybcr8iim.eu-west-1.rds.amazonaws.com:5432/bdp?currentSchema=intimev2,public"
+        JDBC_URL = "jdbc:postgresql://prod-pg-bdp.co90ybcr8iim.eu-west-1.rds.amazonaws.com:5432/bdp?currentSchema=intimev2,public"
         DB_USERNAME = "bdp_readonly"
-        DB_PASSWORD = credentials('bdp-core-test-database-read-password')
+        DB_PASSWORD = credentials('bdp-core-prod-database-read-password')
+
+        ANSIBLE_LIMIT = "prod"
     }
 
     stages {
@@ -31,7 +33,6 @@ pipeline {
             steps {
                 sh """
                     rm -f .env
-                    cp .env.example .env
                     echo 'COMPOSE_PROJECT_NAME=${DOCKER_PROJECT_NAME}' >> .env
                     echo 'DOCKER_IMAGE=${DOCKER_IMAGE}' >> .env
                     echo 'DOCKER_TAG=${DOCKER_TAG}' >> .env
@@ -78,7 +79,7 @@ pipeline {
                     sh """
                         cd infrastructure/ansible
                         ansible-galaxy install -f -r requirements.yml
-                        ansible-playbook --limit=test deploy.yml --extra-vars "release_name=${BUILD_NUMBER}"
+                        ansible-playbook --limit=${ANSIBLE_LIMIT} deploy.yml --extra-vars "release_name=${BUILD_NUMBER}"
                     """
                 }
             }
