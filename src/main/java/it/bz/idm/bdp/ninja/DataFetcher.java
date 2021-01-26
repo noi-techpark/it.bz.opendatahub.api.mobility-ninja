@@ -76,7 +76,7 @@ public class DataFetcher {
 				.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 				.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				.addSql("where s.available = true")
+				.addSql("where (s.available is null or s.available = true)")
 				.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				.expandWhere()
@@ -144,10 +144,10 @@ public class DataFetcher {
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
+				 .addSql("where (s.available is null or s.available = true)")
 				 .addSqlIfNotNull("and", aclWhereclause)
 				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .addSqlIfDefinition("and (p.id is null or p.available = true or p.available is null)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
@@ -175,10 +175,10 @@ public class DataFetcher {
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
+				 .addSql("where (s.available is null or s.available = true)")
 				 .addSqlIfNotNull("and", aclWhereclause)
 				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .addSqlIfDefinition("and (p.id is null or p.available = true or p.available is null)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
@@ -283,8 +283,8 @@ public class DataFetcher {
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .addSql("where (s.available is null or s.available = true)")
+				 .addSqlIfDefinition("and (p.id is null or p.available = true or p.available is null)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameter("roles", roles)
@@ -309,8 +309,8 @@ public class DataFetcher {
 				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				 .addSql("join type t on me.type_id = t.id")
 				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .addSql("where (s.available is null or s.available = true)")
+				 .addSqlIfDefinition("and (p.id is null or p.available = true or p.available is null)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameter("roles", roles)
@@ -353,7 +353,7 @@ public class DataFetcher {
 
 		Timer timer = new Timer();
 
-		String sql = "select distinct stationtype as id from station s where s.available = true order by 1";
+		String sql = "select distinct stationtype as id from station s where s.available = true or s.available is null order by 1";
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -373,7 +373,7 @@ public class DataFetcher {
 
 		Timer timer = new Timer();
 
-		String sql = "select distinct stationtype as id from edge e join station s on e.edge_data_id = s.id where s.available = true order by 1";
+		String sql = "select distinct stationtype as id from edge e join station s on e.edge_data_id = s.id where s.available = true or s.available is null order by 1";
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -406,7 +406,7 @@ public class DataFetcher {
 				.addSql("join station i on e.edge_data_id = i.id")
 				.addSqlIfDefinition("left join station o on e.origin_id = o.id", "stationbegin")
 				.addSqlIfDefinition("left join station d on e.destination_id = d.id", "stationend")
-				.addSql("where i.available = true")
+				.addSql("where (i.available is null or i.available = true)")
 				.addSqlIfDefinition("and (o.available is null or o.available = true)", "stationbegin")
 				.addSqlIfDefinition("and (d.available is null or d.available = true)", "stationend")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
