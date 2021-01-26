@@ -5,5 +5,5 @@ services:
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     build:
       context: ../
-      dockerfile: infrastructure/docker/Dockerfile
+      dockerfile: infrastructure/docker/java.dockerfile
       target: build
