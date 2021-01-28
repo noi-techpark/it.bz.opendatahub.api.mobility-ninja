@@ -10,6 +10,7 @@ pipeline {
         NINJA_HOST_URL = "https://mobility.api.opendatahub.testingmachine.eu"
         NINJA_BASE_URL = "${NINJA_HOST_URL}/v2"
         NINJA_QUERY_TIMEOUT_SEC = "60"
+        NINJA_HIKARI_LEAK_DETECTION_MS = "65000"  // should be greater than (NINJA_QUERY_TIMEOUT_SEC * 1000)
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
         LOG_APPLICATION_NAME = "ninja"
         LOG_APPLICATION_VERSION = "1.0.0"
@@ -40,6 +41,7 @@ pipeline {
                     echo 'NINJA_HOST_URL=${NINJA_HOST_URL}' >> .env
                     echo 'NINJA_BASE_URL=${NINJA_BASE_URL}' >> .env
                     echo 'NINJA_QUERY_TIMEOUT_SEC=${NINJA_QUERY_TIMEOUT_SEC}' >> .env
+                    echo 'NINJA_HIKARI_LEAK_DETECTION_MS=${NINJA_HIKARI_LEAK_DETECTION_MS}' >> .env
                     echo 'NINJA_RESPONSE_MAX_SIZE_MB=${NINJA_RESPONSE_MAX_SIZE_MB}' >> .env
                     echo 'SECURITY_ALLOWED_ORIGINS=${SECURITY_ALLOWED_ORIGINS}' >> .env
                     echo 'KEYCLOAK_URL=${KEYCLOAK_URL}' >> .env
