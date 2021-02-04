@@ -13,11 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
+import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
@@ -66,8 +68,9 @@ public class DataFetcher {
 		Timer timer = new Timer();
 
 		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		query = QueryBuilder
-				.init(select, where, distinct, "station", "parent")
+				.init(se, select, where, distinct, "station", "parent")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode", !representation.isFlat())
@@ -117,8 +120,9 @@ public class DataFetcher {
 		Timer timer = new Timer();
 
 		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		query = QueryBuilder
-				.init(select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
+				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
 
 		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
 		Token mvalueToken = mvalueTokens == null ? null : mvalueTokens.get(0);
@@ -259,8 +263,9 @@ public class DataFetcher {
 		Timer timer = new Timer();
 
 		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		query = QueryBuilder
-				.init(select, where, distinct, "station", "parent", "datatype");
+				.init(se, select, where, distinct, "station", "parent", "datatype");
 
 		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
 		Token mvalueToken = mvalueTokens == null ? null : mvalueTokens.get(0);
@@ -396,8 +401,9 @@ public class DataFetcher {
 		Timer timer = new Timer();
 
 		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		query = QueryBuilder
-				.init(select, where, distinct, "edge", "stationbegin", "stationend")
+				.init(se, select, where, distinct, "edge", "stationbegin", "stationend")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("i.stationtype as _edgetype, i.stationcode as _edgecode", !representation.isFlat())

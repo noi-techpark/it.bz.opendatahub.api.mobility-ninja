@@ -44,28 +44,28 @@ public class QueryBuilderTests {
 		assertEquals("A.a as a, B.x as x", res.trim());
 
 		res = QueryBuilder
-				.init("y", null, true, "B", "C")
+				.init(se, "y", null, true, "B", "C")
 				.expandSelect()
 				.getSql();
 
 		assertEquals("C.d as d", res.trim());
 
 		res = QueryBuilder
-				.init("d", null, true, "C")
+				.init(se, "d", null, true, "C")
 				.expandSelect()
 				.getSql();
 
 		assertEquals("C.d as d", res.trim());
 
 		res = QueryBuilder
-				.init("x, y", null, true, "A", "B")
+				.init(se, "x, y", null, true, "A", "B")
 				.expandSelect()
 				.getSql();
 
 		assertEquals("B.x as x", res.trim());
 
 		res = QueryBuilder
-				.init("a,b,c", null, true, "A", "B")
+				.init(se, "a,b,c", null, true, "A", "B")
 				.expandSelect("B")
 				.getSql();
 

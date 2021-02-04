@@ -19,13 +19,14 @@ import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalStringBuilder;
 public class QueryBuilder {
 
 	private ConditionalStringBuilder sql = new ConditionalStringBuilder();
-	private static SelectExpansion se;
+	private SelectExpansion se;
 	private ConditionalMap parameters = new ConditionalMap();
 
-	public QueryBuilder(final String select, final String where, final boolean isDistinct, String... selectDefNames) {
-		if (QueryBuilder.se == null) {
-			throw new RuntimeException("Missing Select Expansion. Run QueryBuilder.setup before initialization.");
+	public QueryBuilder(final SelectExpansion selectExpansion, final String select, final String where, final boolean isDistinct, String... selectDefNames) {
+		if (selectExpansion == null) {
+			throw new RuntimeException("Missing Select Expansion.");
 		}
+		se = selectExpansion;
 		sql.setSeparator(" ");
 		reset(select, where, isDistinct, selectDefNames);
 	}
@@ -37,31 +38,8 @@ public class QueryBuilder {
 		return this;
 	}
 
-	/**
-	 * Create a new {@link QueryBuilder} instance
-	 *
-	 * @see QueryBuilder#QueryBuilder(EntityManager)
-	 *
-	 * @param namedParameterJdbcTemplate {@link EntityManager}
-	 */
-	public static synchronized void setup(SelectExpansion selectExpansion) {
-		if (selectExpansion == null) {
-			throw new RuntimeException("No SelectExpansion defined!");
-		}
-		if (QueryBuilder.se != null) {
-			throw new RuntimeException("QueryBuilder.setup can only be called once");
-		}
-		QueryBuilder.se = selectExpansion;
-	}
-
-	public static QueryBuilder init(final String select, final String where, final boolean isDistinct, String... selectDefNames) {
-		return new QueryBuilder(select, where, isDistinct, selectDefNames);
-	}
-
 	public static QueryBuilder init(SelectExpansion selectExpansion, final String select, final String where, final boolean isDistinct, String... selectDefNames) {
-		QueryBuilder.se = null;
-		QueryBuilder.setup(selectExpansion);
-		return QueryBuilder.init(select, where, isDistinct, selectDefNames);
+		return new QueryBuilder(selectExpansion, select, where, isDistinct, selectDefNames);
 	}
 
 	/**

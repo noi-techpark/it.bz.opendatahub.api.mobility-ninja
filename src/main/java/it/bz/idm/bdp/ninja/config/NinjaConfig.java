@@ -12,8 +12,6 @@ import java.util.TimeZone;
 import com.jsoniter.output.JsonStream;
 
 import it.bz.idm.bdp.ninja.utils.jsonserializer.JsonIterPostgresSupport;
-import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
-import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
 
@@ -36,10 +34,8 @@ public class NinjaConfig implements ApplicationListener<ContextRefreshedEvent> {
         }
 
 		boolean ignoreNull = true;
-		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 
 		/* Set the query builder, JDBC template's row mapper and JSON parser up */
-		QueryBuilder.setup(se);
 		QueryExecutor.setup(jdbcTemplate);
 
 		/* Set the global timezone for this Java application */
@@ -47,7 +43,7 @@ public class NinjaConfig implements ApplicationListener<ContextRefreshedEvent> {
 
 		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
 		ColumnMapRowMapper.setTimeZone("UTC");
-		ColumnMapRowMapper.setTargetDefNameToAliasMap(se.getSchema().getTargetDefNameToAliasMap());
+		ColumnMapRowMapper.setTargetDefNameToAliasMap(new SelectExpansionConfig().getSelectExpansion().getSchema().getTargetDefNameToAliasMap());
 
 		if (!enableCompression4JSON) {
 			JsonStream.setIndentionStep(4);
