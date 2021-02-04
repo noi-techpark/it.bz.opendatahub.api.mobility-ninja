@@ -13,6 +13,8 @@ public class SelectExpansionConfig {
 
 	private SelectExpansion se;
 
+	// TODO make this static and immutable: private static final Schema schema = new Schema();
+
 	public SelectExpansionConfig() {
 		super();
 

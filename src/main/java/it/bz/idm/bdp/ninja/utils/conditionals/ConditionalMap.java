@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class ConditionalMap {
 
-	private Map<String, Object> map;
+	private final Map<String, Object> map;
 
 	public ConditionalMap(final Map<String, Object> map) {
 		if (map == null)

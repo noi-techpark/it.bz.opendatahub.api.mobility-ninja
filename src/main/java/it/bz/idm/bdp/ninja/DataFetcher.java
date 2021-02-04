@@ -48,7 +48,6 @@ public class DataFetcher {
 		}
 	}
 
-	private QueryBuilder query;
 	private long limit;
 	private long offset;
 	private List<String> roles;
@@ -68,7 +67,7 @@ public class DataFetcher {
 
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
-		query = QueryBuilder
+		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
@@ -118,7 +117,7 @@ public class DataFetcher {
 
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
-		query = QueryBuilder
+		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
 
 		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
@@ -259,7 +258,7 @@ public class DataFetcher {
 
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
-		query = QueryBuilder
+		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "datatype");
 
 		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
@@ -395,7 +394,7 @@ public class DataFetcher {
 
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
-		query = QueryBuilder
+		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "edge", "stationbegin", "stationend")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
@@ -449,10 +448,6 @@ public class DataFetcher {
 		}
 		log.info("query_execution", v("payload", logging));
 		log.debug(sql);
-	}
-
-	public QueryBuilder getQuery() {
-		return query;
 	}
 
 	public void setLimit(long limit) {

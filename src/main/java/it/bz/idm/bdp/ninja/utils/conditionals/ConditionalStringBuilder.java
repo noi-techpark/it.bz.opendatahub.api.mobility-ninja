@@ -2,7 +2,7 @@ package it.bz.idm.bdp.ninja.utils.conditionals;
 
 public class ConditionalStringBuilder {
 
-	private StringBuilder builder;
+	private final StringBuilder builder;
 	private String separator;
 
 	public ConditionalStringBuilder(final StringBuilder builder) {
@@ -98,5 +98,4 @@ public class ConditionalStringBuilder {
 	public String toString() {
 		return builder.toString();
 	}
-
 }

@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import it.bz.idm.bdp.ninja.DataFetcher;
+import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
@@ -324,11 +325,13 @@ public class DataController {
 				break;
 			case TREE_NODE:
 				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
+					//FIXME use a static immutable schema everywhere
+					new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 			case TREE_EDGE:
 				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-					dataFetcher.getQuery().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
+					//FIXME use a static immutable schema everywhere
+					new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
 		}
 		return result;
