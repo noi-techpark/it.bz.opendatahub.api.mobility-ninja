@@ -19,7 +19,7 @@ public class QueryExecutor {
 	 */
 	public static synchronized void setup(NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
 		if (namedParameterJdbcTemplate == null) {
-			throw new RuntimeException("No NamedParameterJdbcTemplate defined!");
+			throw new RuntimeException("Missing JDBC Template.");
 		}
 		if (QueryExecutor.npjt != null) {
 			throw new RuntimeException("QueryExecutor.setup can only be called once");
@@ -50,8 +50,11 @@ public class QueryExecutor {
 	 *
 	 * @return A list of (key, value) pairs
 	 */
-	public List<Map<String, Object>> build(final String sql) {
-		return npjt.query(sql, parameters, new RowMapperResultSetExtractor<>(new ColumnMapRowMapper()));
+	public List<Map<String, Object>> build(final String sql, boolean ignoreNull, String timeZone) {
+		ColumnMapRowMapper mapper = new ColumnMapRowMapper();
+		mapper.setIgnoreNull(ignoreNull);
+		mapper.setTimeZone(timeZone);
+		return npjt.query(sql, parameters, new RowMapperResultSetExtractor<>(mapper));
 	}
 
 	public <T> List<T> build(final String sql, Class<T> resultClass) {

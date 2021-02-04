@@ -33,16 +33,12 @@ public class NinjaConfig implements ApplicationListener<ContextRefreshedEvent> {
             return;
         }
 
-		boolean ignoreNull = true;
-
 		/* Set the query builder, JDBC template's row mapper and JSON parser up */
 		QueryExecutor.setup(jdbcTemplate);
 
 		/* Set the global timezone for this Java application */
 		TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull);
-		ColumnMapRowMapper.setTimeZone("UTC");
 		ColumnMapRowMapper.setTargetDefNameToAliasMap(new SelectExpansionConfig().getSelectExpansion().getSchema().getTargetDefNameToAliasMap());
 
 		if (!enableCompression4JSON) {

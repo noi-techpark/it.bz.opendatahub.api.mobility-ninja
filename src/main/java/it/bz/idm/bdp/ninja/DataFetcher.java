@@ -1,6 +1,5 @@
 package it.bz.idm.bdp.ninja;
 
-import java.time.DateTimeException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +19,6 @@ import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
-import it.bz.idm.bdp.ninja.utils.queryexecutor.ColumnMapRowMapper;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -59,6 +57,7 @@ public class DataFetcher {
 	private String where;
 	private boolean distinct;
 	private Map<String, String> aclWhereClauses = new HashMap<>();
+	private String timeZone = "UTC";
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, final Representation representation) {
 		if (representation.isEdge()) {
@@ -90,13 +89,11 @@ public class DataFetcher {
 		long timeBuild = timer.stop();
 
 		// We need null values while tree building. We remove them during the output generation
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
-
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
-				.build(query.getSql());
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
 		log.debug(queryResult.toString());
@@ -202,13 +199,11 @@ public class DataFetcher {
 		long timeBuild = timer.stop();
 
 		// We need null values while tree building. We remove them during the output generation
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
-
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
-				.build(query.getSql());
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
 		Map<String, Object> logData = new HashMap<>();
@@ -333,13 +328,11 @@ public class DataFetcher {
 		long timeBuild = timer.stop();
 
 		// We need null values while tree building. We remove them during the output generation
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
-
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
-				.build(query.getSql());
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
 		Map<String, Object> logData = new HashMap<>();
@@ -362,7 +355,7 @@ public class DataFetcher {
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
-				.build(sql);
+				.build(sql, true, timeZone);
 		long timeExec = timer.stop();
 
 		logStats("fetchStationTypes", representation, queryResult.size(), 0, timeExec, sql, null);
@@ -382,7 +375,7 @@ public class DataFetcher {
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
-				.build(sql);
+				.build(sql, true, timeZone);
 		long timeExec = timer.stop();
 
 		logStats("fetchEdgeTypes", representation, queryResult.size(), 0, timeExec, sql, null);
@@ -426,13 +419,11 @@ public class DataFetcher {
 		log.debug(query.getSql());
 
 		// We need null values while tree building. We remove them during the output generation
-		ColumnMapRowMapper.setIgnoreNull(ignoreNull && representation.isFlat());
-
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
 				.addParameters(query.getParameters())
-				.build(query.getSql());
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
 		log.trace(queryResult.toString());
@@ -500,10 +491,6 @@ public class DataFetcher {
 	}
 
 	public void setTimeZone(String timeZone) {
-		try {
-			ColumnMapRowMapper.setTimeZone(timeZone);
-		} catch (DateTimeException e) {
-			throw new SimpleException(ErrorCode.WRONG_TIMEZONE, timeZone);
-		}
+		this.timeZone = timeZone;
 	}
 }

@@ -21,22 +21,22 @@ import com.jsoniter.JsonIterator;
 
 public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 
-	private static boolean ignoreNull = false;
-	private static ZoneId zoneId = ZoneOffset.UTC;
+	private boolean ignoreNull = false;
+	private ZoneId zoneId = ZoneOffset.UTC;
 	private static Map<String, String> targetDefNameToAliasMap = null;
 
 	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
 
-	public static synchronized void setIgnoreNull(boolean ignoreNull) {
-		ColumnMapRowMapper.ignoreNull = ignoreNull;
+	public void setIgnoreNull(boolean ignoreNull) {
+		this.ignoreNull = ignoreNull;
 	}
 
-	public static synchronized void setTimeZone(String zone) {
+	public void setTimeZone(String zone) {
 		try {
-			ColumnMapRowMapper.zoneId = ZoneId.of(zone);
+			this.zoneId = ZoneId.of(zone);
 		} catch (DateTimeException e) {
 			zone = zone.replace(" ", "+");
-			ColumnMapRowMapper.zoneId = ZoneId.of(zone);
+			this.zoneId = ZoneId.of(zone);
 		}
 	}
 
@@ -52,7 +52,7 @@ public class ColumnMapRowMapper implements RowMapper<Map<String, Object>> {
 		Map<String, Object> mapOfColumnValues = createColumnMap(columnCount);
 		for (int i = 1; i <= columnCount; i++) {
 			Object newValue = getColumnValue(rs, i);
-			if (ColumnMapRowMapper.ignoreNull && newValue == null)
+			if (this.ignoreNull && newValue == null)
 				continue;
 
 			String column = JdbcUtils.lookupColumnName(rsmd, i);
