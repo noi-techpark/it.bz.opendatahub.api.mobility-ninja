@@ -73,8 +73,8 @@ public class ResultBuilder {
 		Map<String, Object> result = new HashMap<>();
 
 		// Should be present inside the definition, just entrypoint needed
-		List<List<String>> hierarchy = schema.getHierarchy(entryPoint, exitPoint);
-		List<String> hierarchyTriggerKeys = schema.getHierarchyTriggerKeys(entryPoint, exitPoint);
+		List<List<String>> hierarchy = new ArrayList<>(schema.getHierarchy(entryPoint, exitPoint));
+		List<String> hierarchyTriggerKeys = new ArrayList<>(schema.getHierarchyTriggerKeys(entryPoint, exitPoint));
 		int maxLevel = hierarchy.size() - 1;
 
 		Map<String, Map<String, Object>> cache = new HashMap<>();
