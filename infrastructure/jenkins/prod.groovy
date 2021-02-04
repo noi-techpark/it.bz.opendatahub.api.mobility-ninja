@@ -27,6 +27,8 @@ pipeline {
         DB_PASSWORD = credentials('bdp-core-prod-database-read-password')
 
         ANSIBLE_LIMIT = "prod"
+
+        JAVA_OPTIONS = "-Xms2g -Xmx6g"
     }
 
     stages {
@@ -54,6 +56,7 @@ pipeline {
                     echo 'JDBC_URL=${JDBC_URL}' >> .env
                     echo 'DB_USERNAME=${DB_USERNAME}' >> .env
                     echo 'DB_PASSWORD=${DB_PASSWORD}' >> .env
+                    echo 'JAVA_OPTIONS=${JAVA_OPTIONS}' >> .env
                 """
             }
         }
