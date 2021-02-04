@@ -361,8 +361,9 @@ public class DataController {
 	private static String serializeJson(Object whatever) {
 		Map<String, Object> logging = new HashMap<>();
 		Timer timer = new Timer();
+		timer.start();
 		String serialize = JsonStream.serialize(whatever);
-		logging.put("serialization_time", Long.toString(timer.stop()));
+		logging.put("serialization_time", Long.valueOf(timer.stop()));
 		log.info("json_serialization", v("payload", logging));
 		return serialize;
 	}

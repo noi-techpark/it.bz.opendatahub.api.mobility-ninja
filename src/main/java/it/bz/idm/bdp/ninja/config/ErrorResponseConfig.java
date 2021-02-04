@@ -49,7 +49,7 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 
 	@ExceptionHandler
 	public ResponseEntity<Object> handleException(Exception ex) {
-		ex.printStackTrace(System.err);
+		log.error(ex.getMessage(), ex);
 		return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex);
 	}
 
@@ -94,7 +94,7 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 		}
 
 		if (log.isDebugEnabled()) {
-			exception.printStackTrace(System.err);
+			log.error(message, exception);
 		}
 		return new ResponseEntity<>(map.get(), httpStatus);
 	}
