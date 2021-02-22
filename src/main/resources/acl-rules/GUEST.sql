@@ -7,6 +7,9 @@
 	s.stationtype in (
 		'NOI-Place',
 		'CreativeIndustry',
+        'Bicycle',
+        'Bicyclestationbay',
+        'BikesharingStation',
 		'BluetoothStation',
 		'CarpoolingHub',
 		'CarpoolingService',
@@ -20,8 +23,6 @@
         'Culture')
 
     -- station types that are only partly open, constrained by the origin
-	or (s.stationtype = 'Bicycle' and s.origin in ('ALGORAB', 'BIKE_SHARING_MERANO'))
-	or (s.stationtype = 'BikesharingStation' and s.origin = 'ALGORAB')
 	or (s.stationtype = 'EnvironmentStation' and s.origin = 'APPATN-open')
 	or (s.stationtype = 'LinkStation' and (s.origin is null or s.origin = 'NOI'))
 	or (s.stationtype = 'MeteoStation' and s.origin in ('meteotrentino', 'SIAG'))
