@@ -9,6 +9,7 @@
 		'CreativeIndustry',
         'Bicycle',
         'Bicyclestationbay',
+        'BikeCounter',
         'BikesharingStation',
 		'BluetoothStation',
 		'CarpoolingHub',
