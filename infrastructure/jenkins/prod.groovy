@@ -28,7 +28,7 @@ pipeline {
 
         ANSIBLE_LIMIT = "prod"
 
-        JAVA_OPTIONS = "-Xms2g -Xmx6g"
+        JAVA_OPTIONS = "-Xms2g -Xmx4g"
     }
 
     stages {
