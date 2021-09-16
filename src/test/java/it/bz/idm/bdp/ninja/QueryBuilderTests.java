@@ -83,7 +83,7 @@ public class QueryBuilderTests {
 			.expandSelectPrefix(",")
 			.getSql();
 
-		assertEquals("SELECT me.double_value as mvalue, null::character varying as mvalue_string , null::double precision as mvalue_double, me.string_value as mvalue", res);
+		assertEquals("SELECT me.double_value as mvalue, null::character varying as mvalue_string, null::jsonb as mvalue_json , null::double precision as mvalue_double, me.string_value as mvalue, null::jsonb as mvalue_json", res);
 	}
 
 

@@ -113,7 +113,7 @@ public class SelectExpansion {
 	private List<TargetDef> usedTargetDefs = new ArrayList<>();
 	private List<String> groupByCandidates = new ArrayList<>();
 	private Set<String> usedTargetDefListNames = new TreeSet<>();
-	private Map<String, List<Token>> usedJSONAliasesInWhere = new TreeMap<>();
+	private Map<String, List<WhereClauseTarget>> usedJSONAliasesInWhere = new TreeMap<>();
 	private Map<String, WhereClauseOperator> whereClauseOperatorMap = new TreeMap<>();
 
 	private Map<String, Object> whereParameters = null;
@@ -164,9 +164,9 @@ public class SelectExpansion {
 
 	}
 
-	private void _addAliasesInWhere(final String alias, Token token) {
-		List<Token> tokens = usedJSONAliasesInWhere.getOrDefault(alias, new ArrayList<>());
-		tokens.add(token);
+	private void _addAliasesInWhere(final String alias, WhereClauseOperator whereClauseOperator, List<Token> clauseValueTokens, Token jsonSel) {
+		List<WhereClauseTarget> tokens = usedJSONAliasesInWhere.getOrDefault(alias, new ArrayList<>());
+		tokens.add(new WhereClauseTarget(alias, whereClauseOperator, jsonSel, clauseValueTokens));
 		usedJSONAliasesInWhere.put(alias, tokens);
 	}
 
@@ -227,7 +227,6 @@ public class SelectExpansion {
 					usedTargetDefListNames.add(schema.find(alias, allowedTargetDefs).getName());
 					Token jsonSel = t.getChild("JSONSEL");
 					Token clauseOrValueToken = t.getChild(t.getChildCount() - 1);
-					_addAliasesInWhere(alias, clauseOrValueToken);
 					sbFull.append(whereClauseItem(column, alias, operator, clauseOrValueToken, jsonSel));
 					ctx = context.getFirst();
 					ctx.clauseCnt--;
@@ -273,10 +272,13 @@ public class SelectExpansion {
 			operatorID.add(listElementTypes.toUpperCase());
 		}
 
-		WhereClauseOperator whereClauseOperator = whereClauseOperatorMap.get(operatorID.toString() + "/" + operator);
+		operatorID.add(operator);
+		WhereClauseOperator whereClauseOperator = whereClauseOperatorMap.get(operatorID.toString());
 		if (whereClauseOperator == null) {
 			throw new SimpleException(ErrorCode.WHERE_OPERATOR_NOT_FOUND, operator, operatorID);
 		}
+
+		List<Token> clauseValueTokens = new ArrayList<>();
 
 		/* Build the value, or error out if the value type does not exist */
 		String paramName = null;
@@ -286,7 +288,7 @@ public class SelectExpansion {
 			List<Object> listItems = new ArrayList<>();
 			for (Token listItem : clauseValueToken.getChildren()) {
 				listItems.add(listItem.getPayload("typedvalue"));
-				_addAliasesInWhere(alias, listItem); //XXX Needed?
+				clauseValueTokens.add(listItem);
 			}
 			value = listItems;
 			break;
@@ -295,6 +297,7 @@ public class SelectExpansion {
 		case "STRING":
 		case "BOOLEAN":
 			value = clauseValueToken.getPayload("typedvalue");
+			clauseValueTokens.add(clauseValueToken);
 			break;
 		default:
 			// FIXME give the whole where-clause from user input to generate a better error response
@@ -314,6 +317,8 @@ public class SelectExpansion {
 		if (whereClauseOperator.getOperatorCheck() != null && !whereClauseOperator.getOperatorCheck().middle(clauseValueToken)) {
 			throw new SimpleException(ErrorCode.WHERE_ALIAS_VALUE_ERROR, operator, clauseValueToken.getName(), value);
 		}
+
+		_addAliasesInWhere(alias, whereClauseOperator, clauseValueTokens, jsonSel);
 
 		value = (value == null) ? "null" : ":" + paramName;
 		String sqlSnippet = whereClauseOperator.getSqlSnippet();
@@ -525,7 +530,7 @@ public class SelectExpansion {
 		return groupByCandidates;
 	}
 
-	public Map<String, List<Token>> getUsedAliasesInWhere() {
+	public Map<String, List<WhereClauseTarget>> getUsedAliasesInWhere() {
 		if (dirty) {
 			throw new SimpleException(ErrorCode.DIRTY_STATE);
 		}

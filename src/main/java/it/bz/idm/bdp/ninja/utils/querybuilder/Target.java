@@ -42,6 +42,12 @@ public class Target implements Comparable<Target> {
 		}
 	}
 
+	public Target(String name, String json, String func) {
+		this.name = name;
+		this.json = json;
+		this.func = func;
+	}
+
 	@Override
 	public String toString() {
 		return "{Target: " +

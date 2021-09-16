@@ -35,7 +35,7 @@ public class SelectExpansionConfig {
 			.init("measurementdouble")
 			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_double", "me.double_value")
-				.setSelectFormat("%s, null::character varying as mvalue_string")
+				.setSelectFormat("%s, null::character varying as mvalue_string, null::jsonb as mvalue_json")
 				.alias("mvalue"));
 
 		schema.add(measurementdouble);
@@ -44,10 +44,19 @@ public class SelectExpansionConfig {
 			.init("measurementstring")
 			.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
 			.add(new TargetDef("mvalue_string", "me.string_value")
-				.setSelectFormat("null::double precision as mvalue_double, %s")
+				.setSelectFormat("null::double precision as mvalue_double, %s, null::jsonb as mvalue_json")
 				.alias("mvalue"));
 
 		schema.add(measurementstring);
+
+		TargetDefList measurementjson = TargetDefList
+		.init("measurementjson")
+		.setLookUp(new LookUp(LookUpType.MERGE, "measurement", "mvalue", null))
+		.add(new TargetDef("mvalue_json", "me.json_value")
+			.setSelectFormat("null::double precision as mvalue_double, null::character varying as mvalue_string, %s")
+			.alias("mvalue"));
+
+		schema.add(measurementjson);
 
 		TargetDefList datatype = TargetDefList
 			.init("datatype")
@@ -57,7 +66,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("ttype", "t.rtype"))
 			.add(new TargetDef("tdescription", "t.description"))
 			.add(new TargetDef("tmetadata", "tm.json"))
-			.add(new TargetDef("tmeasurements", measurement, measurementdouble, measurementstring));
+			.add(new TargetDef("tmeasurements", measurement, measurementdouble, measurementstring, measurementjson));
 
 		schema.add(datatype);
 

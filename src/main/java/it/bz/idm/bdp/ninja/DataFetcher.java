@@ -19,6 +19,7 @@ import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
+import it.bz.idm.bdp.ninja.utils.querybuilder.WhereClauseTarget;
 import it.bz.idm.bdp.ninja.utils.queryexecutor.QueryExecutor;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -31,6 +32,7 @@ public class DataFetcher {
 	private static final Logger log = LoggerFactory.getLogger(DataFetcher.class);
 
 	public enum ErrorCode implements ErrorCodeInterface {
+		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED ("You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
 		WRONG_TIMEZONE ("'%s' is not a valid time zone understandable by java.time.ZoneId."),
 		WHERE_WRONG_DATA_TYPE ("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given."),
 		METHOD_NOT_ALLOWED_FOR_NODE_REPR ("Method '%s' not allowed with NODE representation."),
@@ -120,14 +122,21 @@ public class DataFetcher {
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
 
-		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
-		Token mvalueToken = mvalueTokens == null ? null : mvalueTokens.get(0);
+		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
+		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
+		Token mvalueToken = mvalueTarget == null ? null : mvalueTarget.getValue(0); // FIXME we ignore lists here, that might have more than 1 value
 
 		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
 		 */
 		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null");
-		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
+		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
+		boolean useMeasurementDouble = (mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null")) && !hasJsonSel;
+		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions && !hasJsonSel;
+		boolean useMeasurementJson = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
+
+		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
+			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
+		}
 
 		String aclWhereclause = getAclWhereClause(roles);
 
@@ -169,6 +178,37 @@ public class DataFetcher {
 				 .expandSelectPrefix(", ", !representation.isFlat())
 				 .addSqlIf("from measurementstringhistory me", from != null || to != null)
 				 .addSqlIf("from measurementstring me", from == null && to == null)
+				 .addSql("join station s on me.station_id = s.id")
+				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+				 .addSql("join type t on me.type_id = t.id")
+				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+				 .addSql("where s.available = true")
+				 .addSqlIfNotNull("and", aclWhereclause)
+				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
+				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
+				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
+				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
+				 .setParameter("roles", roles)
+				 .expandWhere()
+				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+		}
+
+		if ((useMeasurementDouble || useMeasurementString) && useMeasurementJson) {
+			query.addSql("union all");
+		}
+
+		if (useMeasurementJson) {
+			query.reset(select, where, distinct, "station", "parent", "measurementjson", "measurement", "datatype")
+				 .addSql("select")
+				 .addSqlIf("distinct", distinct)
+				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
+				 .expandSelectPrefix(", ", !representation.isFlat())
+				 .addSqlIf("from measurementjsonhistory me", from != null || to != null)
+				 .addSqlIf("from measurementjson me", from == null && to == null)
 				 .addSql("join station s on me.station_id = s.id")
 				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
@@ -261,14 +301,22 @@ public class DataFetcher {
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "datatype");
 
-		List<Token> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
-		Token mvalueToken = mvalueTokens == null ? null : mvalueTokens.get(0);
+		// FIXME This is redundant code, also copy7pasted into another function... fix it
+		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
+		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
+		Token mvalueToken = mvalueTarget == null ? null : mvalueTarget.getValue(0);
 
 		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
 		 */
 		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null");
-		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
+		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
+		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null") && !hasJsonSel;
+		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions && !hasJsonSel;
+		boolean useMeasurementJson = (mvalueToken == null || Token.is(mvalueToken, "json") || Token.is(mvalueToken, "null")) && !hasFunctions;
+
+		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
+			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
+		}
 
 		if (useMeasurementDouble) {
 			query.addSql("select")
@@ -302,6 +350,32 @@ public class DataFetcher {
 				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
 				 .expandSelectPrefix(", ", !representation.isFlat())
 				 .addSql("from measurementstring me")
+				 .addSql("join station s on me.station_id = s.id")
+				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+				 .addSql("join type t on me.type_id = t.id")
+				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+				 .addSql("where s.available = true")
+				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
+				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
+				 .setParameter("roles", roles)
+				 .expandWhere()
+				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+		}
+
+		if ((useMeasurementDouble || useMeasurementString) && useMeasurementJson) {
+			query.addSql("union all");
+		}
+
+		if (useMeasurementJson) {
+			query.reset(select, where, distinct, "station", "parent", "datatype")
+				 .addSql("select")
+				 .addSqlIf("distinct", distinct)
+				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
+				 .expandSelectPrefix(", ", !representation.isFlat())
+				 .addSql("from measurementjson me")
 				 .addSql("join station s on me.station_id = s.id")
 				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")

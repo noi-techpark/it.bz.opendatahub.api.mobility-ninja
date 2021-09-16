@@ -13,6 +13,8 @@ import org.junit.Test;
 
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
+import it.bz.idm.bdp.ninja.utils.querybuilder.WhereClauseTarget;
+import it.bz.idm.bdp.ninja.utils.miniparser.Token;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.SelectExpansion;
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDef;
@@ -392,17 +394,17 @@ public class SelectExpansionTests {
 		seMinimal.setWhereClause("a.eq.3");
 		seMinimal.expand("a", "A");
 		assertTrue(seMinimal.getUsedAliasesInWhere().containsKey("a"));
-		assertEquals("NUMBER", seMinimal.getUsedAliasesInWhere().get("a").get(0).getName());
-		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(0).getPayload("typedvalue") instanceof Integer);
+		assertEquals("NUMBER", seMinimal.getUsedAliasesInWhere().get("a").get(0).getValue(0).getName());
+		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(0).getValue(0).getPayload("typedvalue") instanceof Integer);
 
 		seMinimal.setWhereClause("a.in.(1,3.2,a,null)");
 		seMinimal.expand("a", "A");
 		assertTrue(seMinimal.getUsedAliasesInWhere().containsKey("a"));
-		assertEquals("LIST", seMinimal.getUsedAliasesInWhere().get("a").get(0).getName());
-		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(1).getPayload("typedvalue") instanceof Integer);
-		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(2).getPayload("typedvalue") instanceof Double);
-		assertTrue(seMinimal.getUsedAliasesInWhere().get("a").get(3).getPayload("typedvalue") instanceof String);
-		assertNull(seMinimal.getUsedAliasesInWhere().get("a").get(4).getPayload("typedvalue"));
+		List<WhereClauseTarget> list = seMinimal.getUsedAliasesInWhere().get("a");
+		assertTrue(list.get(0).getValue(0).getPayload("typedvalue") instanceof Integer);
+		assertTrue(list.get(0).getValue(1).getPayload("typedvalue") instanceof Double);
+		assertTrue(list.get(0).getValue(2).getPayload("typedvalue") instanceof String);
+		assertNull(list.get(0).getValue(3).getPayload("typedvalue"));
 	}
 
 }
