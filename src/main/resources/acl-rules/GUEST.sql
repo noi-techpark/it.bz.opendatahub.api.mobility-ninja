@@ -21,7 +21,10 @@
 		'EChargingStation',
 		'Streetstation',
 		'ParkingSensor',
-        'Culture')
+        'Culture',
+		'ON_DEMAND_VEHICLE',
+		'ON_DEMAND_ITINERARY'
+	)
 
     -- station types that are only partly open, constrained by the origin
 	or (s.stationtype = 'EnvironmentStation' and s.origin = 'APPATN-open')
@@ -32,4 +35,5 @@
 
     -- special rules
 	or (s.origin = 'APPABZ' and me.period = 3600)
+	or (s.origin = 'ON_DEMAND_MERANO')
 )
