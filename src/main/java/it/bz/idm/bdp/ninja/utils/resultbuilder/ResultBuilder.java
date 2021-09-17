@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
@@ -58,6 +59,17 @@ public class ResultBuilder {
 		return renewLevel;
 	}
 
+	/**
+	 * Build a tree representation
+	 *
+	 * @param entryPoint
+	 * @param exitPoint
+	 * @param showNull
+	 * @param queryResult
+	 * @param schema
+	 * @param maxAllowedSizeInMB
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> build(String entryPoint, String exitPoint, boolean showNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
 		AtomicLong size = new AtomicLong(0);
@@ -86,7 +98,6 @@ public class ResultBuilder {
 
 			throw new SimpleException(ErrorCode.WRONG_TREE_BUILDING_KEY_TYPE, key);
 		}
-
 
 		// create catalog of Targets, since each record in this result set contains exactly the same names
 		for (List<String> targetDefListNames : hierarchy) {
@@ -121,22 +132,36 @@ public class ResultBuilder {
 
 			for (int level = maxLevel; level >= renewLevel; level--) {
 				for (String targetDefListName : hierarchy.get(level)) {
-					Map<String, Object> curObject = cache.get(targetDefListName);
-					if (curObject == null || curObject.isEmpty()) {
-						continue;
-					}
 					LookUp lookup = schema.get(targetDefListName).getLookUp();
 					Map<String, Object> parent = cache.get(lookup.getParentDefListName());
 					if (parent == null) {
 						parent = result;
 					}
+					Map<String, Object> curObject = cache.get(targetDefListName);
 					String mapTypeValue = (String) rec.get(lookup.getMapTypeKey());
 					switch (lookup.getType()) {
 						case INLINE:
-							parent.put(lookup.getParentTargetName(), curObject);
+							if (curObject.isEmpty() && !showNull) {
+								parent.remove(lookup.getParentTargetName());
+							} else {
+								parent.put(lookup.getParentTargetName(), curObject);
+							}
 							break;
 						case MERGE:
-							parent.put(lookup.getParentTargetName(), curObject.get(lookup.getParentTargetName()));
+							Object value = curObject.get(lookup.getParentTargetName());
+
+							// FIXME This is a hack, that searches for functions
+							if (value == null && curObject.size() == 1) {
+								Entry<String, Object> keyVal = curObject.entrySet().iterator().next();
+								Target target = new Target(keyVal.getKey());
+								if (target.hasFunction()) {
+									parent.put(keyVal.getKey(), keyVal.getValue());
+								}
+							} else {
+								if (value != null || showNull) {
+									parent.put(lookup.getParentTargetName(), value);
+								}
+							}
 							break;
 						case MAP:
 							if (lookup.getParentTargetName() == null) {
@@ -184,7 +209,7 @@ public class ResultBuilder {
 		int size = 0;
 
 		for (Target target : targetCatalog) {
-			Object cellData = record.get(target.getName());
+			Object cellData = record.get(target.getFullNameFunction());
 
 			if (!showNull && cellData == null)
 				continue;
@@ -199,8 +224,8 @@ public class ResultBuilder {
 					size += target.getName().length();
 				}
 			} else {
-				result.put(target.getName(), cellData);
-				size += target.getName().length();
+				result.put(target.getFullNameFunction(), cellData);
+				size += target.getFullNameFunction().length();
 			}
 			size += cellData == null ? 0 : cellData.toString().length();
 		}

@@ -76,6 +76,13 @@ public class Target implements Comparable<Target> {
 		return name;
 	}
 
+	public String getFullNameFunction() {
+		if (hasFunction()) {
+			return func + "(" + getFullName() + ")";
+		}
+		return getFullName();
+	}
+
 	public boolean hasFunction() {
 		return func != null;
 	}

@@ -69,7 +69,7 @@ public class ResultBuilderTests {
 			"tname", "o"
 		).get());
 
-		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
+		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}, sparent={}}}}}",
 				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 		queryResult.add(ConditionalMap.mapOf(
@@ -79,7 +79,7 @@ public class ResultBuilderTests {
 			"tname", "o"
 		).get());
 
-		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}}}}}",
+		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}, sparent={}}}}}",
 				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 		queryResult.add(ConditionalMap.mapOf(
@@ -89,7 +89,7 @@ public class ResultBuilderTests {
 			"tname", "x"
 		).get());
 
-		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}, occ2={tname=x}}}}}}",
+		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}, occ2={tname=x}}, sparent={}}}}}",
 				ResultBuilder.build("stationtype", "datatype", true, queryResult, seOpenDataHub.getSchema(), 0).toString());
 
 	}
@@ -173,6 +173,67 @@ public class ResultBuilderTests {
 
 		assertEquals("{AAA={stations={123={sdatatypes={t1={tmeasurements=[{mperiod=200, mtransactiontime=88, mvalidtime=13, mvalue=1111}], tname=t1}}, sname=edgename1}, 456={sdatatypes={t2={tmeasurements=[{mperiod=100, mtransactiontime=8899, mvalidtime=133, mvalue=2222}], tname=t2}}, sname=edgename2}}}}",
 			ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString());
+	}
+
+	@Test
+	public void testNewGenericResultBuilderOnlyMvalue() {
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
+			"_stationtype", "EChargingStation",
+			"_stationcode", "StationMerano1",
+			"_datatypename", "count",
+			"mvalue", 42
+		).get();
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+
+		String result = ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString();
+
+		assertEquals(
+			"{EChargingStation={stations={StationMerano1={sdatatypes={count={tmeasurements=[{mvalue=42}]}}}}}}",
+			result
+		);
+	}
+
+	@Test
+	public void testNewGenericResultBuilderOnlyMvalueJsonSub() {
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
+			"_stationtype", "EChargingStation",
+			"_stationcode", "StationMerano1",
+			"_datatypename", "count",
+			"mvalue", 42,
+			"pmetadata.state", "online"
+		).get();
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+
+		String result = ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString();
+
+		assertEquals(
+			"{EChargingStation={stations={StationMerano1={sdatatypes={count={tmeasurements=[{mvalue=42}]}}, sparent={pmetadata={state=online}}}}}}",
+			result
+		);
+	}
+
+	@Test
+	public void testNewGenericResultBuilderFunctions() {
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
+			"_stationtype", "EChargingStation",
+			"_stationcode", "StationMerano1",
+			"_datatypename", "count",
+			"count(mvalue)", 42
+		).get();
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+
+		String result = ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString();
+
+		assertEquals(
+			"{EChargingStation={stations={StationMerano1={sdatatypes={count={tmeasurements=[{count(mvalue)=42}]}}}}}}",
+			result
+		);
 	}
 
 }

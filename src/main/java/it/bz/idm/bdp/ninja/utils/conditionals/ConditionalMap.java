@@ -105,9 +105,13 @@ public class ConditionalMap {
 
 	public static ConditionalMap mapOf(Object... args) {
 		ConditionalMap map = new ConditionalMap();
-		for (int i = 0; i < args.length; i += 2) {
-            map.put((String) args[i], args[i + 1]);
-        }
+		try {
+			for (int i = 0; i < args.length; i += 2) {
+				map.put((String) args[i], args[i + 1]);
+			}
+		} catch (IndexOutOfBoundsException ex) {
+			throw new IndexOutOfBoundsException("mapOf needs n key/value pairs, that is a even number... odd given");
+		}
         return map;
     }
 
