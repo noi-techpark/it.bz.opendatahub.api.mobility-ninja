@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
@@ -212,6 +213,28 @@ public class ResultBuilderTests {
 
 		assertEquals(
 			"{EChargingStation={stations={StationMerano1={sdatatypes={count={tmeasurements=[{mvalue=42}]}}, sparent={pmetadata={state=online}}}}}}",
+			result
+		);
+	}
+
+	@Test
+	@Ignore("This is about issue #23, currently in Backlog... future development")
+	public void testNewGenericResultBuilderOnlyMvalueJsonSub2() {
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
+			"_stationtype", "EChargingStation",
+			"_stationcode", "StationMerano1",
+			"_datatypename", "count",
+			"sname", "ABC",
+			"pmetadata.state", "online"
+		).get();
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+
+		String result = ResultBuilder.build("stationtype", null, false, resultList, seOpenDataHub.getSchema(), 1000).toString();
+
+		assertEquals(
+			"{EChargingStation={stations={StationMerano1={sname=ABC, sparent={pmetadata={state=online}}}}}}",
 			result
 		);
 	}
