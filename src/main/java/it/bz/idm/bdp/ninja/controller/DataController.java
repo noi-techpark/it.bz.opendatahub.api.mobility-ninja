@@ -45,7 +45,6 @@ import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -98,9 +97,6 @@ public class DataController {
 
 	@Value("${ninja.response.max-allowed-size-mb}")
 	private int maxAllowedSizeInMB;
-
-	@Autowired
-	DataFetcher dataFetcher;
 
 	private String fileRoot;
 	private String fileSpec;
@@ -191,6 +187,8 @@ public class DataController {
 
 		final Representation repr = Representation.get(representation);
 
+		DataFetcher dataFetcher = new DataFetcher();
+
 		dataFetcher.setIgnoreNull(!showNull);
 		dataFetcher.setLimit(limit);
 		dataFetcher.setOffset(offset);
@@ -223,6 +221,8 @@ public class DataController {
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
+		DataFetcher dataFetcher = new DataFetcher();
+
 		dataFetcher.setIgnoreNull(!showNull);
 		dataFetcher.setLimit(limit);
 		dataFetcher.setOffset(offset);
@@ -250,6 +250,8 @@ public class DataController {
 		final Representation repr = Representation.get(representation);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+		DataFetcher dataFetcher = new DataFetcher();
 
 		dataFetcher.setIgnoreNull(!showNull);
 		dataFetcher.setLimit(limit);
@@ -284,6 +286,8 @@ public class DataController {
 
 		final ZonedDateTime dateTimeFrom = getDateTime(from);
 		final ZonedDateTime dateTimeTo = getDateTime(to);
+
+		DataFetcher dataFetcher = new DataFetcher();
 
 		dataFetcher.setIgnoreNull(!showNull);
 		dataFetcher.setLimit(limit);

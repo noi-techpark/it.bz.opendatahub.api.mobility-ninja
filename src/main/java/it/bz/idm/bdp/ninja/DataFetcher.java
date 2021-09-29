@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class DataFetcher {
 	private String select;
 	private String where;
 	private boolean distinct;
-	private Map<String, String> aclWhereClauses = new HashMap<>();
+	private static Map<String, String> aclWhereClauses = new ConcurrentHashMap<>();
 	private String timeZone = "UTC";
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, final Representation representation) {
