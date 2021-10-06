@@ -31,6 +31,9 @@ import static net.logstash.logback.argument.StructuredArguments.v;
 public class DataFetcher {
 
 	private static final Logger log = LoggerFactory.getLogger(DataFetcher.class);
+	private static final int MEASUREMENT_TYPE_DOUBLE = 1 << 0;
+	private static final int MEASUREMENT_TYPE_STRING = 1 << 1;
+	private static final int MEASUREMENT_TYPE_JSON   = 1 << 2;
 
 	public enum ErrorCode implements ErrorCodeInterface {
 		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED ("You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
@@ -123,25 +126,11 @@ public class DataFetcher {
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype");
 
-		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
-		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
-		Token mvalueToken = mvalueTarget == null ? null : mvalueTarget.getValue(0); // FIXME we ignore lists here, that might have more than 1 value
-
-		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
-		 */
-		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
-		boolean useMeasurementDouble = (mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null")) && !hasJsonSel;
-		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions && !hasJsonSel;
-		boolean useMeasurementJson = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions;
-
-		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
-			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
-		}
+		int measurementType = checkMeasurementType(query);
 
 		String aclWhereclause = getAclWhereClause(roles);
 
-		if (useMeasurementDouble) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE)) {
 			query.addSql("select")
 				 .addSqlIf("distinct", distinct)
 				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
@@ -167,11 +156,11 @@ public class DataFetcher {
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
-		if (useMeasurementDouble && useMeasurementString) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) && hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.addSql("union all");
 		}
 
-		if (useMeasurementString) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.reset(select, where, distinct, "station", "parent", "measurementstring", "measurement", "datatype")
 				 .addSql("select")
 				 .addSqlIf("distinct", distinct)
@@ -198,11 +187,11 @@ public class DataFetcher {
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
-		if ((useMeasurementDouble || useMeasurementString) && useMeasurementJson) {
+		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) && hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.addSql("union all");
 		}
 
-		if (useMeasurementJson) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.reset(select, where, distinct, "station", "parent", "measurementjson", "measurement", "datatype")
 				 .addSql("select")
 				 .addSqlIf("distinct", distinct)
@@ -227,10 +216,6 @@ public class DataFetcher {
 				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
-		}
-
-		if (mvalueToken != null && !mvalueToken.is("string") && !mvalueToken.is("number") && !mvalueToken.is("null")) {
-			throw new SimpleException(ErrorCode.WHERE_WRONG_DATA_TYPE, "mvalue", mvalueToken.getName());
 		}
 
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !representation.isFlat())
@@ -302,24 +287,9 @@ public class DataFetcher {
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "datatype");
 
-		// FIXME This is redundant code, also copy7pasted into another function... fix it
-		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
-		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
-		Token mvalueToken = mvalueTarget == null ? null : mvalueTarget.getValue(0);
+		int measurementType = checkMeasurementType(query);
 
-		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
-		 */
-		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
-		boolean useMeasurementDouble = mvalueToken == null || Token.is(mvalueToken, "number") || Token.is(mvalueToken, "null") && !hasJsonSel;
-		boolean useMeasurementString = (mvalueToken == null || Token.is(mvalueToken, "string") || Token.is(mvalueToken, "null")) && !hasFunctions && !hasJsonSel;
-		boolean useMeasurementJson = (mvalueToken == null || Token.is(mvalueToken, "json") || Token.is(mvalueToken, "null")) && !hasFunctions;
-
-		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
-			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
-		}
-
-		if (useMeasurementDouble) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE)) {
 			query.addSql("select")
 				 .addSqlIf("distinct", distinct)
 				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
@@ -340,11 +310,11 @@ public class DataFetcher {
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
-		if (useMeasurementDouble && useMeasurementString) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) && hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.addSql("union all");
 		}
 
-		if (useMeasurementString) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.reset(select, where, distinct, "station", "parent", "datatype")
 				 .addSql("select")
 				 .addSqlIf("distinct", distinct)
@@ -366,11 +336,11 @@ public class DataFetcher {
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
-		if ((useMeasurementDouble || useMeasurementString) && useMeasurementJson) {
+		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) && hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.addSql("union all");
 		}
 
-		if (useMeasurementJson) {
+		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.reset(select, where, distinct, "station", "parent", "datatype")
 				 .addSql("select")
 				 .addSqlIf("distinct", distinct)
@@ -390,10 +360,6 @@ public class DataFetcher {
 				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
-		}
-
-		if (mvalueToken != null && !mvalueToken.is("string") && !mvalueToken.is("number") && !mvalueToken.is("null")) {
-			throw new SimpleException(ErrorCode.WHERE_WRONG_DATA_TYPE, "mvalue", mvalueToken.getName());
 		}
 
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !representation.isFlat())
@@ -562,5 +528,63 @@ public class DataFetcher {
 
 	public void setTimeZone(String timeZone) {
 		this.timeZone = timeZone;
+	}
+
+	private int checkMeasurementType(QueryBuilder query) {
+		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
+		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
+		Token mvalue = mvalueTarget == null ? null : mvalueTarget.getValue(0); // FIXME we ignore lists here, that might have more than 1 value
+
+		if (
+			mvalue != null
+			&& !mvalue.is("string")
+			&& !mvalue.is("number")
+			&& !mvalue.is("null")
+		) {
+			throw new SimpleException(ErrorCode.WHERE_WRONG_DATA_TYPE, "mvalue", mvalue.getName());
+		}
+
+		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
+		 */
+		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
+		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
+		boolean useMeasurementDouble =
+			(
+				mvalue == null
+				|| Token.is(mvalue, "number")
+				|| Token.is(mvalue, "null")
+			)
+			&& !hasJsonSel;
+		boolean useMeasurementString =
+			(
+				mvalue == null
+				|| Token.is(mvalue, "string")
+				|| Token.is(mvalue, "null")
+			)
+			&& !hasFunctions
+			&& !hasJsonSel;
+		boolean useMeasurementJson =
+			(
+				mvalue == null
+				|| Token.is(mvalue, "string")
+				|| Token.is(mvalue, "number")
+				|| Token.is(mvalue, "null")
+			)
+			&& !hasFunctions;
+
+		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
+			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
+		}
+
+		int result = 0;
+		result |= useMeasurementDouble ? MEASUREMENT_TYPE_DOUBLE : 0;
+		result |= useMeasurementString ? MEASUREMENT_TYPE_STRING : 0;
+		result |= useMeasurementJson ? MEASUREMENT_TYPE_JSON : 0;
+
+		return result;
+	}
+
+	private boolean hasFlag(int measurementType, final int flag) {
+		return (measurementType & flag) == flag;
 	}
 }
