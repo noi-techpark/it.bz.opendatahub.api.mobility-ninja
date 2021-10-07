@@ -570,7 +570,8 @@ public class DataFetcher {
 				|| Token.is(mvalue, "number")
 				|| Token.is(mvalue, "null")
 			)
-			&& !hasFunctions;
+			&& !hasFunctions
+			&& hasJsonSel;
 
 		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
 			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
