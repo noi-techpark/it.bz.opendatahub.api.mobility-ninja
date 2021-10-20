@@ -34,6 +34,7 @@ public class DataFetcher {
 	private static final int MEASUREMENT_TYPE_DOUBLE = 1 << 0;
 	private static final int MEASUREMENT_TYPE_STRING = 1 << 1;
 	private static final int MEASUREMENT_TYPE_JSON   = 1 << 2;
+	private static final int MEASUREMENT_TYPE_ALL = (1 << 3) - 1;
 
 	public enum ErrorCode implements ErrorCodeInterface {
 		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED ("You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
@@ -532,12 +533,19 @@ public class DataFetcher {
 
 	private int checkMeasurementType(QueryBuilder query) {
 		List<WhereClauseTarget> mvalueTokens = query.getSelectExpansion().getUsedAliasesInWhere().get("mvalue");
-		WhereClauseTarget mvalueTarget = mvalueTokens == null ? null : mvalueTokens.get(0);
-		Token mvalue = mvalueTarget == null ? null : mvalueTarget.getValue(0); // FIXME we ignore lists here, that might have more than 1 value
+
+		if (mvalueTokens == null) {
+			return MEASUREMENT_TYPE_ALL;
+		}
+
+		// FIXME What if we have more than one "mvalue" inside WHERE?
+		WhereClauseTarget mvalueTarget = mvalueTokens.get(0);
+
+		// FIXME we ignore lists here, that might have more than 1 value
+		Token mvalue = mvalueTarget.getValue(0);
 
 		if (
-			mvalue != null
-			&& !mvalue.is("string")
+			!mvalue.is("string")
 			&& !mvalue.is("number")
 			&& !mvalue.is("null")
 		) {
@@ -547,31 +555,27 @@ public class DataFetcher {
 		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
 		 */
 		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean hasJsonSel = mvalueTarget != null && mvalueTarget.hasJson();
 		boolean useMeasurementDouble =
 			(
-				mvalue == null
-				|| Token.is(mvalue, "number")
+				Token.is(mvalue, "number")
 				|| Token.is(mvalue, "null")
 			)
-			&& !hasJsonSel;
+			&& !mvalueTarget.hasJson();
 		boolean useMeasurementString =
 			(
-				mvalue == null
-				|| Token.is(mvalue, "string")
+				Token.is(mvalue, "string")
 				|| Token.is(mvalue, "null")
 			)
 			&& !hasFunctions
-			&& !hasJsonSel;
+			&& !mvalueTarget.hasJson();
 		boolean useMeasurementJson =
 			(
-				mvalue == null
-				|| Token.is(mvalue, "string")
+				Token.is(mvalue, "string")
 				|| Token.is(mvalue, "number")
 				|| Token.is(mvalue, "null")
 			)
 			&& !hasFunctions
-			&& hasJsonSel;
+			&& mvalueTarget.hasJson(); // We can check this here, because we are sure to use "mvalue" in the where-clause at this point
 
 		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
 			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
