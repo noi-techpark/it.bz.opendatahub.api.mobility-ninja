@@ -23,7 +23,9 @@
 		'ParkingSensor',
         'Culture',
 		'ON_DEMAND_VEHICLE',
-		'ON_DEMAND_ITINERARY'
+		'ON_DEMAND_ITINERARY',
+		'BIKE_CHARGER',
+		'BIKE_CHARGER_BAY'
 	)
 
     -- station types that are only partly open, constrained by the origin
