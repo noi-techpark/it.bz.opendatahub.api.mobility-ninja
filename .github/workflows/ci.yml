@@ -1,15 +1,15 @@
-name: CI mobility-ninja
+name: ci mobility-ninja
 
 on:
   push:
     branches: [ development, master ]
-    paths:
-      - "!README.md"
+    paths-ignore:
+      - "README.md"
       
   pull_request:
     branches: [ development, master ]
-    paths:
-      - "!README.md"
+    paths-ignore:
+      - "README.md"
 
 
   # Allows you to run this workflow manually from the Actions tab
