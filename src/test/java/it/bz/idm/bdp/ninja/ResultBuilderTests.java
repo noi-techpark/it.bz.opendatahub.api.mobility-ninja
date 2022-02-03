@@ -259,4 +259,35 @@ public class ResultBuilderTests {
 		);
 	}
 
+	@Test
+	public void testNewGenericResultBuilderEvents() {
+
+		Map<String, Object> rec1 = ConditionalMap.mapOf(
+			"_eventorigin", "A22",
+			"_eventseriesuuid", "series3",
+			"_eventuuid", "ev1",
+			"_locationid", "location1",
+			"evuuid", "ev1",
+			"evseriesuuid", "series3",
+			"evldescription", null
+			).get();
+
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		resultList.add(rec1);
+
+		String result = ResultBuilder.build(
+			"eventorigin",
+			null,
+			true,
+			resultList,
+			seOpenDataHub.getSchema(),
+			1000
+		).toString();
+
+		assertEquals(
+			"{A22={eventseries={series3={events={ev1={evlocation={evldescription=null}, evseriesuuid=series3, evuuid=ev1}}}}}}",
+			result
+		);
+	}
+
 }

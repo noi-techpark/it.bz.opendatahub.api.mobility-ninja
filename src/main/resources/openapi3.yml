@@ -152,13 +152,48 @@ paths:
         - Mobility V2
       summary: View edge details of a given type
       description:
-        You can put multiple edgetypes as comma-seperated lists. The response
+        You can put multiple edgetypes as comma-seperated list. The response
         contains edges (prefix <code>e</code>) and their beginning and ending
         station (prefix <code>sb</code> and <code>se</code>). Each JSON
         attribute is prefixed with the first letter of that object.
       parameters:
         - $ref: "#/components/parameters/representationedge"
         - $ref: "#/components/parameters/edgeTypes"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/select"
+        - $ref: "#/components/parameters/where"
+        - $ref: "#/components/parameters/shownull"
+        - $ref: "#/components/parameters/distinct"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        401:
+          description: Unauthorized
+          content: {}
+        403:
+          description: Forbidden
+          content: {}
+        404:
+          description: Not Found
+          content: {}
+  /v2/{representation}/{origins}:
+    get:
+      tags:
+        - Mobility V2
+      summary: View events of given origins
+      description:
+        You can put multiple origins as comma-seperated list. The response
+        contains events (prefix <code>ev</code>) and their locations (prefix
+        <code>evl</code>). Each JSON attribute is prefixed with the first letter
+        of that object.
+      parameters:
+        - $ref: "#/components/parameters/representationevent"
+        - $ref: "#/components/parameters/origins"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
         - $ref: "#/components/parameters/select"
@@ -4509,8 +4544,8 @@ components:
       description:
         Do you want to have the result in a <code>tree</code> or
         <code>flat</code> representation, and do you want to get
-        <code>node</code> (=station) or <code>edge</code> information.
-        Add them as comma-separated values.
+        <code>node</code> (=station), <code>edge</code> or <code>event</code>
+        information. Add them as comma-separated values.
       required: true
       schema:
         type: string
@@ -4538,6 +4573,17 @@ components:
       schema:
         type: string
         default: flat,edge
+    representationevent:
+      name: representation
+      in: path
+      description:
+        Do you want to have the result in a <code>tree</code> or
+        <code>flat</code> representation? The type of the map element is
+        <code>event</code>.
+      required: true
+      schema:
+        type: string
+        default: flat,event
     stationTypes:
       name: stationTypes
       in: path
@@ -4564,6 +4610,16 @@ components:
       description:
         Data types. Multiple types possible as comma-separated-values.
         All types with <code>*</code>.
+      required: true
+      schema:
+        type: string
+        default: "*"
+    origins:
+      name: origins
+      in: path
+      description:
+        Origins of events, that is, the name of sources. Multiple origins
+        possible as comma-separated-values. All origins with <code>*</code>.
       required: true
       schema:
         type: string

@@ -40,8 +40,7 @@ public class DataFetcher {
 		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED ("You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
 		WRONG_TIMEZONE ("'%s' is not a valid time zone understandable by java.time.ZoneId."),
 		WHERE_WRONG_DATA_TYPE ("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given."),
-		METHOD_NOT_ALLOWED_FOR_NODE_REPR ("Method '%s' not allowed with NODE representation."),
-		METHOD_NOT_ALLOWED_FOR_EDGE_REPR ("Method '%s' not allowed with EDGE representation.");
+		METHOD_NOT_ALLOWED ("Method '%s' not allowed with %s representation.");
 
 		private final String msg;
 
@@ -67,7 +66,7 @@ public class DataFetcher {
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, final Representation representation) {
 		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStations");
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStations", representation.getTypeAsString());
 		}
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
 		Timer timer = new Timer();
@@ -114,7 +113,7 @@ public class DataFetcher {
 	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
 		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStationsTypesAndMeasurement(History)");
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsTypesAndMeasurement(History)", representation.getTypeAsString());
 		}
 
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
@@ -275,7 +274,7 @@ public class DataFetcher {
 			final Representation representation) {
 
 		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStationsAndTypes");
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsAndTypes", representation.getTypeAsString());
 		}
 
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
@@ -386,8 +385,8 @@ public class DataFetcher {
 
 	public List<Map<String, Object>> fetchStationTypes(final Representation representation) {
 
-		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_EDGE_REPR, "fetchStationTypes");
+		if (representation.isNode()) {
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationTypes", representation.getTypeAsString());
 		}
 
 		Timer timer = new Timer();
@@ -404,10 +403,82 @@ public class DataFetcher {
 		return queryResult;
 	}
 
+	public List<Map<String, Object>> fetchEventOrigins(final Representation representation) {
+
+		if (!representation.isEvent()) {
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEventOrigins", representation.getTypeAsString());
+		}
+
+		Timer timer = new Timer();
+
+		String sql = "select distinct origin as id from event order by 1";
+		timer.start();
+		List<Map<String, Object>> queryResult = QueryExecutor
+				.init()
+				.build(sql, true, timeZone);
+		long timeExec = timer.stop();
+
+		logStats("fetchEventOrigins", representation, queryResult.size(), 0, timeExec, sql, null);
+
+		return queryResult;
+	}
+
+	public List<Map<String, Object>> fetchEvents(String originList, final Representation representation) {
+
+		if (!representation.isEvent()) {
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEvents", representation.getTypeAsString());
+		}
+
+		Set<String> originSet = QueryBuilder.csvToSet(originList);
+
+		Timer timer = new Timer();
+
+		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
+		QueryBuilder query = QueryBuilder
+				.init(se, select, where, distinct, "event", "location")
+				.addSql("select")
+				.addSqlIf("distinct", distinct)
+				.addSqlIf("ev.origin as _eventorigin, ev.event_series_uuid as _eventseriesuuid, ev.uuid as _eventuuid", !representation.isFlat())
+				.addSqlIfDefinitionAnd(", ev.location_id::text as _locationid", "location", !representation.isFlat())
+				.expandSelectPrefix(", ", !representation.isFlat())
+				.addSql("from event ev")
+				.addSqlIfDefinition("left join location loc on ev.location_id = loc.id", "location")
+				.addSqlIfAlias("left join metadata evm on evm.id = ev.meta_data_id", "evmetadata")
+				.addSql("where 1 = 1")
+				.setParameterIfNotEmptyAnd("origins", originSet, "and ev.origin in (:origins)", !originSet.contains("*"))
+				.expandWhere()
+				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid", !representation.isFlat() && !se.getUsedDefNames().contains("location"))
+				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid", !representation.isFlat() && !se.getUsedDefNames().contains("location"))
+				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid, _locationid", !representation.isFlat() && se.getUsedDefNames().contains("location"))
+				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid, _locationid", !representation.isFlat() && se.getUsedDefNames().contains("location"))
+				.addLimit(limit)
+				.addOffset(offset);
+		long timeBuild = timer.stop();
+
+		log.debug(query.getSql());
+
+		// We need null values while tree building. We remove them during the output generation
+		timer.start();
+		List<Map<String, Object>> queryResult = QueryExecutor
+				.init()
+				.addParameters(query.getParameters())
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
+		long timeExec = timer.stop();
+
+		log.trace(queryResult.toString());
+
+		Map<String, Object> logData = new HashMap<>();
+		logData.put("origins", originSet);
+		logStats("fetchEvents", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+
+		return queryResult;
+	}
+
 	public List<Map<String, Object>> fetchEdgeTypes(final Representation representation) {
 
 		if (!representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_NODE_REPR, "fetchEdgeTypes");
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEdgeTypes", representation.getTypeAsString());
 		}
 
 		Timer timer = new Timer();
@@ -427,7 +498,7 @@ public class DataFetcher {
 	public List<Map<String, Object>> fetchEdges(String stationTypeList, final Representation representation) {
 
 		if (!representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED_FOR_NODE_REPR, "fetchEdges");
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEdges", representation.getTypeAsString());
 		}
 
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);

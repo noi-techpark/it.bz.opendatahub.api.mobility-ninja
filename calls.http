@@ -1,0 +1,212 @@
+@host=http://localhost:8081
+#@host=https://mobility.api.opendatahub.bz.it/v2
+#@host=https://mobility.api.opendatahub.testingmachine.eu/v2
+
+### Issue: 2x savailable
+GET {{host}}/flat/*/*
+?select=savailable
+
+###
+GET {{host}}
+
+###
+GET {{host}}/tree,node/BluetoothStation/*/latest
+?limit=200
+&where=scode.eq.corse_cappuccini
+&distinct=true
+&timezone=UTC
+&select=mvalue
+
+###
+GET https://mobility.api.opendatahub.bz.it/v1/emobility/rest/get-stations
+Content-Type: text/xml
+
+###
+GET {{host}}/flat/MeteoStation/*/latest
+?select=sdatatypes
+&limit=1
+&shownull=true
+
+###
+GET {{host}}/flat/MeteoStation/*/latest
+?select=tmeasurements
+&limit=1
+&shownull=true
+
+###
+@token = {{login.response.body.access_token}}
+GET {{host}}/flat/MeteoStation/*/2019-01-01/2019-01-20
+?select=tmeasurements
+&limit=2000
+&shownull=true
+Authorization: Bearer {{token}}
+
+###
+GET {{host}}/flat/LinkStation?select=smetadata.coordinates
+
+###
+GET {{host}}/tree,edge/*
+    ?limit=100
+    &select=eorigin
+    &shownull=true
+    #&where=eorigin.neq.null
+
+###
+GET {{host}}/flat/BluetoothStation/vehicle detection/2019-07-23T18:01:00+0200/2019-07-23T18:01:02+0200
+    ?select=mvalidtime
+
+###
+GET {{host}}/flat/BluetoothStation/vehicle detection/2019-07-23T16:01:00-0200/2019-07-23T18:01:02-0200
+    ?select=mvalidtime
+
+###
+{{host}}/flat/LinkStation
+?where=savailable.neq.false
+
+###
+GET {{host}}/tree/Bicycle/*?select=sdatatypes&where=scode.eq."1041071595"&shownull=false
+
+###
+{{host}}/flat/ParkingStation,ParkingSensor/parking-forecast-30,parking-forecast-60,parking-forecast-120,parking-forecast-240/2020-09-21T13:45:24.975Z/2020-09-21T17:45:24.975Z?limit=-1&offset=0&shownull=false&distinct=false&select=scode,mvalue,mperiod,mvalidtime
+
+
+###
+{{host}}/tree,edge/LinkStation/?limit=-1&distinct=true&select=egeometry,ecode&where=eactive.eq.false
+###
+GET {{host}}/flat,edge/LinkStation/?select=egeometry,ecode&where=egeometry.neq.null
+
+
+###
+GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
+?limit=-1
+&distinct=true
+&where=and(scode.eq."Maso_Pieve",sactive.eq.true)
+
+###
+GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
+?limit=100
+&distinct=true
+&where=and(scode.eq."Maso_Pieve",sactive.eq.true)
+&select=mvalue,mvalidtime
+
+
+### Check availability (should always be true or an empty response)
+GET {{host}}/flat,edge/*
+?where=sbactive.eq.null
+//?where=or(seavailable.neq.true,sbavailable.neq.true,eavailable.neq.true)
+
+###
+GET {{host}}/tree,node/BluetoothStation/*/2020-01-05T12/2020-01-05T17
+?where=sactive.eq.true
+#&select=tname,tunit,tdescription,scoordinate,sname
+&limit=-1
+
+###
+GET {{host}}/flat/VMS/esposizione/
+?where=tmetadata.signal-codes.0.id.eq."0"
+&limit=1
+
+###
+GET {{host}}/flat/VMS/esposizione/
+?select=tmetadata.signal-codes.0.id
+
+
+
+############# PROBLEMATIC QUERIES (status = 500)
+
+###
+GET {{host}}/flat,node/BluetoothStation/*/latest
+?limit=200&where=scode.eq.mazzini&distinct=true&timezone=UTC
+
+###
+GET {{host}}/flat,node/BluetoothStation/*/latest
+?limit=200&where=scode.eq.schaffer-winkel&distinct=true&timezone=UTC
+
+#?limit=200&where=scode.eq.huber&distinct=true&timezone=UTC
+
+###
+GET {{host}}/flat,node/EChargingPlug/*/2019-03-25T01/2019-03-25T02
+?where=pactive.eq.true
+&limit=-1
+
+### GET AN ACCESS TOKEN
+# @name login
+POST https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+&grant_type=password
+&username={{$dotenv DEV_AUTH_USER}}
+&password={{$dotenv DEV_AUTH_PASS}}
+&client_id=odh-generic-client
+&client_secret={{$dotenv DEV_AUTH_SECRET}}
+
+
+### Measurement JSON Tests
+@token = {{login.response.body.access_token}}
+GET {{host}}/tree/*/*/latest?where=mvalue.type.ire.POINT&select=mvalue
+Authorization: Bearer {{token}}
+
+### Test issue https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/issues/16
+{{host}}/tree/EChargingPlug/echarging-plug-status/latest
+?select=mvalue
+&where=sactive.eq.true,pactive.eq.true
+&limit=1
+
+### Test issue https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/issues/22
+{{host}}/tree/EChargingPlug/echarging-plug-status/latest
+?select=pcode,pmetadata.state,mvalue
+&where=sactive.eq.true,pactive.eq.true
+&limit=-1
+&showNull=true
+
+### Test
+{{host}}/tree/MeteoStation/precipitation/latest
+?select=count(mvalue)
+&limit=1000
+
+### Test issue
+{{host}}/flat/EChargingStation/*/latest
+?limit=-1
+&distinct=true
+&where=and(savailable.eq.true,sactive.eq.true,smetadata.accessType.neq."PRIVATE")
+
+### Test mvalue with strings
+{{host}}/flat/*/*/latest
+?select=mvalue
+&where=mvalue.when.eq."now"
+
+### Problem on maps.noi.bz.it
+{{host}}/flat/NOI-Place/*/latest
+?limit=-1
+&offset=0
+&select=tmetadata,mvalue
+&shownull=false
+&distinct=true
+&where=mvalue.eq.Selettori%20Group,sorigin.eq.office365
+
+### Problem about ON_DEMAND
+@token = {{login.response.body.access_token}}
+{{host}}/flat/ON_DEMAND_ITINERARY/*/latest
+
+Authorization: Bearer {{token}}
+
+### Events
+{{host}}/event,flat
+
+### Events
+{{host}}/event,tree/*
+?select=evldescription,evuuid,evseriesuuid
+#?1=1
+&shownull=true
+&limit=1
+
+
+### Parent
+{{host}}/node,tree/*
+?select=sname,sparent
+&limit=1
+
+
+###
+{{host}}/tree/BikeCounter/*/latest?limit=-1&distinct=true&showNull=true&select=tmeasurements&where=or(and(mperiod.eq.3600,tname.eq."vehicle detection \(count\)"))
+

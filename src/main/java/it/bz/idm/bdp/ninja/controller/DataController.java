@@ -141,8 +141,10 @@ public class DataController {
 		final List<Map<String, Object>> queryResult;
 		if (rep.isEdge()) {
 			queryResult = new DataFetcher().fetchEdgeTypes(rep);
-		} else {
+		} else if (rep.isNode()) {
 			queryResult = new DataFetcher().fetchStationTypes(rep);
+		} else {
+			queryResult = new DataFetcher().fetchEventOrigins(rep);
 		}
 		String url = ninjaBaseUrl + "/" + representation + "/";
 		Map<String, Object> selfies;
@@ -167,6 +169,14 @@ public class DataController {
 				case TREE_EDGE:
 					selfies = new HashMap<>();
 					selfies.put("edges", url + row.get("id"));
+					row.put("self", selfies);
+				break;
+				case FLAT_EVENT:
+					row.put("self.events", url + row.get("id"));
+				break;
+				case TREE_EVENT:
+					selfies = new HashMap<>();
+					selfies.put("events", url + row.get("id"));
 					row.put("self", selfies);
 				break;
 			}
@@ -200,9 +210,12 @@ public class DataController {
 		if (repr.isEdge()) {
 			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
 			result = buildResult("edgetype", null, queryResult, offset, limit, repr, showNull);
-		} else {
+		} else if (repr.isNode()) {
 			queryResult = dataFetcher.fetchStations(stationTypes, repr);
 			result = buildResult("stationtype", "station", queryResult, offset, limit, repr, showNull);
+		} else {
+			queryResult = dataFetcher.fetchEvents(stationTypes, repr);
+			result = buildResult("eventorigin", "location", queryResult, offset, limit, repr, showNull);
 		}
 		return serializeJson(result);
 	}
@@ -325,6 +338,7 @@ public class DataController {
 		switch(representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
+			case FLAT_EVENT:
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
@@ -337,6 +351,11 @@ public class DataController {
 					//FIXME use a static immutable schema everywhere
 					new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 				break;
+			case TREE_EVENT:
+				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
+				//FIXME use a static immutable schema everywhere
+				new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
+			break;
 		}
 		return result;
 	}

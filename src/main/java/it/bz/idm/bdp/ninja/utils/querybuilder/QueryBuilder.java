@@ -131,8 +131,13 @@ public class QueryBuilder {
 		return this;
 	}
 
+	public QueryBuilder addSqlIfDefinitionAnd(String sqlPart, String selectDefName, boolean condition) {
+		sql.addIf(sqlPart, condition && se.getUsedDefNames().contains(selectDefName));
+		return this;
+	}
+
 	public QueryBuilder addSqlIfDefinition(String sqlPart, String selectDefName) {
-		sql.addIf(sqlPart, se.getUsedDefNames().contains(selectDefName));
+		addSqlIfDefinitionAnd(sqlPart, selectDefName, true);
 		return this;
 	}
 
