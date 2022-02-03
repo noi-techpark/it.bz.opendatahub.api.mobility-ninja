@@ -13,7 +13,7 @@ pipeline {
         NINJA_HIKARI_LEAK_DETECTION_MS = "65000"  // should be greater than (NINJA_QUERY_TIMEOUT_SEC * 1000)
         NINJA_RESPONSE_MAX_SIZE_MB = "100"
         LOG_APPLICATION_NAME = "ninja"
-        LOG_APPLICATION_VERSION = "1.1.0"
+        LOG_APPLICATION_VERSION = "1.2.0"
 
         SECURITY_ALLOWED_ORIGINS = "*"
         KEYCLOAK_URL = "https://auth.opendatahub.testingmachine.eu/auth/"
