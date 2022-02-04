@@ -423,7 +423,7 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	public List<Map<String, Object>> fetchEvents(String originList, final Representation representation) {
+	public List<Map<String, Object>> fetchEvents(String originList, boolean latestOnly, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
 		if (!representation.isEvent()) {
 			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEvents", representation.getTypeAsString());
@@ -437,15 +437,20 @@ public class DataFetcher {
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "event", "location")
+				.addSqlIf("with latest as (select e.id, row_number() over(partition by e.origin, e.event_series_uuid order by e.event_interval desc) as rank from event e)", latestOnly)
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("ev.origin as _eventorigin, ev.event_series_uuid as _eventseriesuuid, ev.uuid as _eventuuid", !representation.isFlat())
 				.addSqlIfDefinitionAnd(", ev.location_id::text as _locationid", "location", !representation.isFlat())
 				.expandSelectPrefix(", ", !representation.isFlat())
 				.addSql("from event ev")
+				.addSqlIf("join latest lat on lat.id = ev.id", latestOnly)
 				.addSqlIfDefinition("left join location loc on ev.location_id = loc.id", "location")
 				.addSqlIfAlias("left join metadata evm on evm.id = ev.meta_data_id", "evmetadata")
 				.addSql("where 1 = 1")
+				.addSqlIf("and lat.rank = 1", latestOnly)
+				.setParameterIfNotNull("from", from, "and ev.event_interval @> :from::timestamp")
+				.setParameterIfNotNull("to", to, "and ev.event_interval @> :to::timestamp")
 				.setParameterIfNotEmptyAnd("origins", originSet, "and ev.origin in (:origins)", !originSet.contains("*"))
 				.expandWhere()
 				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid", !representation.isFlat() && !se.getUsedDefNames().contains("location"))

@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +55,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
@@ -103,7 +105,8 @@ public class DataController {
 
 	public enum ErrorCode implements ErrorCodeInterface {
 		DATE_PARSE_ERROR(
-				"Invalid date given. Format must be %s, where [] denotes optionality. Do not forget, single digits must be leaded by 0. Error message: %s.");
+				"Invalid date given. Format must be %s, where [] denotes optionality. Do not forget, single digits must be leaded by 0. Error message: %s."),
+		METHOD_NOT_ALLOWED("URL scheme not found '%s' not allowed with %s representation.");
 
 		private final String msg;
 
@@ -135,9 +138,9 @@ public class DataController {
 		return fileSpec;
 	}
 
-	@GetMapping(value = "/{representation}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestStationTypes(@PathVariable final String representation) {
-		Representation rep = Representation.get(representation);
+	@GetMapping(value = "/{pathvar1}", produces = "application/json;charset=UTF-8")
+	public @ResponseBody String requestStationTypes(@PathVariable final String pathvar1) {
+		Representation rep = Representation.get(pathvar1);
 		final List<Map<String, Object>> queryResult;
 		if (rep.isEdge()) {
 			queryResult = new DataFetcher().fetchEdgeTypes(rep);
@@ -146,7 +149,7 @@ public class DataController {
 		} else {
 			queryResult = new DataFetcher().fetchEventOrigins(rep);
 		}
-		String url = ninjaBaseUrl + "/" + representation + "/";
+		String url = ninjaBaseUrl + "/" + pathvar1 + "/";
 		Map<String, Object> selfies;
 		for (Map<String, Object> row : queryResult) {
 			row.put("description", null);
@@ -185,9 +188,9 @@ public class DataController {
 		return serializeJson(queryResult);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestStations(@PathVariable final String representation,
-			@PathVariable final String stationTypes,
+	@GetMapping(value = "/{pathvar1}/{pathvar2}", produces = "application/json;charset=UTF-8")
+	public @ResponseBody String requestStations(@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 			@RequestParam(value = "select", required = false) final String select,
@@ -195,7 +198,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final Representation repr = Representation.get(representation);
+		final Representation repr = Representation.get(pathvar1);
 
 		DataFetcher dataFetcher = new DataFetcher();
 
@@ -205,24 +208,53 @@ public class DataController {
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
 		dataFetcher.setDistinct(distinct);
-		final List<Map<String, Object>> queryResult;
-		final Map<String, Object> result;
-		if (repr.isEdge()) {
-			queryResult = dataFetcher.fetchEdges(stationTypes, repr);
-			result = buildResult("edgetype", null, queryResult, offset, limit, repr, showNull);
-		} else if (repr.isNode()) {
-			queryResult = dataFetcher.fetchStations(stationTypes, repr);
-			result = buildResult("stationtype", "station", queryResult, offset, limit, repr, showNull);
-		} else {
-			queryResult = dataFetcher.fetchEvents(stationTypes, repr);
-			result = buildResult("eventorigin", "location", queryResult, offset, limit, repr, showNull);
+
+		String entryPoint = null;
+		String exitPoint = null;
+		List<Map<String, Object>> queryResult = null;
+
+		switch (repr) {
+			case FLAT_NODE:
+			case TREE_NODE:
+				queryResult = dataFetcher.fetchStations(pathvar2, repr);
+				entryPoint = "stationtype";
+				exitPoint = "station";
+				break;
+			case FLAT_EVENT:
+			case TREE_EVENT:
+				queryResult = dataFetcher.fetchEvents(pathvar2, false, null, null, repr);
+				entryPoint = "eventorigin";
+				exitPoint = "location";
+				break;
+			case FLAT_EDGE:
+			case TREE_EDGE:
+				queryResult = dataFetcher.fetchEdges(pathvar2, repr);
+				entryPoint = "edgetype";
+				break;
 		}
-		return serializeJson(result);
+
+		if (queryResult == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Route does not exist for representation " + repr.getTypeAsString()
+			);
+		}
+
+		return serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		);
+
+
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestDataTypes(@PathVariable final String representation,
-			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
+	/**
+	 * @param pathvar1 Representation
+	 * @param pathvar2 stations  | eventorigin
+	 * @param pathvar3 datatypes | "latest" or start-timepoint
+	 */
+	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}", produces = "application/json;charset=UTF-8")
+	public @ResponseBody String requestDataTypes(@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 			@RequestParam(value = "select", required = false) final String select,
@@ -230,7 +262,7 @@ public class DataController {
 			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
-		final Representation repr = Representation.get(representation);
+		final Representation repr = Representation.get(pathvar1);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -244,14 +276,52 @@ public class DataController {
 		dataFetcher.setRoles(getRolesFromAuthentication(auth));
 		dataFetcher.setDistinct(distinct);
 
-		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsAndTypes(stationTypes, dataTypes, repr);
-		final Map<String, Object> result = buildResult("stationtype", "datatype", queryResult, offset, limit, repr, showNull);
-		return serializeJson(result);
+		String entryPoint = null;
+		String exitPoint = null;
+		List<Map<String, Object>> queryResult = null;
+
+		switch (repr) {
+			case FLAT_NODE:
+			case TREE_NODE:
+				queryResult = dataFetcher.fetchStationsAndTypes(pathvar2, pathvar3, repr);
+				entryPoint = "stationtype";
+				exitPoint = "datatype";
+				break;
+			case FLAT_EVENT:
+			case TREE_EVENT:
+				if ("latest".equalsIgnoreCase(pathvar3)) {
+					queryResult = dataFetcher.fetchEvents(pathvar2, true, null, null, repr);
+				} else {
+					queryResult = dataFetcher.fetchEvents(
+						pathvar2,
+						false,
+						getDateTime(pathvar3).toOffsetDateTime(),
+						null,
+						repr
+					);
+				}
+				entryPoint = "eventorigin";
+				break;
+			default:
+				break;
+		}
+
+		if (queryResult == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Route does not exist for representation " + repr.getTypeAsString()
+			);
+		}
+
+		return serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/latest", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestMostRecent(@PathVariable final String representation,
-			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
+	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}", produces = "application/json;charset=UTF-8")
+	public @ResponseBody String requestMostRecent(@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+			@PathVariable final String pathvar4,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 			@RequestParam(value = "select", required = false) final String select,
@@ -260,7 +330,7 @@ public class DataController {
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
 			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
-		final Representation repr = Representation.get(representation);
+		final Representation repr = Representation.get(pathvar1);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -275,16 +345,55 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
-		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
-				dataTypes, null, null, repr);
-		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
-		return serializeJson(result);
+		String entryPoint = null;
+		String exitPoint = null;
+		List<Map<String, Object>> queryResult = null;
+
+		switch (repr) {
+			case FLAT_NODE:
+			case TREE_NODE:
+				if ("latest".equalsIgnoreCase(pathvar4)) {
+					queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
+						pathvar2,
+						pathvar3,
+						null,
+						null,
+						repr
+					);
+					entryPoint = "stationtype";
+				}
+				break;
+			case FLAT_EVENT:
+			case TREE_EVENT:
+				queryResult = dataFetcher.fetchEvents(
+					pathvar2,
+					false,
+					getDateTime(pathvar3).toOffsetDateTime(),
+					getDateTime(pathvar4).toOffsetDateTime(),
+					repr
+				);
+				entryPoint = "eventorigin";
+				break;
+			default:
+				break;
+		}
+
+		if (queryResult == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Route does not exist for representation " + repr.getTypeAsString()
+			);
+		}
+
+		return serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		);
 	}
 
-	@GetMapping(value = "/{representation}/{stationTypes}/{dataTypes}/{from}/{to}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestHistory(@PathVariable final String representation,
-			@PathVariable final String stationTypes, @PathVariable final String dataTypes,
-			@PathVariable final String from, @PathVariable final String to,
+	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}/{pathvar5}", produces = "application/json;charset=UTF-8")
+	public @ResponseBody String requestHistory(@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+			@PathVariable final String pathvar4, @PathVariable final String pathvar5,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 			@RequestParam(value = "select", required = false) final String select,
@@ -293,12 +402,9 @@ public class DataController {
 			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
 			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
-		final Representation repr = Representation.get(representation);
+		final Representation repr = Representation.get(pathvar1);
 
 		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-		final ZonedDateTime dateTimeFrom = getDateTime(from);
-		final ZonedDateTime dateTimeTo = getDateTime(to);
 
 		DataFetcher dataFetcher = new DataFetcher();
 
@@ -311,10 +417,39 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
-		final List<Map<String, Object>> queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(stationTypes,
-				dataTypes, dateTimeFrom.toOffsetDateTime(), dateTimeTo.toOffsetDateTime(), repr);
-		final Map<String, Object> result = buildResult("stationtype", null, queryResult, offset, limit, repr, showNull);
-		return serializeJson(result);
+		String entryPoint = null;
+		String exitPoint = null;
+		List<Map<String, Object>> queryResult = null;
+
+		switch (repr) {
+			case FLAT_NODE:
+			case TREE_NODE:
+				if ("latest".equalsIgnoreCase(pathvar4)) {
+					queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
+						pathvar2,
+						pathvar3,
+						getDateTime(pathvar4).toOffsetDateTime(),
+						getDateTime(pathvar5).toOffsetDateTime(),
+						repr
+					);
+					entryPoint = "stationtype";
+				}
+				break;
+			default:
+				break;
+		}
+
+		if (queryResult == null) {
+			throw new ResponseStatusException(
+				HttpStatus.NOT_FOUND,
+				"Route does not exist for representation " + repr.getTypeAsString()
+			);
+		}
+
+		return serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		);
+
 	}
 
 	private static ZonedDateTime getDateTime(final String dateString) {

@@ -1,7 +1,7 @@
 *.class
 *.orig
 persistence.xml
-application-local.properties
+application-*.properties
 database.properties
 .env
 

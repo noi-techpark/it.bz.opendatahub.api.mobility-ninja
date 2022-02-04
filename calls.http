@@ -210,3 +210,23 @@ Authorization: Bearer {{token}}
 ###
 {{host}}/tree/BikeCounter/*/latest?limit=-1&distinct=true&showNull=true&select=tmeasurements&where=or(and(mperiod.eq.3600,tname.eq."vehicle detection \(count\)"))
 
+###
+{{host}}/flat,event/A22/latest?select=count(evcategory)&where=evcategory.eq."A22:BrennerLEC_BrennerLec B4 II S.103 \(BZ-SM\)"
+
+###
+{{host}}/flat,event/*?select=count(evcategory),evorigin
+
+###
+{{host}}/flat,event/A22/latest?select=evname,evcategory,evstart
+
+### Start in the future --> shows events that have not been closed yet
+{{host}}/flat,event/A22/2022-12-05?select=evname,evcategory,evstart,evend&shownull=true
+
+### latest, but only if started from Jan 2022 onwards (not implemented yet)
+{{host}}/flat,event/A22/latest?select=evname,evcategory,evstart,evend&shownull=true&where=evstart.gt.2022-01-01
+
+
+# 2020-01-05T12/2020-01-05T17
+
+### ERROR 404 expected --> generic
+{{host}}/flat,event/b/c/a

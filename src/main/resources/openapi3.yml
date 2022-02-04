@@ -115,7 +115,7 @@ paths:
     get:
       tags:
         - Mobility V2
-      summary: View station details of a given type
+      summary: View station details of given stationtypes
       description:
         You can put multiple stationtypes as comma-seperated lists. The response
         contains stations (prefix <code>s</code>) and their parent-stations
@@ -150,7 +150,7 @@ paths:
     get:
       tags:
         - Mobility V2
-      summary: View edge details of a given type
+      summary: View edge details of given edgetypes
       description:
         You can put multiple edgetypes as comma-seperated list. The response
         contains edges (prefix <code>e</code>) and their beginning and ending
@@ -181,7 +181,7 @@ paths:
         404:
           description: Not Found
           content: {}
-  /v2/{representation}/{origins}:
+  /v2/{representation}/{eventorigins}:
     get:
       tags:
         - Mobility V2
@@ -193,7 +193,115 @@ paths:
         of that object.
       parameters:
         - $ref: "#/components/parameters/representationevent"
-        - $ref: "#/components/parameters/origins"
+        - $ref: "#/components/parameters/eventorigins"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/select"
+        - $ref: "#/components/parameters/where"
+        - $ref: "#/components/parameters/shownull"
+        - $ref: "#/components/parameters/distinct"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        401:
+          description: Unauthorized
+          content: {}
+        403:
+          description: Forbidden
+          content: {}
+        404:
+          description: Not Found
+          content: {}
+  /v2/{representation}/{eventorigins}/latest:
+    get:
+      tags:
+        - Mobility V2
+      summary: View events of given origins, but only the latest ones grouped by origin and evseriesuuid
+      description:
+        You can put multiple origins as comma-seperated list. The response
+        contains events (prefix <code>ev</code>) and their locations (prefix
+        <code>evl</code>). Each JSON attribute is prefixed with the first letter
+        of that object.
+      parameters:
+        - $ref: "#/components/parameters/representationevent"
+        - $ref: "#/components/parameters/eventorigins"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/select"
+        - $ref: "#/components/parameters/where"
+        - $ref: "#/components/parameters/shownull"
+        - $ref: "#/components/parameters/distinct"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        401:
+          description: Unauthorized
+          content: {}
+        403:
+          description: Forbidden
+          content: {}
+        404:
+          description: Not Found
+          content: {}
+  /v2/{representation}/{eventorigins}/{from}:
+    get:
+      tags:
+        - Mobility V2
+      summary: View events of given origins, that are active at a certain point in time
+      description:
+        You can put multiple origins as comma-seperated list. The response
+        contains events (prefix <code>ev</code>) and their locations (prefix
+        <code>evl</code>). Each JSON attribute is prefixed with the first letter
+        of that object.
+      parameters:
+        - $ref: "#/components/parameters/representationevent"
+        - $ref: "#/components/parameters/eventorigins"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/select"
+        - $ref: "#/components/parameters/where"
+        - $ref: "#/components/parameters/shownull"
+        - $ref: "#/components/parameters/distinct"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        401:
+          description: Unauthorized
+          content: {}
+        403:
+          description: Forbidden
+          content: {}
+        404:
+          description: Not Found
+          content: {}
+  /v2/{representation}/{eventorigins}/{from}/{to}:
+    get:
+      tags:
+        - Mobility V2
+      summary: View events of given origins, that are active at a certain time interval
+      description:
+        You can put multiple origins as comma-seperated list. The response
+        contains events (prefix <code>ev</code>) and their locations (prefix
+        <code>evl</code>). Each JSON attribute is prefixed with the first letter
+        of that object.
+      parameters:
+        - $ref: "#/components/parameters/representationevent"
+        - $ref: "#/components/parameters/eventorigins"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
         - $ref: "#/components/parameters/select"
@@ -4614,8 +4722,8 @@ components:
       schema:
         type: string
         default: "*"
-    origins:
-      name: origins
+    eventorigins:
+      name: eventorigins
       in: path
       description:
         Origins of events, that is, the name of sources. Multiple origins

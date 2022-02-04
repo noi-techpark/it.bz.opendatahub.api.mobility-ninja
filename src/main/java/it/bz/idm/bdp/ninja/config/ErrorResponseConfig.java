@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
@@ -59,6 +60,11 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 	}
 
 	@ExceptionHandler
+	public ResponseEntity<Object> handleException(ResponseStatusException ex) {
+		return buildResponse(ex.getStatus(), ex);
+	}
+
+	@ExceptionHandler
 	public ResponseEntity<Object> handleException(DataAccessException ex) {
 		Throwable cause = ex.getCause();
 		if (cause instanceof PSQLException) {
@@ -69,6 +75,7 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 
 	private ResponseEntity<Object> buildResponse(final HttpStatus httpStatus, final Exception exception) {
 		String message = (exception == null || exception.getMessage() == null) ? exception.getClass().getSimpleName() : exception.getMessage();
+		message = message.replace("\\n", " ").replace("\"", "'");
 		ConditionalMap map = ConditionalMap
 			.init()
 			.put("message", message)
@@ -87,10 +94,9 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 					map.put("hint", "Query for smaller response chunks. Use SELECT, WHERE, LIMIT with OFFSET, or a narrow time interval.");
 					break;
 				default:
-					map.put("message", message.replace("\\n", ""));
+					map.put("message", message);
 					map.put("description", "Error from the database backend");
 			}
-
 		}
 
 		if (log.isDebugEnabled()) {

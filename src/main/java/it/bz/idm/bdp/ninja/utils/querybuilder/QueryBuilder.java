@@ -21,6 +21,7 @@ public class QueryBuilder {
 	private ConditionalStringBuilder sql = new ConditionalStringBuilder();
 	private SelectExpansion se;
 	private ConditionalMap parameters = new ConditionalMap();
+	private boolean groupByExpanded = false;
 
 	public QueryBuilder(final SelectExpansion selectExpansion, final String select, final String where, final boolean isDistinct, String... selectDefNames) {
 		if (selectExpansion == null) {
@@ -35,6 +36,7 @@ public class QueryBuilder {
 		se.setWhereClause(where);
 		se.setDistinct(isDistinct);
 		se.expand(select, selectDefNames);
+		groupByExpanded = false;
 		return this;
 	}
 
@@ -249,9 +251,16 @@ public class QueryBuilder {
 	}
 
 	public QueryBuilder expandGroupByIf(final String optionalGroupings, boolean condition) {
+		if (this.groupByExpanded) {
+			return this;
+		}
 		if (! se.hasFunctions()) {
 			return this;
 		}
+
+		// The regular groups must always be expanded, just the optional ones for tree-building will
+		// not be added if "condition" does not hold, so we need to set a flag if an expansion has
+		// already taken place...
 		StringJoiner sj = new StringJoiner(", ");
 		List<String> groupByTargetNames = se.getGroupByTargetNames();
 		if (! groupByTargetNames.isEmpty()) {
@@ -266,6 +275,7 @@ public class QueryBuilder {
 		if (sj.length() > 0) {
 			addSql("group by " + sj);
 		}
+		this.groupByExpanded = true;
 		return this;
 	}
 
