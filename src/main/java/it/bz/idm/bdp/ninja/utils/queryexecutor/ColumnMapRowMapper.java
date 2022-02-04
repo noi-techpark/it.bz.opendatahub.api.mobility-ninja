@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.postgis.PGgeometry;
 import org.postgresql.util.PGobject;
-import org.postgresql.util.PGInterval;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;

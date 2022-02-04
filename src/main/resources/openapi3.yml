@@ -251,7 +251,7 @@ paths:
         404:
           description: Not Found
           content: {}
-  /v2/{representation}/{eventorigins}/{from}:
+  /v2/{representation}/{eventorigins}/{timepoint}:
     get:
       tags:
         - Mobility V2
@@ -264,7 +264,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/representationevent"
         - $ref: "#/components/parameters/eventorigins"
-        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/timepoint"
         - $ref: "#/components/parameters/limit"
         - $ref: "#/components/parameters/offset"
         - $ref: "#/components/parameters/select"
@@ -4732,6 +4732,16 @@ components:
       schema:
         type: string
         default: "*"
+    timepoint:
+      name: timepoint
+      in: path
+      description:
+        Date or date-time format to denote a point in time. The format is
+        <code>yyyy-MM-dd[T[HH][:mm][:ss][.SSS]][Z]</code>, where [] denotes
+        optionality. Z is the timezone, for instance, +0200.
+      required: true
+      schema:
+        type: string
     from:
       name: from
       in: path
