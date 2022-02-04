@@ -2,57 +2,53 @@
 
 [![CI](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/ci.yml/badge.svg)](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/ci.yml)
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-
-- [Usage of the API](#usage-of-the-api)
-  - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
-  - [Station and Edge Types / Categories](#station-and-edge-types--categories)
-    - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
-  - [Edges](#edges)
-    - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
-    - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
-  - [Stations](#stations)
-    - [I want to get all e-charging stations including details](#i-want-to-get-all-e-charging-stations-including-details)
-    - [I want to get all e-charging stations and their plugs including details](#i-want-to-get-all-e-charging-stations-and-their-plugs-including-details)
-    - [I want to get all stations of any type including details](#i-want-to-get-all-stations-of-any-type-including-details)
-  - [Stations, Data Types and most up-to-date Measurements](#stations-data-types-and-most-up-to-date-measurements)
-    - [I want to get all most up-to-date measurements of all parking lots](#i-want-to-get-all-most-up-to-date-measurements-of-all-parking-lots)
-    - [I want to get all most up-to-date occupancy values of all parking lots](#i-want-to-get-all-most-up-to-date-occupancy-values-of-all-parking-lots)
-  - [Stations, Data Types and historical Measurements](#stations-data-types-and-historical-measurements)
-    - [I want to get historical occupancy values of all parking lots from a certain period](#i-want-to-get-historical-occupancy-values-of-all-parking-lots-from-a-certain-period)
-  - [Pagination](#pagination)
-  - [Filtering with SELECT and WHERE](#filtering-with-select-and-where)
-  - [Functions / Aggregation / Grouping](#functions--aggregation--grouping)
-    - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
-    - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
-    - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
-    - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
-    - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
-    - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
-  - [Time Zones](#time-zones)
-  - [Null values](#null-values)
-  - [Representation](#representation)
-  - [Authentication](#authentication)
-    - [I want to retrieve protected measurements (closed data)](#i-want-to-retrieve-protected-measurements-closed-data)
-  - [Additional Sample Queries](#additional-sample-queries)
-    - [show all echarging stations of bolzano](#show-all-echarging-stations-of-bolzano)
-    - [Show number of public, private and private with public access echarging stations](#show-number-of-public-private-and-private-with-public-access-echarging-stations)
-    - [Show the total number of plugs and how many are currently available](#show-the-total-number-of-plugs-and-how-many-are-currently-available)
-    - [Filter EchargingPlugs by voltage](#filter-echargingplugs-by-voltage)
-    - [Filter EchargingStations by payment method](#filter-echargingstations-by-payment-method)
-    - [Get all possible states of all echarging stations](#get-all-possible-states-of-all-echarging-stations)
-    - [Filter EchargingStations by state](#filter-echargingstations-by-state)
-- [Local development](#local-development)
-  - [Prerequisites](#prerequisites)
-  - [Getting started](#getting-started)
-  - [How to setup NOI Authentication Server locally? (optional)](#how-to-setup-noi-authentication-server-locally-optional)
-    - [How to register this application in your local authentication server?](#how-to-register-this-application-in-your-local-authentication-server)
-    - [How to create a user or assign a user the necessary roles for this application?](#how-to-create-a-user-or-assign-a-user-the-necessary-roles-for-this-application)
-    - [How to create a client to generate tokens for testing purposes?](#how-to-create-a-client-to-generate-tokens-for-testing-purposes)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+**Table Of Content**
+- [it.bz.opendatahub.api.mobility: API Version 2 (Ninja)](#itbzopendatahubapimobility-api-version-2-ninja)
+  - [Usage of the API](#usage-of-the-api)
+    - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
+    - [Station and Edge Types / Categories](#station-and-edge-types--categories)
+      - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
+    - [Edges](#edges)
+      - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
+      - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
+    - [Stations](#stations)
+      - [I want to get all e-charging stations including details](#i-want-to-get-all-e-charging-stations-including-details)
+      - [I want to get all e-charging stations and their plugs including details](#i-want-to-get-all-e-charging-stations-and-their-plugs-including-details)
+      - [I want to get all stations of any type including details](#i-want-to-get-all-stations-of-any-type-including-details)
+    - [Stations, Data Types and most up-to-date Measurements](#stations-data-types-and-most-up-to-date-measurements)
+      - [I want to get all most up-to-date measurements of all parking lots](#i-want-to-get-all-most-up-to-date-measurements-of-all-parking-lots)
+      - [I want to get all most up-to-date occupancy values of all parking lots](#i-want-to-get-all-most-up-to-date-occupancy-values-of-all-parking-lots)
+    - [Stations, Data Types and historical Measurements](#stations-data-types-and-historical-measurements)
+      - [I want to get historical occupancy values of all parking lots from a certain period](#i-want-to-get-historical-occupancy-values-of-all-parking-lots-from-a-certain-period)
+    - [Pagination](#pagination)
+    - [Filtering with SELECT and WHERE](#filtering-with-select-and-where)
+    - [Functions / Aggregation / Grouping](#functions--aggregation--grouping)
+      - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
+      - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
+      - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
+      - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
+      - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
+      - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
+    - [Time Zones](#time-zones)
+    - [Null values](#null-values)
+    - [Representation](#representation)
+    - [Authentication](#authentication)
+      - [I want to retrieve protected measurements (closed data)](#i-want-to-retrieve-protected-measurements-closed-data)
+    - [Additional Sample Queries](#additional-sample-queries)
+      - [show all echarging stations of bolzano](#show-all-echarging-stations-of-bolzano)
+      - [Show number of public, private and private with public access echarging stations](#show-number-of-public-private-and-private-with-public-access-echarging-stations)
+      - [Show the total number of plugs and how many are currently available](#show-the-total-number-of-plugs-and-how-many-are-currently-available)
+      - [Filter EchargingPlugs by voltage](#filter-echargingplugs-by-voltage)
+      - [Filter EchargingStations by payment method](#filter-echargingstations-by-payment-method)
+      - [Get all possible states of all echarging stations](#get-all-possible-states-of-all-echarging-stations)
+      - [Filter EchargingStations by state](#filter-echargingstations-by-state)
+  - [Local development](#local-development)
+    - [Prerequisites](#prerequisites)
+    - [Getting started](#getting-started)
+    - [How to setup NOI Authentication Server locally? (optional)](#how-to-setup-noi-authentication-server-locally-optional)
+      - [How to register this application in your local authentication server?](#how-to-register-this-application-in-your-local-authentication-server)
+      - [How to create a user or assign a user the necessary roles for this application?](#how-to-create-a-user-or-assign-a-user-the-necessary-roles-for-this-application)
+      - [How to create a client to generate tokens for testing purposes?](#how-to-create-a-client-to-generate-tokens-for-testing-purposes)
 
 ## Usage of the API
 
@@ -362,10 +358,10 @@ GET /flat/ParkingStation/occupied/2019-01-01/2019-01-02?shownull=true
 
 ### Representation
 
-We have two types of representations to choose from: (given as comma separated
-values):
-- `flat` or `tree`
-- `node` or `edge` (`node` is the default and can be omitted)
+We have various types of representations to choose from. Separate each type with
+commas:
+- type #1: `flat` or `tree`
+- type #2: `node`, `edge` or `event` (`node` is the default and can be omitted)
 
 The flat one shows each JSON object with all selected attributes at the first
 level. Deeper levels represent complex data types, such as `coordinates` and
@@ -427,10 +423,17 @@ edge types / categories
 └── edges (incl. start and end station)
 ```
 
+...whereas, events have this hierarchy:
+```
+event origins
+└── event series uuids
+    └── event uuids
+```
 
-NB: The `tree` is more expensive to generate on the server and use within your
-application, but the response size can be much smaller due to nesting and thus
-duplicate attribute elimination. However, some queries do not match that
+
+NB: The `tree` is more expensive to generate on the server and to use within
+your application, but the response size can be much smaller due to nesting and
+thus duplicate attribute elimination. However, some queries do not match that
 hierarchy, so the `flat` representation is more suited for them.
 
 ### Authentication
@@ -512,7 +515,10 @@ GET /flat/EChargingPlug?where=sactive.eq.true,smetadata.state.eq.ACTIVE
 
 - Java JDK 1.8 or higher (e.g. [OpenJDK](https://openjdk.java.net/))
 - [Maven](https://maven.apache.org/) 3.x
-- Run [NOI Authentication server](https://github.com/noi-techpark/authentication-server) locally or connect to test environment (optional)
+- Run [NOI Authentication server] locally or connect to test environment
+  (optional)
+
+[NOI Authentication server]: https://github.com/noi-techpark/authentication-server
 
 ### Getting started
 
