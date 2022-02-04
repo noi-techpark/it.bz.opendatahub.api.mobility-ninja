@@ -8,6 +8,12 @@
     - [I want to see what this API provides](#i-want-to-see-what-this-api-provides)
     - [Station and Edge Types / Categories](#station-and-edge-types--categories)
       - [I want to get all station or edge types](#i-want-to-get-all-station-or-edge-types)
+    - [Events](#events)
+      - [I want to get all event origins available](#i-want-to-get-all-event-origins-available)
+      - [I want to get all events of a certain origin](#i-want-to-get-all-events-of-a-certain-origin)
+      - [I want to get the latest events of a certain origin in all eventseries therein](#i-want-to-get-the-latest-events-of-a-certain-origin-in-all-eventseries-therein)
+      - [I want to get all events that were active on 3rd January 2022](#i-want-to-get-all-events-that-were-active-on-3rd-january-2022)
+      - [I want to get all events that were active on 3rd January 2022, but not after 2022-02-01](#i-want-to-get-all-events-that-were-active-on-3rd-january-2022-but-not-after-2022-02-01)
     - [Edges](#edges)
       - [I want to get all edges of a certain category](#i-want-to-get-all-edges-of-a-certain-category)
       - [I want to get a specific edge of a certain category](#i-want-to-get-a-specific-edge-of-a-certain-category)
@@ -74,6 +80,47 @@ GET /tree,node/
 GET /flat,node/
 GET /tree,edge/
 GET /flat,edge/
+GET /tree,event/
+GET /flat,event/
+```
+
+### Events
+
+We expose all kinds of events, that are labels on the timeline. An event has a
+unique ID and corresponding time series UUID, which allows us to concatenate
+events into a historical view. Events come from a certain `origin`, for example,
+traffic events from the `A22` highway. The prefixes of events are `ev` for the
+general information part, and `evl` for its location (could be points, polygons
+or multilines).
+
+#### I want to get all event origins available
+
+```
+GET /flat,event/
+```
+
+#### I want to get all events of a certain origin
+
+```
+GET /flat,event/A22
+```
+
+#### I want to get the latest events of a certain origin in all eventseries therein
+
+```
+GET /flat,event/A22/latest
+```
+
+#### I want to get all events that were active on 3rd January 2022
+
+```
+GET /flat,event/A22/2022-01-03
+```
+
+#### I want to get all events that were active on 3rd January 2022, but not after 2022-02-01
+
+```
+GET /flat,event/A22/latest/2022-01-03/2022-02-01
 ```
 
 ### Edges
