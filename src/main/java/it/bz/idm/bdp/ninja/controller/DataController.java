@@ -139,7 +139,7 @@ public class DataController {
 	}
 
 	@GetMapping(value = "/{pathvar1}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestStationTypes(@PathVariable final String pathvar1) {
+	public @ResponseBody String requestLevel01(@PathVariable final String pathvar1) {
 		Representation rep = Representation.get(pathvar1);
 		final List<Map<String, Object>> queryResult;
 		if (rep.isEdge()) {
@@ -189,7 +189,7 @@ public class DataController {
 	}
 
 	@GetMapping(value = "/{pathvar1}/{pathvar2}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestStations(@PathVariable final String pathvar1,
+	public @ResponseBody String requestLevel02(@PathVariable final String pathvar1,
 			@PathVariable final String pathvar2,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
@@ -253,7 +253,7 @@ public class DataController {
 	 * @param pathvar3 datatypes | "latest" or start-timepoint
 	 */
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestDataTypes(@PathVariable final String pathvar1,
+	public @ResponseBody String requestLevel03(@PathVariable final String pathvar1,
 			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
@@ -319,7 +319,7 @@ public class DataController {
 	}
 
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestMostRecent(@PathVariable final String pathvar1,
+	public @ResponseBody String requestLevel04(@PathVariable final String pathvar1,
 			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
 			@PathVariable final String pathvar4,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
@@ -391,7 +391,7 @@ public class DataController {
 	}
 
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}/{pathvar5}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestHistory(@PathVariable final String pathvar1,
+	public @ResponseBody String requestLevel05(@PathVariable final String pathvar1,
 			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
 			@PathVariable final String pathvar4, @PathVariable final String pathvar5,
 			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
@@ -424,16 +424,14 @@ public class DataController {
 		switch (repr) {
 			case FLAT_NODE:
 			case TREE_NODE:
-				if ("latest".equalsIgnoreCase(pathvar4)) {
-					queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
-						pathvar2,
-						pathvar3,
-						getDateTime(pathvar4).toOffsetDateTime(),
-						getDateTime(pathvar5).toOffsetDateTime(),
-						repr
-					);
-					entryPoint = "stationtype";
-				}
+				queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
+					pathvar2,
+					pathvar3,
+					getDateTime(pathvar4).toOffsetDateTime(),
+					getDateTime(pathvar5).toOffsetDateTime(),
+					repr
+				);
+				entryPoint = "stationtype";
 				break;
 			default:
 				break;

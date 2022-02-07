@@ -7,7 +7,7 @@ GET {{host}}/flat/*/*
 ?select=savailable
 
 ###
-GET {{host}}
+GET {{host}}/flat,edge
 
 ###
 GET {{host}}/tree,node/BluetoothStation/*/latest
@@ -41,7 +41,7 @@ GET {{host}}/flat/MeteoStation/*/2019-01-01/2019-01-20
 &shownull=true
 Authorization: Bearer {{token}}
 
-###
+### Level02
 GET {{host}}/flat/LinkStation?select=smetadata.coordinates
 
 ###
@@ -51,7 +51,7 @@ GET {{host}}/tree,edge/*
     &shownull=true
     #&where=eorigin.neq.null
 
-###
+### Level5
 GET {{host}}/flat/BluetoothStation/vehicle detection/2019-07-23T18:01:00+0200/2019-07-23T18:01:02+0200
     ?select=mvalidtime
 

@@ -385,7 +385,7 @@ public class DataFetcher {
 
 	public List<Map<String, Object>> fetchStationTypes(final Representation representation) {
 
-		if (representation.isNode()) {
+		if (!representation.isNode()) {
 			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationTypes", representation.getTypeAsString());
 		}
 
