@@ -68,6 +68,8 @@ paths:
       tags:
         - Mobility V2
       summary: View a list of entry points to the Open Data Hub Mobility domain
+      parameters:
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: Successful response
@@ -93,6 +95,7 @@ paths:
       summary: View a list of all station or edge types (categories)
       parameters:
         - $ref: "#/components/parameters/representation"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: Successful response
@@ -130,6 +133,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -165,6 +169,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -200,6 +205,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -235,6 +241,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -271,6 +278,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -308,6 +316,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -347,6 +356,7 @@ paths:
         - $ref: "#/components/parameters/where"
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -387,6 +397,7 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/timezone"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -429,6 +440,7 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/timezone"
+        - $ref: "#/components/parameters/origin"
       responses:
         200:
           description: OK
@@ -4850,6 +4862,13 @@ components:
       schema:
         type: boolean
         default: true
+    origin:
+      name: origin
+      in: query
+      description: Specify the origin or source of the call (like a user-client identifier).
+      schema:
+        type: string
+        default: ""
 
     # V1 PARAMETERS -----------------------------------------------------------------------------
     v1station:

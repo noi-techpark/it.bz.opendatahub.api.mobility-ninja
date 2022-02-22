@@ -2,7 +2,12 @@
 #@host=https://mobility.api.opendatahub.bz.it/v2
 #@host=https://mobility.api.opendatahub.testingmachine.eu/v2
 
-### Issue: 2x savailable
+### Origin logging
+GET {{host}}
+?origin=tes
+
+
+### Issue: 3x savailable
 GET {{host}}/flat/*/*
 ?select=savailable
 

@@ -6,7 +6,6 @@ import org.springframework.web.filter.AbstractRequestLoggingFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,7 +21,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		try {
-			filterChain.doFilter((ServletRequest) request, response);
+			filterChain.doFilter(request, response);
 		} finally {
 			if (!this.isAsyncStarted(request)) {
 				logger.info("Request finished", entries(logData(request, response)));
@@ -37,7 +36,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 		result.put("user", request.getRemoteUser());
 		result.put("userAgent", request.getHeader("User-Agent"));
 		result.put("status", response.getStatus());
-
+		result.put("origin", request.getParameter("origin"));
 		return result;
 	}
 
