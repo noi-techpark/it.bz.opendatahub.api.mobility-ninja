@@ -2,14 +2,17 @@ version: "3.4"
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: infrastructure/docker/java.dockerfile
-      target: dev
+    image: maven:3-jdk-8-alpine
     volumes:
       - ./:/code
+      - ~/.m2/:/var/maven/.m2
     working_dir: /code
-    command: ["mvn", "-B", "spring-boot:run", "-Dspring-boot.run.profiles=local"]
+    command: >
+      mvn
+        -Duser.home=/var/maven
+        -Dspring-boot.run.profiles=local
+        clean spring-boot:run
+
     tty: true
     environment:
       SERVER_PORT: ${SERVER_PORT}
@@ -28,6 +31,7 @@ services:
       JDBC_URL: ${JDBC_URL}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      MAVEN_CONFIG: /var/maven/.m2
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
     networks:
