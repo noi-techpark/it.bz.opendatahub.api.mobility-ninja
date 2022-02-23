@@ -1,2 +1,4 @@
-FROM tomcat:8.5-jdk8-openjdk-slim-buster
-COPY target/v2.war /usr/local/tomcat/webapps/v2.war
+FROM adoptopenjdk/openjdk8:alpine-jre
+WORKDIR /ninja
+COPY target/v2.jar /ninja/v2.jar
+ENTRYPOINT [ "java", "-jar", "v2.jar" ]
