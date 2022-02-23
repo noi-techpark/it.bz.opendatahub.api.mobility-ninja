@@ -11,9 +11,8 @@ env:
   JAVA_VERSION: '8'
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-20.04
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
