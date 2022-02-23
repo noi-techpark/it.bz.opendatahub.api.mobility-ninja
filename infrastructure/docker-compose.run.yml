@@ -23,7 +23,7 @@ services:
         DB_PASSWORD: ${DB_PASSWORD}
         _JAVA_OPTIONS: ${JAVA_OPTIONS}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/actuator/health"]
+      test: ["CMD", "wget", "http://localhost:${SERVER_PORT}/actuator/health"]
       interval: 20s
       timeout: 10s
       retries: 5
