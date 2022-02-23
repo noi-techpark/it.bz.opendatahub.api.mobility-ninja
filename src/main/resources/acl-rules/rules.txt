@@ -1,0 +1,6 @@
+ADMIN.sql
+BLC.sql
+CBZ.sql
+EURAC.sql
+GUEST.sql
+MAD.sql

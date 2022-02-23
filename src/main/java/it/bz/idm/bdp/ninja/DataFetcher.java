@@ -243,7 +243,8 @@ public class DataFetcher {
 
 	private String getAclWhereClause(List<String> roles) {
 		if (aclWhereClauses.isEmpty()) {
-			for (String filename : FileUtils.listFiles("acl-rules")) {
+			String[] files = FileUtils.loadFile("acl-rules/rules.txt").split("\n");
+			for (String filename : files) {
 				if (filename.equals("ADMIN.sql")) {
 					continue;
 				}
