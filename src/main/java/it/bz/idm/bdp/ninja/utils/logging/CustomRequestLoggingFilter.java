@@ -21,6 +21,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 		try {
+			request.setAttribute("timer_start", System.nanoTime());
 			filterChain.doFilter(request, response);
 		} finally {
 			if (!this.isAsyncStarted(request)) {
@@ -32,19 +33,22 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 	private Map<String, Object> logData(HttpServletRequest request, HttpServletResponse response) {
 		final HashMap<String, Object> result = new HashMap<>();
 		result.put("uri", request.getRequestURI());
-		result.put("queryString", request.getQueryString());
+		result.put("query_string", request.getQueryString());
 		result.put("user", request.getRemoteUser());
-		result.put("userAgent", request.getHeader("User-Agent"));
+		result.put("user_agent", request.getHeader("User-Agent"));
 		result.put("status", response.getStatus());
 		result.put("origin", request.getParameter("origin"));
+		result.put("referer", request.getHeader("referer"));
+		result.put("data_fetcher", request.getAttribute("data_fetcher"));
+		result.put("response_time", (System.nanoTime() - (long) request.getAttribute("timer_start")) / 1000000);
 		return result;
 	}
 
 	@Override
-	protected void beforeRequest(HttpServletRequest httpServletRequest, String s) {
+	protected void beforeRequest(HttpServletRequest request, String s) {
 	}
 
 	@Override
-	protected void afterRequest(HttpServletRequest httpServletRequest, String s) {
+	protected void afterRequest(HttpServletRequest request, String s) {
 	}
 }

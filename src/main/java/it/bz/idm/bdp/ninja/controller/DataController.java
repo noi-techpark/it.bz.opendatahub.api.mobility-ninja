@@ -22,8 +22,6 @@
  */
 package it.bz.idm.bdp.ninja.controller;
 
-import static net.logstash.logback.argument.StructuredArguments.v;
-
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,13 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import com.jsoniter.output.JsonStream;
 
 import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -72,8 +69,6 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 @RestController
 @RequestMapping(value = "")
 public class DataController {
-
-	private static final Logger log = LoggerFactory.getLogger(DataController.class);
 
 	/* Do not forget to update DOC_TIME, when changing this */
 	private static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd['T'[HH][:mm][:ss][.SSS]][Z][z]";
@@ -120,8 +115,9 @@ public class DataController {
 		}
 	}
 
+	@ResponseBody
 	@GetMapping(value = "", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestRoot() {
+	public String requestRoot() {
 		if (fileRoot == null) {
 			fileRoot = FileUtils.loadFile("root.json");
 			fileRoot = FileUtils.replacements(fileRoot, "__URL__", ninjaBaseUrl);
@@ -129,8 +125,9 @@ public class DataController {
 		return fileRoot;
 	}
 
+	@ResponseBody
 	@GetMapping(value = "/apispec", produces = "application/yaml;charset=UTF-8")
-	public @ResponseBody String requestOpenApiSpec() {
+	public String requestOpenApiSpec() {
 		if (fileSpec == null) {
 			fileSpec = FileUtils.loadFile("openapi3.yml");
 			fileSpec = FileUtils.replacements(fileSpec, "__ODH_SERVER_URL__", ninjaHostUrl);
@@ -138,16 +135,21 @@ public class DataController {
 		return fileSpec;
 	}
 
+	@ResponseBody
 	@GetMapping(value = "/{pathvar1}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestLevel01(@PathVariable final String pathvar1) {
+	public String requestLevel01(
+		HttpServletRequest request,
+		@PathVariable final String pathvar1
+	) {
 		Representation rep = Representation.get(pathvar1);
 		final List<Map<String, Object>> queryResult;
+		DataFetcher dataFetcher = new DataFetcher();
 		if (rep.isEdge()) {
-			queryResult = new DataFetcher().fetchEdgeTypes(rep);
+			queryResult = dataFetcher.fetchEdgeTypes(rep);
 		} else if (rep.isNode()) {
-			queryResult = new DataFetcher().fetchStationTypes(rep);
+			queryResult = dataFetcher.fetchStationTypes(rep);
 		} else {
-			queryResult = new DataFetcher().fetchEventOrigins(rep);
+			queryResult = dataFetcher.fetchEventOrigins(rep);
 		}
 		String url = ninjaBaseUrl + "/" + pathvar1 + "/";
 		Map<String, Object> selfies;
@@ -185,18 +187,24 @@ public class DataController {
 			}
 
 		}
-		return serializeJson(queryResult);
+		String result = serializeJson(queryResult, dataFetcher.getStats());
+		request.setAttribute("data_fetcher", dataFetcher.getStats());
+		return result;
 	}
 
+	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestLevel02(@PathVariable final String pathvar1,
-			@PathVariable final String pathvar2,
-			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-			@RequestParam(value = "select", required = false) final String select,
-			@RequestParam(value = "where", required = false) final String where,
-			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
+	public String requestLevel02(
+		HttpServletRequest request,
+		@PathVariable final String pathvar1,
+		@PathVariable final String pathvar2,
+		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+		@RequestParam(value = "select", required = false) final String select,
+		@RequestParam(value = "where", required = false) final String where,
+		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct
+	) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -240,11 +248,13 @@ public class DataController {
 			);
 		}
 
-		return serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		String result = serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+			dataFetcher.getStats()
 		);
 
-
+		request.setAttribute("data_fetcher", dataFetcher.getStats());
+		return result;
 	}
 
 	/**
@@ -253,14 +263,17 @@ public class DataController {
 	 * @param pathvar3 datatypes | "latest" or start-timepoint
 	 */
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestLevel03(@PathVariable final String pathvar1,
-			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
-			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-			@RequestParam(value = "select", required = false) final String select,
-			@RequestParam(value = "where", required = false) final String where,
-			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
+	public @ResponseBody String requestLevel03(
+		HttpServletRequest request,
+		@PathVariable final String pathvar1,
+		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+		@RequestParam(value = "select", required = false) final String select,
+		@RequestParam(value = "where", required = false) final String where,
+		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct
+	) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -313,22 +326,30 @@ public class DataController {
 			);
 		}
 
-		return serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		String result = serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+			dataFetcher.getStats()
 		);
+
+		request.setAttribute("data_fetcher", dataFetcher.getStats());
+		return result;
 	}
 
+	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestLevel04(@PathVariable final String pathvar1,
-			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
-			@PathVariable final String pathvar4,
-			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-			@RequestParam(value = "select", required = false) final String select,
-			@RequestParam(value = "where", required = false) final String where,
-			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
-			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
+	public String requestLevel04(
+		HttpServletRequest request,
+		@PathVariable final String pathvar1,
+		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+		@PathVariable final String pathvar4,
+		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+		@RequestParam(value = "select", required = false) final String select,
+		@RequestParam(value = "where", required = false) final String where,
+		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+		@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone
+	) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -385,22 +406,30 @@ public class DataController {
 			);
 		}
 
-		return serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		String result = serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+			dataFetcher.getStats()
 		);
+
+		request.setAttribute("data_fetcher", dataFetcher.getStats());
+		return result;
 	}
 
+	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}/{pathvar5}", produces = "application/json;charset=UTF-8")
-	public @ResponseBody String requestLevel05(@PathVariable final String pathvar1,
-			@PathVariable final String pathvar2, @PathVariable final String pathvar3,
-			@PathVariable final String pathvar4, @PathVariable final String pathvar5,
-			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-			@RequestParam(value = "select", required = false) final String select,
-			@RequestParam(value = "where", required = false) final String where,
-			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
-			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
+	public String requestLevel05(
+		HttpServletRequest request,
+		@PathVariable final String pathvar1,
+		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+		@PathVariable final String pathvar4, @PathVariable final String pathvar5,
+		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+		@RequestParam(value = "select", required = false) final String select,
+		@RequestParam(value = "where", required = false) final String where,
+		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+		@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone
+	) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -444,10 +473,13 @@ public class DataController {
 			);
 		}
 
-		return serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull)
+		String result = serializeJson(
+			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+			dataFetcher.getStats()
 		);
 
+		request.setAttribute("data_fetcher", dataFetcher.getStats());
+		return result;
 	}
 
 	private static ZonedDateTime getDateTime(final String dateString) {
@@ -517,13 +549,11 @@ public class DataController {
 		return result;
 	}
 
-	private static String serializeJson(Object whatever) {
-		Map<String, Object> logging = new HashMap<>();
+	private static String serializeJson(Object whatever, Map<String, Object> logging) {
 		Timer timer = new Timer();
 		timer.start();
 		String serialize = JsonStream.serialize(whatever);
 		logging.put("serialization_time", Long.valueOf(timer.stop()));
-		log.info("json_serialization", v("payload", logging));
 		return serialize;
 	}
 }

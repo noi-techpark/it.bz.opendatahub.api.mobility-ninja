@@ -30,7 +30,7 @@ import static net.logstash.logback.argument.StructuredArguments.v;
 @Component
 public class DataFetcher {
 
-	private static final Logger log = LoggerFactory.getLogger(DataFetcher.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DataFetcher.class);
 	private static final int MEASUREMENT_TYPE_DOUBLE = 1 << 0;
 	private static final int MEASUREMENT_TYPE_STRING = 1 << 1;
 	private static final int MEASUREMENT_TYPE_JSON   = 1 << 2;
@@ -63,6 +63,7 @@ public class DataFetcher {
 	private boolean distinct;
 	private static Map<String, String> aclWhereClauses = new ConcurrentHashMap<>();
 	private String timeZone = "UTC";
+	private Map<String, Object> logPayload;
 
 	public List<Map<String, Object>> fetchStations(String stationTypeList, final Representation representation) {
 		if (representation.isEdge()) {
@@ -101,11 +102,11 @@ public class DataFetcher {
 				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
-		log.debug(queryResult.toString());
+		LOG.debug(queryResult.toString());
 
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
-		logStats("fetchStations", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats("fetchStations", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}
@@ -235,7 +236,7 @@ public class DataFetcher {
 		logData.put("stationTypes", stationTypeSet);
 		logData.put("dataTypes", dataTypeSet);
 		String command = (from == null && to == null) ? "fetchMeasurement" : "fetchMeasurementHistory";
-		logStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}
@@ -378,7 +379,7 @@ public class DataFetcher {
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
 		logData.put("dataTypes", dataTypeSet);
-		logStats("fetchStationsAndTypes", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats("fetchStationsAndTypes", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}
@@ -398,7 +399,7 @@ public class DataFetcher {
 				.build(sql, true, timeZone);
 		long timeExec = timer.stop();
 
-		logStats("fetchStationTypes", representation, queryResult.size(), 0, timeExec, sql, null);
+		setStats("fetchStationTypes", representation, queryResult.size(), 0, timeExec, sql, null);
 
 		return queryResult;
 	}
@@ -418,7 +419,7 @@ public class DataFetcher {
 				.build(sql, true, timeZone);
 		long timeExec = timer.stop();
 
-		logStats("fetchEventOrigins", representation, queryResult.size(), 0, timeExec, sql, null);
+		setStats("fetchEventOrigins", representation, queryResult.size(), 0, timeExec, sql, null);
 
 		return queryResult;
 	}
@@ -461,7 +462,7 @@ public class DataFetcher {
 				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		log.debug(query.getSql());
+		LOG.debug(query.getSql());
 
 		// We need null values while tree building. We remove them during the output generation
 		timer.start();
@@ -471,11 +472,11 @@ public class DataFetcher {
 				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
-		log.trace(queryResult.toString());
+		LOG.trace(queryResult.toString());
 
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("origins", originSet);
-		logStats("fetchEvents", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats("fetchEvents", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}
@@ -495,7 +496,7 @@ public class DataFetcher {
 				.build(sql, true, timeZone);
 		long timeExec = timer.stop();
 
-		logStats("fetchEdgeTypes", representation, queryResult.size(), 0, timeExec, sql, null);
+		setStats("fetchEdgeTypes", representation, queryResult.size(), 0, timeExec, sql, null);
 
 		return queryResult;
 	}
@@ -533,7 +534,7 @@ public class DataFetcher {
 				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		log.debug(query.getSql());
+		LOG.debug(query.getSql());
 
 		// We need null values while tree building. We remove them during the output generation
 		timer.start();
@@ -543,30 +544,43 @@ public class DataFetcher {
 				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
 		long timeExec = timer.stop();
 
-		log.trace(queryResult.toString());
+		LOG.trace(queryResult.toString());
 
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
-		logStats("fetchEdges", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats("fetchEdges", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
 	}
 
-	private void logStats(final String command, final Representation repr, long resultCount, long buildTime, long executionTime, final String sql, Map<String, Object> extraData) {
-		Map<String, Object> logging = new HashMap<>();
-		logging.put("command", command);
-		logging.put("representation", repr);
-		logging.put("result_count", resultCount);
-		logging.put("build_time", Long.valueOf(buildTime));
-		logging.put("execution_time", Long.valueOf(executionTime));
-		logging.put("full_time", Long.valueOf(executionTime + buildTime));
-		logging.put("sql", sql);
-		if (extraData != null) {
-			logging.putAll(extraData);
-		}
-		log.info("query_execution", v("payload", logging));
-		log.debug(sql);
+	public void logStats() {
+		LOG.info("query_execution", v("payload", logPayload));
+		LOG.debug(logPayload.get("sql").toString());
 	}
+
+	private void setStats(final String command, final Representation repr, long resultCount, long buildTime, long executionTime, final String sql, Map<String, Object> extraData) {
+		if (logPayload == null) {
+			logPayload = new HashMap<>();
+		} else {
+			LOG.warn("DataFetcher: logPayload override!");
+			logPayload.clear();
+		}
+
+		logPayload.put("command", command);
+		logPayload.put("representation", repr);
+		logPayload.put("result_count", resultCount);
+		logPayload.put("build_time", Long.valueOf(buildTime));
+		logPayload.put("execution_time", Long.valueOf(executionTime));
+		logPayload.put("sql", sql);
+		if (extraData != null) {
+			logPayload.putAll(extraData);
+		}
+	}
+
+	public Map<String, Object> getStats() {
+		return logPayload;
+	}
+
 
 	public void setLimit(long limit) {
 		this.limit = limit;
