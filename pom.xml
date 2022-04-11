@@ -72,6 +72,12 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 		</dependency>
+		<!-- Quota: https://www.baeldung.com/spring-bucket4j -->
+		<dependency>
+			<groupId>com.giffing.bucket4j.spring.boot.starter</groupId>
+			<artifactId>bucket4j-spring-boot-starter</artifactId>
+			<version>0.5.2</version>
+		</dependency>
 		<dependency>
 			<groupId>com.jsoniter</groupId>
 			<artifactId>jsoniter</artifactId>

@@ -55,6 +55,7 @@ GET {{host}}/tree,edge/*
     &select=eorigin
     &shownull=true
     #&where=eorigin.neq.null
+Referer: testreferer
 
 ### Level5
 GET {{host}}/flat/BluetoothStation/vehicle detection/2019-07-23T18:01:00+0200/2019-07-23T18:01:02+0200

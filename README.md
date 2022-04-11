@@ -1,6 +1,6 @@
 # it.bz.opendatahub.api.mobility: API Version 2 (Ninja)
 
-[![CI](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/ci.yml/badge.svg)](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/ci.yml)
+[![CI](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/main.yml/badge.svg)](https://github.com/noi-techpark/it.bz.noi.maps/actions/workflows/main.yml)
 
 **Table Of Content**
 - [it.bz.opendatahub.api.mobility: API Version 2 (Ninja)](#itbzopendatahubapimobility-api-version-2-ninja)

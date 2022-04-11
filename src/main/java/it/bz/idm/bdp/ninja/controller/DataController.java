@@ -30,7 +30,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +38,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.jsoniter.output.JsonStream;
 
-import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
-import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +52,7 @@ import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
+import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
@@ -277,8 +272,6 @@ public class DataController {
 
 		final Representation repr = Representation.get(pathvar1);
 
-		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
 		DataFetcher dataFetcher = new DataFetcher();
 
 		dataFetcher.setIgnoreNull(!showNull);
@@ -286,7 +279,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(getRolesFromAuthentication(auth));
+		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
 		dataFetcher.setDistinct(distinct);
 
 		String entryPoint = null;
@@ -340,7 +333,8 @@ public class DataController {
 	public String requestLevel04(
 		HttpServletRequest request,
 		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+		@PathVariable final String pathvar2,
+		@PathVariable final String pathvar3,
 		@PathVariable final String pathvar4,
 		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
@@ -353,8 +347,6 @@ public class DataController {
 
 		final Representation repr = Representation.get(pathvar1);
 
-		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
 		DataFetcher dataFetcher = new DataFetcher();
 
 		dataFetcher.setIgnoreNull(!showNull);
@@ -362,7 +354,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(getRolesFromAuthentication(auth));
+		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
@@ -433,8 +425,6 @@ public class DataController {
 
 		final Representation repr = Representation.get(pathvar1);
 
-		final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
 		DataFetcher dataFetcher = new DataFetcher();
 
 		dataFetcher.setIgnoreNull(!showNull);
@@ -442,7 +432,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(getRolesFromAuthentication(auth));
+		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
@@ -521,30 +511,6 @@ public class DataController {
 				//FIXME use a static immutable schema everywhere
 				new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
 			break;
-		}
-		return result;
-	}
-
-	private static List<String> getRolesFromAuthentication(Authentication auth) {
-		List<String> result = new ArrayList<>();
-		if (auth instanceof KeycloakAuthenticationToken) {
-			SimpleKeycloakAccount user = (SimpleKeycloakAccount) auth.getDetails();
-			for (String role : user.getRoles()) {
-				if (role.startsWith("BDP_")) {
-					String cleanName = role.replaceFirst("BDP_", "");
-					if (cleanName.equals("ADMIN")) {
-						result.clear();
-						result.add("ADMIN");
-						return result;
-					} else {
-						result.add(cleanName);
-					}
-				}
-			}
-		}
-
-		if (result.isEmpty() || !result.contains("GUEST")) {
-			result.add("GUEST");
 		}
 		return result;
 	}

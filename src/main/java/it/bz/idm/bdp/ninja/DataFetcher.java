@@ -13,7 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import io.github.bucket4j.Bucket;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
+import it.bz.idm.bdp.ninja.quota.PricingPlan;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
@@ -683,4 +685,36 @@ public class DataFetcher {
 	private boolean hasFlag(int measurementType, final int flag) {
 		return (measurementType & flag) == flag;
 	}
+
+	private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+
+    public Bucket resolveBucket(PricingPlan limitation, String user, String referer, String ip, String path) {
+		String cacheKey;
+		switch (limitation.getPolicy()) {
+			case NO_RESTRICTION:
+				cacheKey = "ADN";
+				break;
+			case PRIVILEGED_USER:
+				cacheKey = "USR-" + user;
+				break;
+			case KNOWN_REFERER:
+				cacheKey = "REF-" + referer;
+				break;
+			default:
+			case GUEST:
+				cacheKey = "GST-" + ip + "-" + path;
+				break;
+		}
+		return cache.computeIfAbsent(
+			cacheKey,
+			k -> newBucket(limitation)
+		);
+	}
+
+    private Bucket newBucket(PricingPlan limitation) {
+        return Bucket
+			.builder()
+            .addLimit(limitation.getBandwidth())
+            .build();
+    }
 }
