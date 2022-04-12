@@ -1,7 +1,8 @@
 package it.bz.idm.bdp.ninja.quota;
 
-import java.security.Policy;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +18,8 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
+
+import static it.bz.idm.bdp.ninja.quota.PricingPlan.Policy;
 
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -42,9 +45,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 		String path = request.getRequestURI();
 		String user = SecurityUtils.getSubjectFromAuthentication();
 
-		PricingPlan plan = PricingPlan.resolvePlan(roles, user, referer, quotaGuest, quotaReferer, quotaUser);
+		Map<PricingPlan.Policy, Long> quotaMap = new EnumMap<>(PricingPlan.Policy.class);
+		quotaMap.put(Policy.GUEST, quotaGuest);
+		quotaMap.put(Policy.KNOWN_REFERER, quotaReferer);
+		quotaMap.put(Policy.PRIVILEGED_USER, quotaUser);
+		quotaMap.put(Policy.NO_RESTRICTION, Long.valueOf(-1));
+
+		PricingPlan plan = PricingPlan.resolvePlan(roles, user, referer, quotaMap);
 		response.addHeader("X-Rate-Limit-Policy", plan.toString());
-		if (plan.is(PricingPlan.Policy.NO_RESTRICTION)) {
+		if (plan.is(Policy.NO_RESTRICTION)) {
 			return true;
 		}
 

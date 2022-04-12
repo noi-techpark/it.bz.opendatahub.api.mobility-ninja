@@ -67,6 +67,11 @@ jobs:
           X_HIBERNATE_LOG_LEVEL: "warning"
           X_HIBERNATE_SQL_LOG: "false"
 
+          # Quota: Requests per second
+          X_NINJA_QUOTA_GUEST: 20
+          X_NINJA_QUOTA_REFERER: 100
+          X_NINJA_QUOTA_USER: 200
+
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
         with:
@@ -133,6 +138,11 @@ jobs:
           X_LOG_LEVEL: "info"
           X_HIBERNATE_LOG_LEVEL: "warning"
           X_HIBERNATE_SQL_LOG: "false"
+
+          # Quota: Requests per second
+          X_NINJA_QUOTA_GUEST: 20
+          X_NINJA_QUOTA_REFERER: 100
+          X_NINJA_QUOTA_USER: 200
 
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
