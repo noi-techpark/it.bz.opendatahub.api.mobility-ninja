@@ -694,14 +694,20 @@ public class DataFetcher {
 			case NO_RESTRICTION:
 				cacheKey = "ADN";
 				break;
-			case PRIVILEGED_USER:
-				cacheKey = "USR-" + user;
+			case AUTHENTICATED_BASIC:
+				cacheKey = "BSC-" + user;
 				break;
-			case KNOWN_REFERER:
+			case AUTHENTICATED_ADVANCED:
+				cacheKey = "ADV-" + user;
+				break;
+			case AUTHENTICATED_PREMIUM:
+				cacheKey = "PRM-" + user;
+				break;
+			case REFERER:
 				cacheKey = "REF-" + referer;
 				break;
 			default:
-			case GUEST:
+			case ANONYMOUS:
 				cacheKey = "GST-" + ip + "-" + path;
 				break;
 		}

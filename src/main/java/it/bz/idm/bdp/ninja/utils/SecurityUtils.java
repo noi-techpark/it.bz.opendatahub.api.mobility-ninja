@@ -10,28 +10,66 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class SecurityUtils {
 
-	public static final String ROLE_PREFIX = "BDP_";
-	public static final String ROLE_ADMIN = "ADMIN";
-	public static final String ROLE_GUEST = "GUEST";
+	public static final String ROLE_QUOTA_PREFIX = "ODH_ROLE_";
+	public static final String ROLE_QUOTA_GUEST = "GUEST";
+	public static final String ROLE_QUOTA_REFERRER = "REFERRER";
+	public static final String ROLE_QUOTA_BASIC = "BASIC";
+	public static final String ROLE_QUOTA_ADVANCED = "ADVANCED";
+	public static final String ROLE_QUOTA_PREMIUM = "PREMIUM";
+	public static final String ROLE_QUOTA_ADMIN = "ADMIN";
+
+	public static final String ROLE_OPENDATA_PREFIX = "BDP_";
+	public static final String ROLE_OPENDATA_GUEST = "GUEST";
+	public static final String ROLE_OPENDATA_ADMIN = "ADMIN";
+
+	public enum RoleType {
+		QUOTA,
+		OPENDATA
+	}
 
 	private SecurityUtils() {
 		// This is just an utility class
 	}
 
 	public static List<String> getRolesFromAuthentication() {
-		return getRolesFromAuthentication(SecurityContextHolder.getContext().getAuthentication());
+		return getRolesFromAuthentication(RoleType.OPENDATA);
 	}
 
-	public static List<String> getRolesFromAuthentication(Authentication auth) {
+
+	public static List<String> getRolesFromAuthentication(RoleType roleType) {
+		return getRolesFromAuthentication(
+			SecurityContextHolder.getContext().getAuthentication(),
+			roleType
+		);
+	}
+
+	public static List<String> getRolesFromAuthentication(Authentication auth, RoleType roleType) {
+		String prefix = null;
+		String admin = null;
+		String guest = null;
+
+		switch (roleType) {
+			case OPENDATA:
+				prefix = ROLE_OPENDATA_PREFIX;
+				admin = ROLE_OPENDATA_ADMIN;
+				guest = ROLE_OPENDATA_GUEST;
+				break;
+			case QUOTA:
+				prefix = ROLE_QUOTA_PREFIX;
+				admin = ROLE_QUOTA_ADMIN;
+				guest = ROLE_QUOTA_GUEST;
+				break;
+		}
+
 		List<String> result = new ArrayList<>();
 		if (auth instanceof KeycloakAuthenticationToken) {
 			SimpleKeycloakAccount user = (SimpleKeycloakAccount) auth.getDetails();
 			for (String role : user.getRoles()) {
-				if (role.startsWith(ROLE_PREFIX)) {
-					String cleanName = role.replaceFirst(ROLE_PREFIX, "");
-					if (cleanName.equals(ROLE_ADMIN)) {
+				if (role.startsWith(prefix)) {
+					String cleanName = role.replaceFirst(prefix, "");
+					if (cleanName.equals(admin)) {
 						result.clear();
-						result.add(ROLE_ADMIN);
+						result.add(admin);
 						return result;
 					} else {
 						result.add(cleanName);
@@ -40,8 +78,8 @@ public class SecurityUtils {
 			}
 		}
 
-		if (result.isEmpty() || !result.contains(ROLE_GUEST)) {
-			result.add(ROLE_GUEST);
+		if (result.isEmpty() || !result.contains(guest)) {
+			result.add(guest);
 		}
 		return result;
 	}

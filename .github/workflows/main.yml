@@ -68,9 +68,11 @@ jobs:
           X_HIBERNATE_SQL_LOG: "false"
 
           # Quota: Requests per second
-          X_NINJA_QUOTA_GUEST: 20
-          X_NINJA_QUOTA_REFERER: 100
-          X_NINJA_QUOTA_USER: 200
+          X_NINJA_QUOTA_GUEST: 5
+          X_NINJA_QUOTA_REFERER: 10
+          X_NINJA_QUOTA_BASIC: 20
+          X_NINJA_QUOTA_ADVANCED: 50
+          X_NINJA_QUOTA_PREMIUM: 100
 
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
@@ -140,9 +142,11 @@ jobs:
           X_HIBERNATE_SQL_LOG: "false"
 
           # Quota: Requests per second
-          X_NINJA_QUOTA_GUEST: 20
-          X_NINJA_QUOTA_REFERER: 100
-          X_NINJA_QUOTA_USER: 200
+          X_NINJA_QUOTA_GUEST: 5
+          X_NINJA_QUOTA_REFERER: 10
+          X_NINJA_QUOTA_BASIC: 20
+          X_NINJA_QUOTA_ADVANCED: 50
+          X_NINJA_QUOTA_PREMIUM: 100
 
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
