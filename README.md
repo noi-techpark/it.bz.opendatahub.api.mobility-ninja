@@ -526,6 +526,9 @@ See [How to register this application in your local authentication
 server?](#how-to-register-this-application-in-your-local-authentication-server)
 for further details.
 
+We limit rates through a token-bucket algorithm. We identify a rate-limit bucket
+with keys build as explained inside the method [RateLimitInterceptor/resolveBucket](src/main/java/it/bz/idm/bdp/ninja/quota/RateLimitInterceptor.java).
+
 ### Authentication
 
 We use a token based authentication (JWT) which can be retrieved from an OAuth
