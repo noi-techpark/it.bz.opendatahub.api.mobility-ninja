@@ -38,6 +38,7 @@
     - [Time Zones](#time-zones)
     - [Null values](#null-values)
     - [Representation](#representation)
+    - [Quota](#quota)
     - [Authentication](#authentication)
       - [I want to retrieve protected measurements (closed data)](#i-want-to-retrieve-protected-measurements-closed-data)
     - [Additional Sample Queries](#additional-sample-queries)
@@ -482,6 +483,48 @@ NB: The `tree` is more expensive to generate on the server and to use within
 your application, but the response size can be much smaller due to nesting and
 thus duplicate attribute elimination. However, some queries do not match that
 hierarchy, so the `flat` representation is more suited for them.
+
+### Quota
+
+It is possible to configure a maximum request per second quota, depending on
+various constraints. Currently, we support these quota profiles:
+
+name      | description                                             | .properties key
+----------|---------------------------------------------------------|-----------------------
+Anonymous | not logged in and no referer header                     | ninja.quota.guest
+Referer   | referer header send                                     | ninja.quota.referer
+Basic     | Bearer Token containing a BASIC role, or no role at all | ninja.quota.basic
+Advanced  | Bearer Token containing a ADVANCED role                 | ninja.quota.advanced
+Premium   | Bearer Token containing a PREMIUM role                  | ninja.quota.premium
+Admin     | Bearer Token containing the ADMIN role                  | *no key / no quota*
+
+In addition, the `ninja.quota.url` property should contain a link to a
+[webpage](https://github.com/noi-techpark/odh-docs/wiki/Api-Quota), that
+explains what the `429` HTTP error code means.
+
+Roles must be set as follows in Keycloak:
+1) Open your Keycloak server
+2) Go to clients and open `odh-mobility-v2` in your clients section
+3) Under `Roles` add these roles:
+   - `ODH_ROLE_BASIC`: Open Data Hub Pricing Policy: Basic (if logged in and
+     roles are missing, this is the DEFAULT)
+   - `ODH_ROLE_ADVANCED`: Open Data Hub Pricing Policy: Advanced
+   - `ODH_ROLE_PREMIUM`: Open Data Hub Pricing Policy: Premium
+   - `ODH_ROLE_ADMIN`: Open Data Hub Pricing Policy: Administrator = no
+     restrictions at all (only used internally)
+
+The role prefix is `ODH_ROLE_` for quota related roles, and `BDP_` for
+row-level-security or open/closed data definition roles.
+
+There should be at least one row-level-security role called `BDP_ADMIN`, this
+role should be a composite role with `ODH_ROLE_ADMIN`. This means, that if one
+is activated also the other one will be activated. `BDP_ADMIN` implies that this
+role can see all data, and `ODH_ROLE_ADMIN` removes all quota restrictions from
+those calls.
+
+See [How to register this application in your local authentication
+server?](#how-to-register-this-application-in-your-local-authentication-server)
+for further details.
 
 ### Authentication
 
