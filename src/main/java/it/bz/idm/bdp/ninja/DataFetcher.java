@@ -13,9 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import io.github.bucket4j.Bucket;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
-import it.bz.idm.bdp.ninja.quota.PricingPlan;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.Timer;
@@ -154,7 +152,6 @@ public class DataFetcher {
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
 				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -185,7 +182,6 @@ public class DataFetcher {
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
 				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -216,7 +212,6 @@ public class DataFetcher {
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
 				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
 				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -309,7 +304,6 @@ public class DataFetcher {
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -335,7 +329,6 @@ public class DataFetcher {
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -361,7 +354,6 @@ public class DataFetcher {
 				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
 				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameter("roles", roles)
 				 .expandWhere()
 				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
@@ -685,42 +677,4 @@ public class DataFetcher {
 	private boolean hasFlag(int measurementType, final int flag) {
 		return (measurementType & flag) == flag;
 	}
-
-	private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
-
-    public Bucket resolveBucket(PricingPlan limitation, String user, String referer, String ip, String path) {
-		String cacheKey;
-		switch (limitation.getPolicy()) {
-			case NO_RESTRICTION:
-				cacheKey = "ADN";
-				break;
-			case AUTHENTICATED_BASIC:
-				cacheKey = "BSC-" + user;
-				break;
-			case AUTHENTICATED_ADVANCED:
-				cacheKey = "ADV-" + user;
-				break;
-			case AUTHENTICATED_PREMIUM:
-				cacheKey = "PRM-" + user;
-				break;
-			case REFERER:
-				cacheKey = "REF-" + referer;
-				break;
-			default:
-			case ANONYMOUS:
-				cacheKey = "GST-" + ip + "-" + path;
-				break;
-		}
-		return cache.computeIfAbsent(
-			cacheKey,
-			k -> newBucket(limitation)
-		);
-	}
-
-    private Bucket newBucket(PricingPlan limitation) {
-        return Bucket
-			.builder()
-            .addLimit(limitation.getBandwidth())
-            .build();
-    }
 }

@@ -261,7 +261,8 @@ public class DataController {
 	public @ResponseBody String requestLevel03(
 		HttpServletRequest request,
 		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
+		@PathVariable final String pathvar2,
+		@PathVariable final String pathvar3,
 		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 		@RequestParam(value = "select", required = false) final String select,
@@ -279,7 +280,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
+		dataFetcher.setRoles(getRoles(request));
 		dataFetcher.setDistinct(distinct);
 
 		String entryPoint = null;
@@ -354,7 +355,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
+		dataFetcher.setRoles(getRoles(request));
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
@@ -412,8 +413,10 @@ public class DataController {
 	public String requestLevel05(
 		HttpServletRequest request,
 		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2, @PathVariable final String pathvar3,
-		@PathVariable final String pathvar4, @PathVariable final String pathvar5,
+		@PathVariable final String pathvar2,
+		@PathVariable final String pathvar3,
+		@PathVariable final String pathvar4,
+		@PathVariable final String pathvar5,
 		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
 		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
 		@RequestParam(value = "select", required = false) final String select,
@@ -432,7 +435,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
-		dataFetcher.setRoles(SecurityUtils.getRolesFromAuthentication());
+		dataFetcher.setRoles(getRoles(request));
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
@@ -521,5 +524,12 @@ public class DataController {
 		String serialize = JsonStream.serialize(whatever);
 		logging.put("serialization_time", Long.valueOf(timer.stop()));
 		return serialize;
+	}
+
+	private static List<String> getRoles(HttpServletRequest request) {
+		List<String> roles = SecurityUtils.getRolesFromAuthentication();
+		if (request.getHeader("Authorization") == null && roles.size() > 1)
+			throw new IllegalStateException("No Authorization header, but privileged roles");
+		return roles;
 	}
 }

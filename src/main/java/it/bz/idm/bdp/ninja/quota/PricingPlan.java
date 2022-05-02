@@ -42,7 +42,7 @@ public class PricingPlan {
 		List<String> roles,
 		String user,
 		String referer,
-		Map<PricingPlan.Policy, Long> quotaMap
+		Map<Policy, Long> quotaMap
 	) {
 		if (roles == null) {
 			throw new IllegalArgumentException(

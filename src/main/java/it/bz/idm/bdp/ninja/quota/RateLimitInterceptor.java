@@ -3,21 +3,24 @@ package it.bz.idm.bdp.ninja.quota;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jsoniter.output.JsonStream;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 
@@ -25,6 +28,8 @@ import static it.bz.idm.bdp.ninja.quota.PricingPlan.Policy;
 
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
+
+	private static final Logger LOG = LoggerFactory.getLogger(RateLimitInterceptor.class);
 
 	@Value("${ninja.quota.guest:10}")
     private Long quotaGuest;
@@ -44,17 +49,75 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 	@Value("${ninja.quota.url}")
     private String quotaUrl;
 
-	@Autowired
-    private DataFetcher dataFetcher;
+	private static final Map<String, Bucket> cache = new ConcurrentHashMap<>();
+
+    public static Bucket resolveBucket(PricingPlan limitation, String user, String referer, String ip, String path) {
+		StringJoiner cacheKey = new StringJoiner("+++");
+		switch (limitation.getPolicy()) {
+			case NO_RESTRICTION:
+				cacheKey.add("ADN");
+				break;
+			case AUTHENTICATED_BASIC:
+				cacheKey.add("BSC");
+				cacheKey.add(user);
+				cacheKey.add(referer);
+				cacheKey.add(ip);
+				cacheKey.add(path);
+				break;
+			case AUTHENTICATED_ADVANCED:
+				cacheKey.add("ADV");
+				cacheKey.add(user);
+				cacheKey.add(referer);
+				cacheKey.add(ip);
+				cacheKey.add(path);
+				break;
+			case AUTHENTICATED_PREMIUM:
+				cacheKey.add("PRM");
+				cacheKey.add(user);
+				cacheKey.add(referer);
+				cacheKey.add(ip);
+				cacheKey.add(path);
+				break;
+			case REFERER:
+				cacheKey.add("REF");
+				cacheKey.add(referer);
+				cacheKey.add(ip);
+				cacheKey.add(path);
+				break;
+			default:
+			case ANONYMOUS:
+				cacheKey.add("GST");
+				cacheKey.add(ip);
+				cacheKey.add(path);
+				break;
+		}
+		return cache.computeIfAbsent(
+			cacheKey.toString(),
+			k -> {
+				return Bucket
+					.builder()
+					.addLimit(limitation.getBandwidth())
+					.build();
+			}
+		);
+	}
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+		// FIXME: This should not be necessary, but sometimes we get the old
+		// security context authentication token in a consecutive call.
+		// See https://stackoverflow.com/questions/72089100/securitycontextholder-getcontext-getauthentication-not-anonymous-but-reques
+		if (request.getHeader("Authorization") == null)
+			SecurityContextHolder.clearContext();
 
 		List<String> roles = SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.QUOTA);
 		String referer = request.getHeader("referer");
 		String ip = request.getLocalAddr();
 		String path = request.getRequestURI();
 		String user = SecurityUtils.getSubjectFromAuthentication();
+
+		LOG.debug("Rate Limiting Roles: {}", roles);
 
 		Map<PricingPlan.Policy, Long> quotaMap = new EnumMap<>(PricingPlan.Policy.class);
 		quotaMap.put(Policy.ANONYMOUS, quotaGuest);
@@ -70,7 +133,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 			return true;
 		}
 
-        Bucket tokenBucket = dataFetcher.resolveBucket(plan, user, referer, ip, path);
+        Bucket tokenBucket = resolveBucket(plan, user, referer, ip, path);
         ConsumptionProbe probe = tokenBucket.tryConsumeAndReturnRemaining(1);
 
 		long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;

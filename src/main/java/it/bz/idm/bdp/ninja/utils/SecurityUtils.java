@@ -94,6 +94,6 @@ public class SecurityUtils {
 			return user.getPrincipal().getName();
 		}
 
-		return "[NOSUBJECT]";
+		return null;
 	}
 }

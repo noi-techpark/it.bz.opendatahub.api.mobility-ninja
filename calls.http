@@ -1,15 +1,42 @@
+
+### GET AN ACCESS TOKEN
+# @name login
+POST https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+&grant_type=password
+&username={{$dotenv DEV_AUTH_USER}}
+&password={{$dotenv DEV_AUTH_PASS}}
+&client_id=odh-generic-client
+&client_secret={{$dotenv DEV_AUTH_SECRET}}
+
+@token = {{login.response.body.access_token}}
+
 @host=http://localhost:8081
 #@host=https://mobility.api.opendatahub.bz.it/v2
 #@host=https://mobility.api.opendatahub.testingmachine.eu/v2
+
+###
+GET {{host}}/flat/*/*/latest
+?where=sorigin.eq.APPABZ
+
+###
+GET {{host}}/flat/*/*/latest
+?where=sorigin.eq.APPABZ
+Authorization: Bearer {{token}}
 
 ### Origin logging
 GET {{host}}
 ?origin=tes
 
+### Issue: 3x savailable
+GET {{host}}/flat/*/*
+?select=savailable
 
 ### Issue: 3x savailable
 GET {{host}}/flat/*/*
 ?select=savailable
+Authorization: Bearer {{token}}
 
 ###
 GET {{host}}/flat,edge
@@ -37,14 +64,22 @@ GET {{host}}/flat/MeteoStation/*/latest
 ?select=tmeasurements
 &limit=1
 &shownull=true
+Referer: testreferer
 
 ###
-@token = {{login.response.body.access_token}}
+
 GET {{host}}/flat/MeteoStation/*/2019-01-01/2019-01-02
 ?select=tmeasurements
 &limit=2
 &shownull=true
 Authorization: Bearer {{token}}
+
+###
+
+GET {{host}}/flat/MeteoStation/*/2019-01-01/2019-01-02
+?select=tmeasurements
+&limit=2
+&shownull=true
 
 ### Level02
 GET {{host}}/flat/LinkStation?select=smetadata.coordinates
@@ -134,18 +169,6 @@ GET {{host}}/flat,node/BluetoothStation/*/latest
 GET {{host}}/flat,node/EChargingPlug/*/2019-03-25T01/2019-03-25T02
 ?where=pactive.eq.true
 &limit=-1
-
-### GET AN ACCESS TOKEN
-# @name login
-POST https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
-Content-Type: application/x-www-form-urlencoded
-
-&grant_type=password
-&username={{$dotenv DEV_AUTH_USER}}
-&password={{$dotenv DEV_AUTH_PASS}}
-&client_id=odh-generic-client
-&client_secret={{$dotenv DEV_AUTH_SECRET}}
-
 
 ### Measurement JSON Tests
 @token = {{login.response.body.access_token}}
