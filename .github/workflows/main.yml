@@ -41,7 +41,7 @@ jobs:
 
           # Ninja
           X_NINJA_HOST_URL: "https://mobility.api.opendatahub.testingmachine.eu"
-          X_NINJA_BASE_URL: "${X_NINJA_HOST_URL}/v2"
+          X_NINJA_BASE_URL: "https://mobility.api.opendatahub.testingmachine.eu/v2"
           X_NINJA_QUERY_TIMEOUT_SEC: 60
           X_NINJA_HIKARI_LEAK_DETECTION_MS: 65000  # should be greater than (NINJA_QUERY_TIMEOUT_SEC * 1000)
           X_NINJA_RESPONSE_MAX_SIZE_MB: 100
@@ -115,7 +115,7 @@ jobs:
 
           # Ninja
           X_NINJA_HOST_URL: "https://mobility.api.opendatahub.bz.it"
-          X_NINJA_BASE_URL: "${X_NINJA_HOST_URL}/v2"
+          X_NINJA_BASE_URL: "https://mobility.api.opendatahub.bz.it/v2"
           X_NINJA_QUERY_TIMEOUT_SEC: 60
           X_NINJA_HIKARI_LEAK_DETECTION_MS: 65000  # should be greater than (NINJA_QUERY_TIMEOUT_SEC * 1000)
           X_NINJA_RESPONSE_MAX_SIZE_MB: 100
