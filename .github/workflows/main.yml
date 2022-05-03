@@ -66,8 +66,6 @@ jobs:
           X_LOG_LEVEL: "info"
           X_LOG_STYLE: "json"
           X_ROOT_LOG_LEVEL: "info"
-          X_HIBERNATE_LOG_LEVEL: "warning"
-          X_HIBERNATE_SQL_LOG: "false"
 
           # Quota: Requests per second
           X_NINJA_QUOTA_GUEST: 5
@@ -142,8 +140,6 @@ jobs:
           X_LOG_LEVEL: "info"
           X_LOG_STYLE: "json"
           X_ROOT_LOG_LEVEL: "info"
-          X_HIBERNATE_LOG_LEVEL: "warning"
-          X_HIBERNATE_SQL_LOG: "false"
 
           # Quota: Requests per second
           X_NINJA_QUOTA_GUEST: 5
