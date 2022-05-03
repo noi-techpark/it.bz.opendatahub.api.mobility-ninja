@@ -64,6 +64,8 @@ jobs:
           X_LOG_APPLICATION_NAME: ${{ env.PROJECT_NAME }}
           X_LOG_APPLICATION_VERSION: ${{ github.sha }}
           X_LOG_LEVEL: "info"
+          X_LOG_STYLE: "json"
+          X_ROOT_LOG_LEVEL: "info"
           X_HIBERNATE_LOG_LEVEL: "warning"
           X_HIBERNATE_SQL_LOG: "false"
 
@@ -138,6 +140,8 @@ jobs:
           X_LOG_APPLICATION_NAME: ${{ env.PROJECT_NAME }}
           X_LOG_APPLICATION_VERSION: ${{ github.sha }}
           X_LOG_LEVEL: "info"
+          X_LOG_STYLE: "json"
+          X_ROOT_LOG_LEVEL: "info"
           X_HIBERNATE_LOG_LEVEL: "warning"
           X_HIBERNATE_SQL_LOG: "false"
 
