@@ -5,23 +5,9 @@ services:
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     restart: unless-stopped
     environment:
-        SERVER_PORT: ${SERVER_PORT}
-        NINJA_BASE_URL: ${NINJA_BASE_URL}
-        NINJA_HOST_URL: ${NINJA_HOST_URL}
-        NINJA_QUERY_TIMEOUT_SEC: ${NINJA_QUERY_TIMEOUT_SEC}
-        NINJA_RESPONSE_MAX_SIZE_MB: ${NINJA_RESPONSE_MAX_SIZE_MB}
-        SECURITY_ALLOWED_ORIGINS: ${SECURITY_ALLOWED_ORIGINS}
-        KEYCLOAK_URL: ${KEYCLOAK_URL}
-        KEYCLOAK_SSL_REQUIRED: ${KEYCLOAK_SSL_REQUIRED}
-        KEYCLOAK_REALM: ${KEYCLOAK_REALM}
-        KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
-        KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-        LOG_APPLICATION_NAME: ${LOG_APPLICATION_NAME}
-        LOG_APPLICATION_VERSION: ${LOG_APPLICATION_VERSION}
-        JDBC_URL: ${JDBC_URL}
-        DB_USERNAME: ${DB_USERNAME}
-        DB_PASSWORD: ${DB_PASSWORD}
-        _JAVA_OPTIONS: ${JAVA_OPTIONS}
+      _JAVA_OPTIONS: ${JAVA_OPTIONS}
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:${SERVER_PORT}/actuator/health"]
       interval: 20s

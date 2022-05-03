@@ -7,6 +7,8 @@ services:
       - ./:/code
       - ~/.m2/:/var/maven/.m2
     working_dir: /code
+    env_file:
+      - .env
     command: >
       mvn
         -Duser.home=/var/maven

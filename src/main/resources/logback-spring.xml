@@ -19,11 +19,11 @@
 		</encoder>
 	</appender>
 
-	<logger level="${LOG_LEVEL:-INFO}" name="it.bz.idm" additivity="false">
+	<logger level="${LOG_LEVEL:-info}" name="it.bz.idm" additivity="false">
 		<appender-ref ref="${LOG_STYLE:-text}" />
 	</logger>
 
-	<root level="${ROOT_LOG_LEVEL:-INFO}" additivity="false">
+	<root level="${LOG_ROOTLEVEL:-info}" additivity="false">
 		<appender-ref ref="${LOG_STYLE:-text}"/>
 	</root>
 
