@@ -68,11 +68,11 @@ jobs:
           X_ROOT_LOG_LEVEL: "info"
 
           # Quota: Requests per second
-          X_NINJA_QUOTA_GUEST: 5
-          X_NINJA_QUOTA_REFERER: 10
-          X_NINJA_QUOTA_BASIC: 20
-          X_NINJA_QUOTA_ADVANCED: 50
-          X_NINJA_QUOTA_PREMIUM: 100
+          X_NINJA_QUOTA_GUEST: 10
+          X_NINJA_QUOTA_REFERER: 20
+          X_NINJA_QUOTA_BASIC: 50
+          X_NINJA_QUOTA_ADVANCED: 100
+          X_NINJA_QUOTA_PREMIUM: 200
 
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
@@ -142,11 +142,11 @@ jobs:
           X_ROOT_LOG_LEVEL: "info"
 
           # Quota: Requests per second
-          X_NINJA_QUOTA_GUEST: 5
-          X_NINJA_QUOTA_REFERER: 10
-          X_NINJA_QUOTA_BASIC: 20
-          X_NINJA_QUOTA_ADVANCED: 50
-          X_NINJA_QUOTA_PREMIUM: 100
+          X_NINJA_QUOTA_GUEST: 10
+          X_NINJA_QUOTA_REFERER: 20
+          X_NINJA_QUOTA_BASIC: 50
+          X_NINJA_QUOTA_ADVANCED: 100
+          X_NINJA_QUOTA_PREMIUM: 200
 
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
