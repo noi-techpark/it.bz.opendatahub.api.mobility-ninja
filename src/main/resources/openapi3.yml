@@ -3,23 +3,23 @@ info:
   title: Open Data Hub Mobility API
   description: >
     Documentation: <a
-    href="https://opendatahub.readthedocs.io/en/latest/datasets.html#datasets-in-the-mobility-domain">Mobility
+    href="https://docs.opendatahub.com/en/latest/datasets.html#datasets-in-the-mobility-domain">Mobility
     Datasets</a> |
     <a
-    href="https://opendatahub.readthedocs.io/en/latest/howto/mobility/getstarted.html">Getting
+    href="https://docs.opendatahub.com/en/latest/howto/mobility/getstarted.html">Getting
     started with the API Mobility V2</a> | <a
-    href="https://opendatahub.readthedocs.io/en/latest/howto.html">General
+    href="https://docs.opendatahub.com/en/latest/howto.html">General
     Howtos</a> | <a
-    href="https://github.com/noi-techpark/bdp-core">Source Code</a>
+    href="https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja">Source Code</a>
 
-  termsOfService: https://opendatahub.readthedocs.io/en/latest/licenses.html#apis-terms-of-service
+  termsOfService: https://docs.opendatahub.com/en/latest/licenses.html#apis-terms-of-service
   contact:
     name: Open Data Hub
-    url: https://opendatahub.bz.it
-    email: help@opendatahub.bz.it
+    url: https://opendatahub.com
+    email: help@opendatahub.com
   license:
     name: API License
-    url: https://opendatahub.readthedocs.io/en/latest/licenses.html
+    url: https://docs.opendatahub.com/en/latest/licenses.html
   version: V2
 servers:
   - url: __ODH_SERVER_URL__
