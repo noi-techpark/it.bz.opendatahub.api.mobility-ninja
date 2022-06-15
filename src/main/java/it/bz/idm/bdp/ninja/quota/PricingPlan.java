@@ -56,19 +56,19 @@ public class PricingPlan {
 			return new PricingPlan(Policy.NO_RESTRICTION, quotaMap);
 		}
 
-		if (roles.size() == 1 && roles.contains(SecurityUtils.ROLE_QUOTA_GUEST)) {
-			if (referer != null && !referer.isEmpty()) {
-				return new PricingPlan(Policy.REFERER, quotaMap);
-			}
-			return new PricingPlan(Policy.ANONYMOUS, quotaMap);
-		}
-
 		if (user != null && !user.isEmpty()) {
 			if (roles.contains(SecurityUtils.ROLE_QUOTA_PREMIUM))
 				return new PricingPlan(Policy.AUTHENTICATED_PREMIUM, quotaMap);
 			if (roles.contains(SecurityUtils.ROLE_QUOTA_ADVANCED))
 				return new PricingPlan(Policy.AUTHENTICATED_ADVANCED, quotaMap);
 			return new PricingPlan(Policy.AUTHENTICATED_BASIC, quotaMap);
+		}
+
+		if (roles.size() == 1 && roles.contains(SecurityUtils.ROLE_QUOTA_GUEST)) {
+			if (referer != null && !referer.isEmpty()) {
+				return new PricingPlan(Policy.REFERER, quotaMap);
+			}
+			return new PricingPlan(Policy.ANONYMOUS, quotaMap);
 		}
 
 		throw new IllegalArgumentException(

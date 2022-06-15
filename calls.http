@@ -1,20 +1,25 @@
 
 ### GET AN ACCESS TOKEN
 # @name login
-POST https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
+POST {{$dotenv DEV_AUTH_URI}}/auth/realms/noi/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
 &grant_type=password
 &username={{$dotenv DEV_AUTH_USER}}
 &password={{$dotenv DEV_AUTH_PASS}}
 &client_id=odh-generic-client
-&client_secret={{$dotenv DEV_AUTH_SECRET}}
+&client_secret=
 
 @token = {{login.response.body.access_token}}
 
 @host=http://localhost:8081
 #@host=https://mobility.api.opendatahub.bz.it/v2
 #@host=https://mobility.api.opendatahub.testingmachine.eu/v2
+
+###
+GET {{host}}/tree/TrafficSensor/*/latest
+?where=scode.eq.%22A22:5687:3%22
+Authorization: Bearer {{token}}
 
 ###
 GET {{host}}/flat/*/*/latest
@@ -34,7 +39,7 @@ GET {{host}}/flat/*/*
 ?select=savailable
 
 ### Issue: 3x savailable
-GET {{host}}/flat/*/*
+GET {{host}}/flat/*/*/latest
 ?select=savailable
 Authorization: Bearer {{token}}
 
