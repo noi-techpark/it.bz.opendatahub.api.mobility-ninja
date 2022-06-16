@@ -14,7 +14,7 @@ Content-Type: application/x-www-form-urlencoded
 
 @host=http://localhost:8081
 #@host=https://mobility.api.opendatahub.bz.it/v2
-#@host=https://mobility.api.opendatahub.testingmachine.eu/v2
+@host=https://mobility.api.opendatahub.testingmachine.eu/v2
 
 ###
 GET {{host}}/tree/TrafficSensor/*/latest

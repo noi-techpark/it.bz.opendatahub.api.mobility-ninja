@@ -42,6 +42,13 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 		}
 	}
 
+	public String getRemoteIP(HttpServletRequest request) {
+		if (request.getHeader("x-forwarded-for") == null) {
+			return request.getRemoteAddr();
+		}
+		return request.getHeader("x-forwarded-for");
+	}
+
 	private Map<String, Object> logData(HttpServletRequest request, HttpServletResponse response) {
 		final HashMap<String, Object> result = new HashMap<>();
 		result.put("uri", request.getRequestURI());
@@ -50,7 +57,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 		result.put("user_subject", request.getAttribute("user_subject"));
 		result.put("user_email", request.getAttribute("user_email"));
 		result.put("user_quota", request.getAttribute("X-Rate-Limit-Policy"));
-		result.put("user_ip", request.getRemoteAddr());
+		result.put("user_ip", getRemoteIP(request));
 		result.put("user_roles_quota", SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.QUOTA));
 		result.put("user_roles_opendata", SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.OPENDATA));
 		result.put("status", response.getStatus());
