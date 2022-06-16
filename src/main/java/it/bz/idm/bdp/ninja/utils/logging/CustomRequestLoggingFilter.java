@@ -25,10 +25,15 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
 		try {
-			SimpleKeycloakAccount account = SecurityUtils.getKeycloakAccountFromAuthentication();
+			try {
+				SimpleKeycloakAccount account = SecurityUtils.getKeycloakAccountFromAuthentication();
+				request.setAttribute("user_subject", account.getPrincipal().getName());
+				request.setAttribute("user_email", account.getKeycloakSecurityContext().getToken().getEmail());
+			} catch (Exception e) {
+				// nothing to do, ignore these log info, if no login account exists
+				// or if it is invalid...
+			}
 			request.setAttribute("timer_start", System.nanoTime());
-			request.setAttribute("user_subject", account.getPrincipal().getName());
-			request.setAttribute("user_email", account.getKeycloakSecurityContext().getToken().getEmail());
 			filterChain.doFilter(request, response);
 		} finally {
 			if (!this.isAsyncStarted(request)) {
@@ -44,6 +49,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 		result.put("user_agent", request.getHeader("User-Agent"));
 		result.put("user_subject", request.getAttribute("user_subject"));
 		result.put("user_email", request.getAttribute("user_email"));
+		result.put("user_quota", request.getAttribute("X-Rate-Limit-Policy"));
 		result.put("user_ip", request.getRemoteAddr());
 		result.put("user_roles_quota", SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.QUOTA));
 		result.put("user_roles_opendata", SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.OPENDATA));

@@ -129,6 +129,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
 		PricingPlan plan = PricingPlan.resolvePlan(roles, user, referer, quotaMap);
 		response.addHeader("X-Rate-Limit-Policy", plan.toString());
+		request.setAttribute("X-Rate-Limit-Policy", plan.toString());
 		if (plan.is(Policy.NO_RESTRICTION)) {
 			return true;
 		}
