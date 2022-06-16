@@ -3,6 +3,7 @@ package it.bz.idm.bdp.ninja.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.keycloak.adapters.springsecurity.KeycloakAuthenticationException;
 import org.keycloak.adapters.springsecurity.account.SimpleKeycloakAccount;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -89,11 +90,23 @@ public class SecurityUtils {
 	}
 
 	public static String getSubjectFromAuthentication(Authentication auth) {
-		if (auth instanceof KeycloakAuthenticationToken) {
-			SimpleKeycloakAccount user = (SimpleKeycloakAccount) auth.getDetails();
-			return user.getPrincipal().getName();
-		}
 
-		return null;
+		try {
+			return getKeycloakAccountFromAuthentication(auth).getPrincipal().getName();
+		} catch (KeycloakAuthenticationException e) {
+			return null;
+		}
 	}
+
+	public static SimpleKeycloakAccount getKeycloakAccountFromAuthentication(Authentication auth) {
+		if (auth instanceof KeycloakAuthenticationToken) {
+			return (SimpleKeycloakAccount) auth.getDetails();
+		}
+		throw new KeycloakAuthenticationException("Given parameter is not a KeycloakAuthenticationToken");
+	}
+
+	public static SimpleKeycloakAccount getKeycloakAccountFromAuthentication() {
+		return getKeycloakAccountFromAuthentication(SecurityContextHolder.getContext().getAuthentication());
+	}
+
 }

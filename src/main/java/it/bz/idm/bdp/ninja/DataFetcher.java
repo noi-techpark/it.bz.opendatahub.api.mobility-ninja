@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
@@ -27,7 +26,6 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
 import static net.logstash.logback.argument.StructuredArguments.v;
 
-@Component
 public class DataFetcher {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DataFetcher.class);
