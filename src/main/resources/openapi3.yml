@@ -2,16 +2,11 @@ openapi: 3.0.1
 info:
   title: Open Data Hub Mobility API
   description: >
-    Documentation: <a
-    href="https://docs.opendatahub.com/en/latest/datasets.html#datasets-in-the-mobility-domain">Mobility
-    Datasets</a> |
-    <a
-    href="https://docs.opendatahub.com/en/latest/howto/mobility/getstarted.html">Getting
-    started with the API Mobility V2</a> | <a
-    href="https://docs.opendatahub.com/en/latest/howto.html">General
-    Howtos</a> | <a
-    href="https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja">Source Code</a>
-
+    Documentation:
+    [Mobility Datasets](https://docs.opendatahub.com/en/latest/datasets.html#datasets-in-the-mobility-domain) |
+    [Getting Started](https://docs.opendatahub.com/en/latest/howto/mobility/getstarted.html) |
+    [General Howtos](https://docs.opendatahub.com/en/latest/howto.html) |
+    [Source Code](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja)
   termsOfService: https://docs.opendatahub.com/en/latest/licenses.html#apis-terms-of-service
   contact:
     name: Open Data Hub
@@ -88,8 +83,8 @@ paths:
       description:
         You can put multiple stationtypes as comma-seperated lists. The response
         contains stations (prefix <code>s</code>) and their parent-stations
-        (prefix <code>p</code>). Each JSON attribute is prefixed with the first
-        letter of that object.
+        (prefix <code>p</code>). Each JSON attribute is prefixed with the
+        letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationnode"
         - $ref: "#/components/parameters/stationTypes"
@@ -125,7 +120,7 @@ paths:
         You can put multiple edgetypes as comma-seperated list. The response
         contains edges (prefix <code>e</code>) and their beginning and ending
         station (prefix <code>sb</code> and <code>se</code>). Each JSON
-        attribute is prefixed with the first letter of that object.
+        attribute is prefixed with the letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationedge"
         - $ref: "#/components/parameters/edgeTypes"
@@ -159,9 +154,9 @@ paths:
       summary: View events of given origins
       description:
         You can put multiple origins as comma-seperated list. The response
-        contains events (prefix <code>ev</code>) and their locations (prefix
-        <code>evl</code>). Each JSON attribute is prefixed with the first letter
-        of that object.
+        contains events (prefix <code>ev</code>), their locations (prefix
+        <code>evl</code>) and provenance (prefix <code>pr</code>). Each
+        JSON attribute is prefixed with the letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationevent"
         - $ref: "#/components/parameters/eventorigins"
@@ -195,9 +190,9 @@ paths:
       summary: View events of given origins, but only the latest ones grouped by origin and evseriesuuid
       description:
         You can put multiple origins as comma-seperated list. The response
-        contains events (prefix <code>ev</code>) and their locations (prefix
-        <code>evl</code>). Each JSON attribute is prefixed with the first letter
-        of that object.
+        contains events (prefix <code>ev</code>), their locations (prefix
+        <code>evl</code>) and provenance (prefix <code>pr</code>). Each
+        JSON attribute is prefixed with the letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationevent"
         - $ref: "#/components/parameters/eventorigins"
@@ -231,9 +226,9 @@ paths:
       summary: View events of given origins, that are active at a certain point in time
       description:
         You can put multiple origins as comma-seperated list. The response
-        contains events (prefix <code>ev</code>) and their locations (prefix
-        <code>evl</code>). Each JSON attribute is prefixed with the first letter
-        of that object.
+        contains events (prefix <code>ev</code>), their locations (prefix
+        <code>evl</code>) and provenance (prefix <code>pr</code>). Each
+        JSON attribute is prefixed with the letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationevent"
         - $ref: "#/components/parameters/eventorigins"
@@ -268,9 +263,9 @@ paths:
       summary: View events of given origins, that are active at a certain time interval
       description:
         You can put multiple origins as comma-seperated list. The response
-        contains events (prefix <code>ev</code>) and their locations (prefix
-        <code>evl</code>). Each JSON attribute is prefixed with the first letter
-        of that object.
+        contains events (prefix <code>ev</code>), their locations (prefix
+        <code>evl</code>) and provenance (prefix <code>pr</code>). Each
+        JSON attribute is prefixed with the letters of that object.
       parameters:
         - $ref: "#/components/parameters/representationevent"
         - $ref: "#/components/parameters/eventorigins"
@@ -310,7 +305,7 @@ paths:
         You can put multiple stationtypes or datatypes as comma-seperated lists.
         The response contains stations (prefix <code>s</code>), their
         parent-stations (prefix <code>p</code>) and types (prefix
-        <code>t</code>). Each JSON attribute is prefixed with the first letter
+        <code>t</code>). Each JSON attribute is prefixed with the letters
         of that object.
       parameters:
         - $ref: "#/components/parameters/representation"
@@ -350,8 +345,9 @@ paths:
         You can put multiple stationtypes or datatypes as comma-seperated lists.
         The response contains stations (prefix <code>s</code>), their
         parent-stations (prefix <code>p</code>), types (prefix <code>t</code>)
-        and the latest measurements (prefix <code>m</code>). Each JSON attribute
-        is prefixed with the first letter of that object.
+        and the latest measurements (prefix <code>m</code>) and their provenance
+        (prefix <code>pr</code>). Each JSON attribute is prefixed with the
+        letters of that object.
       parameters:
         - $ref: "#/components/parameters/representation"
         - $ref: "#/components/parameters/stationTypes"
@@ -391,8 +387,9 @@ paths:
         You can put multiple stationtypes or datatypes as comma-seperated lists.
         The response contains stations (prefix <code>s</code>), their
         parent-stations (prefix <code>p</code>), types (prefix <code>t</code>)
-        and historical measurements (prefix <code>m</code>). Each JSON attribute
-        is prefixed with the first letter of that object.
+        and the latest measurements (prefix <code>m</code>) and their provenance
+        (prefix <code>pr</code>). Each JSON attribute is prefixed with the
+        letters of that object.
       parameters:
         - $ref: "#/components/parameters/representation"
         - $ref: "#/components/parameters/stationTypes"
@@ -638,3 +635,248 @@ components:
       schema:
         type: string
         default: ""
+
+  schemas:
+    measurement:
+      description: |
+        `Prefix: m` Measurements
+      properties:
+        mvalue:
+          oneOf:
+            - type: object
+              description: free-form JSON object
+            - type: number
+            - type: string
+        mvalidtime:
+          type: string
+          format: date-time
+          description: When has this value been measured?
+        mtransactiontime:
+          type: string
+          format: date-time
+          description: When has this value been recorded on the database the first time?
+        mperiod:
+          type: integer
+          description: Distance in seconds between two measurements
+        mprovenance:
+          $ref: "#/components/schemas/provenance"
+    provenance:
+      description: |
+        <code>Prefix: pr</code> Which data collector inserted or updated this information?
+      properties:
+        prname:
+          format: text
+          type: string
+          description: Name of the data collector, elaboration tool, or manual data manipulation
+        prversion:
+          format: text
+          type: string
+          description: Version of the data collector, elaboration tool, or manual data manipulation
+          example: 2299032843ef73db1811d615be8d8061e7d76322 (<-- a git sha)
+          nullable: true
+        prlineage:
+          format: text
+          type: string
+    datatype:
+      description: |
+        <code>Prefix: t</code> Type of the measurement, for example temperature in °C
+      properties:
+        tname:
+          type: string
+        tunit:
+          type: string
+        ttype:
+          type: string
+        tdescription:
+          type: string
+          nullable: true
+        tmeasurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/measurement"
+    parent:
+      description: |
+        <code>Prefix: p</code> Parent of a measurement station
+      properties:
+        pname:
+          type: string
+          description: Name of the parent station
+        ptype:
+          type: string
+          description: Type of the parent station
+        pcode:
+          type: string
+          description: Unique ID of this parent station (inside this `ptype`)
+        porigin:
+          type: string
+          description: Where did we get this station information from?
+        pactive:
+          type: boolean
+          description: Is this station still used? Has it had updates recently?
+        pavailable:
+          type: boolean
+          description: Should this station be visible to API consumers? (Do not use this, it will be removed. Only available stations are visible)
+          deprecated: true
+        pcoordinate:
+          $ref: "#/components/schemas/coordinate"
+        pmetadata:
+          type: object
+          description: free-form JSON object
+    station:
+      description: |
+        <code>Prefix: s</code> A measurement station
+      properties:
+        sname:
+          type: string
+          description: Name of the measurement station
+        stype:
+          type: string
+          description: Type of the measurement station
+        scode:
+          type: string
+          description: Unique ID of this measurement station (inside this `ptype`)
+        sorigin:
+          type: string
+          description: Where did we get this station information from?
+        sactive:
+          type: boolean
+          description: Is this station still used? Has it had updates recently?
+        savailable:
+          type: boolean
+          description: Should this station be visible to API consumers? (Do not use this, it will be removed. Only available stations are visible)
+          deprecated: true
+        scoordinate:
+          $ref: "#/components/schemas/coordinate"
+        smetadata:
+          type: object
+          description: free-form JSON object
+        sparent:
+          $ref: "#/components/schemas/parent"
+    stationbegin:
+      description: |
+        <code>Prefix: sb</code> The starting station that is connected to another station with an edge
+      properties:
+        sbname:
+          type: string
+          description: Name of the starting measurement station
+        sbtype:
+          type: string
+          description: Type of the starting measurement station
+        sbcode:
+          type: string
+          description: Unique ID of this measurement station (inside this `ptype`)
+        sborigin:
+          type: string
+          description: Where did we get this station information from?
+        sbactive:
+          type: boolean
+          description: Is this station still used? Has it had updates recently?
+        sbavailable:
+          type: boolean
+          description: Should this station be visible to API consumers? (Do not use this, it will be removed. Only available stations are visible)
+          deprecated: true
+        sbcoordinate:
+          $ref: "#/components/schemas/coordinate"
+    stationend:
+      description: |
+        <code>Prefix: se</code> The ending station that is connected to another station with an edge
+      properties:
+        sename:
+          type: string
+          description: Name of the ending measurement station
+        setype:
+          type: string
+          description: Type of the ending measurement station
+        secode:
+          type: string
+          description: Unique ID of this measurement station (inside this `ptype`)
+        seorigin:
+          type: string
+          description: Where did we get this station information from?
+        seactive:
+          type: boolean
+          description: Is this station still used? Has it had updates recently?
+        seavailable:
+          type: boolean
+          description: Should this station be visible to API consumers? (Do not use this, it will be removed. Only available stations are visible)
+          deprecated: true
+        secoordinate:
+          $ref: "#/components/schemas/coordinate"
+    edge:
+      description: |
+        <code>Prefix: e</code> The edge that connects two stations
+      properties:
+        ename:
+          type: string
+          description: Name of the ending measurement station
+        etype:
+          type: string
+          description: Type of the ending measurement station
+        ecode:
+          type: string
+          description: Unique ID of this measurement station (inside this `ptype`)
+        eorigin:
+          type: string
+          description: Where did we get this station information from?
+        eactive:
+          type: boolean
+          description: Is this station still used? Has it had updates recently?
+        eavailable:
+          type: boolean
+          description: Should this station be visible to API consumers? (Do not use this, it will be removed. Only available stations are visible)
+          deprecated: true
+        edirected:
+          type: boolean
+        egeometry:
+          type: object
+        ebegin:
+          $ref: "#/components/schemas/stationbegin"
+        eend:
+          $ref: "#/components/schemas/stationend"
+    location:
+      description: |
+        <code>Prefix: evl</code> The location of a traffic event
+      properties:
+        evldescription:
+          type: string
+        evlgeometry:
+          type: object
+    event:
+      description: |
+        <code>Prefix: e</code> A traffic event
+      properties:
+        evcategory:
+          type: string
+        evseriesuuid:
+          type: string
+        evtransactiontime:
+          type: string
+        evdescription:
+          type: string
+        evstart:
+          type: string
+        evend:
+          type: string
+        evorigin:
+          type: string
+        evuuid:
+          type: string
+        evname:
+          type: string
+        evmetadata:
+          type: string
+        evlocation:
+          $ref: "#/components/schemas/location"
+        evprovenance:
+          $ref: "#/components/schemas/provenance"
+    coordinate:
+      description: Coordinates cannot be accessed directly. For example, `coordinate.x` is not possible at the moment.
+      properties:
+        x:
+          type: number
+        y:
+          type: number
+        srid:
+          type: integer
+          default: 4326
+
