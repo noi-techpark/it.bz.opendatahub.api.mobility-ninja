@@ -285,7 +285,7 @@ public class ResultBuilderTests {
 		).toString();
 
 		assertEquals(
-			"{A22={eventseries={series3={events={ev1={evlocation={evldescription=null}, evseriesuuid=series3, evuuid=ev1}}}}}}",
+			"{A22={eventseries={series3={events={ev1={evlocation={evldescription=null}, evprovenance={}, evseriesuuid=series3, evuuid=ev1}}}}}}",
 			result
 		);
 	}
