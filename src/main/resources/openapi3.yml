@@ -639,7 +639,12 @@ components:
   schemas:
     measurement:
       description: |
-        `Prefix: m` Measurements
+        ```
+        Prefix: m
+        ```
+        Measurements: Stations have sensors that measure a certain type of data. This is the outcome...
+        <br /><br />
+        *Important: Nested objects are not available when you use `flat` as representation, refer to them directly instead.*
       properties:
         mvalue:
           oneOf:
@@ -662,7 +667,10 @@ components:
           $ref: "#/components/schemas/provenance"
     provenance:
       description: |
-        <code>Prefix: pr</code> Which data collector inserted or updated this information?
+        ```
+        Prefix: pr
+        ```
+        Provenance: Which data collector inserted or updated this information?
       properties:
         prname:
           format: text
@@ -679,7 +687,12 @@ components:
           type: string
     datatype:
       description: |
-        <code>Prefix: t</code> Type of the measurement, for example temperature in °C
+        ```
+        Prefix: t
+        ```
+        Datatype: The data type of a measurement, for example temperature in °C.
+        <br /><br />
+        *Important: Nested objects are not available when you use `flat` as representation, refer to them directly instead.*
       properties:
         tname:
           type: string
@@ -696,7 +709,10 @@ components:
             $ref: "#/components/schemas/measurement"
     parent:
       description: |
-        <code>Prefix: p</code> Parent of a measurement station
+        ```
+        Prefix: p
+        ```
+        Parent: The parent station of a measurement station, for example the echarging station that contains echarging plugs
       properties:
         pname:
           type: string
@@ -724,7 +740,12 @@ components:
           description: free-form JSON object
     station:
       description: |
-        <code>Prefix: s</code> A measurement station
+        ```
+        Prefix: s
+        ```
+        Station: A measurement station.
+        <br /><br />
+        *Important: Nested objects are not available when you use `flat` as representation, refer to them directly instead.*
       properties:
         sname:
           type: string
@@ -754,7 +775,10 @@ components:
           $ref: "#/components/schemas/parent"
     stationbegin:
       description: |
-        <code>Prefix: sb</code> The starting station that is connected to another station with an edge
+        ```
+        Prefix: sb
+        ```
+        Stationbegin: The starting station that is connected to another station with an edge
       properties:
         sbname:
           type: string
@@ -779,7 +803,10 @@ components:
           $ref: "#/components/schemas/coordinate"
     stationend:
       description: |
-        <code>Prefix: se</code> The ending station that is connected to another station with an edge
+        ```
+        Prefix: se
+        ```
+        Stationend: The ending station that is connected to another station with an edge
       properties:
         sename:
           type: string
@@ -804,7 +831,12 @@ components:
           $ref: "#/components/schemas/coordinate"
     edge:
       description: |
-        <code>Prefix: e</code> The edge that connects two stations
+        ```
+        Prefix: e
+        ```
+        Edge: The edge that connects two stations.
+        <br /><br />
+        *Important: Nested objects are not available when you use `flat` as representation, refer to them directly instead.*
       properties:
         ename:
           type: string
@@ -835,7 +867,10 @@ components:
           $ref: "#/components/schemas/stationend"
     location:
       description: |
-        <code>Prefix: evl</code> The location of a traffic event
+        ```
+        Prefix: evl
+        ```
+        Location: The location of a traffic event
       properties:
         evldescription:
           type: string
@@ -843,7 +878,12 @@ components:
           type: object
     event:
       description: |
-        <code>Prefix: e</code> A traffic event
+        ```
+        Prefix: e
+        ```
+        Event: A traffic event.
+        <br /><br />
+        *Important: Nested objects are not available when you use `flat` as representation, refer to them directly instead.*
       properties:
         evcategory:
           type: string
@@ -870,7 +910,10 @@ components:
         evprovenance:
           $ref: "#/components/schemas/provenance"
     coordinate:
-      description: Coordinates cannot be accessed directly. For example, `coordinate.x` is not possible at the moment.
+      description: |
+        Coordinates: Latitude and longitude
+        <br /><br />
+        *Important: Coordinates cannot be accessed directly. For example, `coordinate.x` is not possible at the moment.*
       properties:
         x:
           type: number
