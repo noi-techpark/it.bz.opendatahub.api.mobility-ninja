@@ -20,6 +20,15 @@ public class SelectExpansionConfig {
 
 		Schema schema = new Schema();
 
+		TargetDefList provenance = TargetDefList
+			.init("provenance")
+			.setLookUp(new LookUp(LookUpType.INLINE, "measurement", "mprovenance", null))
+			.add(new TargetDef("prname", "pr.data_collector"))
+			.add(new TargetDef("prversion", "pr.data_collector_version"))
+			.add(new TargetDef("prlineage", "pr.lineage"));
+
+		schema.add(provenance);
+
 		TargetDefList measurement = TargetDefList
 			.init("measurement")
 			.setLookUp(new LookUp(LookUpType.LIST, "datatype", "tmeasurements", null))
@@ -27,7 +36,8 @@ public class SelectExpansionConfig {
 					.setColumnFormat("timezone('UTC', %s)"))
 			.add(new TargetDef("mtransactiontime", "me.created_on")
 					.setColumnFormat("timezone('UTC', %s)"))
-			.add(new TargetDef("mperiod", "me.period"));
+			.add(new TargetDef("mperiod", "me.period"))
+			.add(new TargetDef("mprovenance", provenance));
 
 		schema.add(measurement);
 
@@ -168,6 +178,15 @@ public class SelectExpansionConfig {
 
 		schema.add(location);
 
+		TargetDefList provenanceEvent = TargetDefList
+			.init("provenanceevent")
+			.setLookUp(new LookUp(LookUpType.INLINE, "event", "evprovenance", null))
+			.add(new TargetDef("prname", "pr.data_collector"))
+			.add(new TargetDef("prversion", "pr.data_collector_version"))
+			.add(new TargetDef("prlineage", "pr.lineage"));
+
+		schema.add(provenanceEvent);
+
 		TargetDefList event = TargetDefList
 			.init("event")
 			.setLookUp(new LookUp(LookUpType.MAP, "eventseries", "events", "_eventuuid"))
@@ -181,7 +200,8 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("evuuid", "ev.uuid"))
 			.add(new TargetDef("evname", "ev.name"))
 			.add(new TargetDef("evmetadata", "evm.json"))
-			.add(new TargetDef("evlocation", location));
+			.add(new TargetDef("evlocation", location))
+			.add(new TargetDef("evprovenance", provenanceEvent));
 
 		schema.add(event);
 

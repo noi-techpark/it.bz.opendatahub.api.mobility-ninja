@@ -14,7 +14,7 @@ Content-Type: application/x-www-form-urlencoded
 
 @host=http://localhost:8081
 #@host=https://mobility.api.opendatahub.bz.it/v2
-@host=https://mobility.api.opendatahub.testingmachine.eu/v2
+#@host=https://mobility.api.opendatahub.testingmachine.eu/v2
 
 ###
 GET {{host}}/tree/TrafficSensor/*/latest
@@ -22,8 +22,9 @@ GET {{host}}/tree/TrafficSensor/*/latest
 Authorization: Bearer {{token}}
 
 ###
-GET {{host}}/flat/*/*/latest
+GET {{host}}/flat/*/*/2022-01-01/2022-01-02
 ?where=sorigin.eq.APPABZ
+&select=prname,prversion
 
 ###
 GET {{host}}/flat/*/*/latest
@@ -229,10 +230,10 @@ Authorization: Bearer {{token}}
 
 ### Events
 {{host}}/event,tree/*
-?select=evldescription,evuuid,evseriesuuid
+?select=evldescription,evuuid,evseriesuuid,evprovenance
 #?1=1
-&shownull=true
-&limit=1
+#&shownull=true
+#&limit=1
 
 
 ### Parent
