@@ -31,7 +31,7 @@
     -- station types that are only partly open, constrained by the origin
 	or (s.stationtype = 'EnvironmentStation' and s.origin = 'APPATN-open')
 	or (s.stationtype = 'LinkStation' and (s.origin is null or s.origin = 'NOI'))
-	or (s.stationtype = 'MeteoStation' and s.origin in ('meteotrentino', 'SIAG'))
+	or (s.stationtype = 'MeteoStation' and s.origin in ('meteotrentino', 'SIAG', 'EURAC'))
 	or (s.stationtype = 'ParkingStation' and s.origin in ('FAMAS', 'FBK', 'Municipality Merano'))
 	or (s.stationtype = 'RWISstation' and s.origin = 'InfoMobility')
 
