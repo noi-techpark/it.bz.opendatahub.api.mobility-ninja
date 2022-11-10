@@ -19,6 +19,7 @@
 		'CarsharingStation',
 		'EChargingPlug',
 		'EChargingStation',
+		'Flight',
 		'Streetstation',
 		'ParkingSensor',
         'Culture',
