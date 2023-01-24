@@ -78,7 +78,10 @@ public class DataFetcher {
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode", !representation.isFlat())
-				.expandSelectPrefix(", ", !representation.isFlat())
+				.addSqlIf(
+						"me.timestamp as _timestamp",
+						representation.isFlat())
+				.expandSelectPrefix(", ")
 				.addSql("from station s")
 				.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
 				.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
@@ -90,6 +93,7 @@ public class DataFetcher {
 				.expandWhere()
 				.expandGroupByIf("_stationtype, _stationcode", !representation.isFlat())
 				.addSqlIf("order by _stationtype, _stationcode", !representation.isFlat())
+				.addSqlIf("order by _timestamp asc", representation.isFlat())
 				.addLimit(limit)
 				.addOffset(offset);
 		long timeBuild = timer.stop();
@@ -251,7 +255,7 @@ public class DataFetcher {
 		long timeBuild = timer.stop();
 
 		// to print the query string
-		// LOG.debug(query.getSql().toString());
+		LOG.debug(query.getSql().toString());
 
 		// We need null values while tree building. We remove them during the output
 		// generation
@@ -343,8 +347,7 @@ public class DataFetcher {
 					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
 							!dataTypeSet.contains("*"))
 					.expandWhere()
-					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
-					.addSql("order by timestamp asc");
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) && hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
@@ -373,8 +376,7 @@ public class DataFetcher {
 					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
 							!dataTypeSet.contains("*"))
 					.expandWhere()
-					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
-					.addSql("order by timestamp asc");
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
 		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING))
@@ -404,8 +406,7 @@ public class DataFetcher {
 					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
 							!dataTypeSet.contains("*"))
 					.expandWhere()
-					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
-					.addSql("order by timestamp asc");
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !representation.isFlat())
