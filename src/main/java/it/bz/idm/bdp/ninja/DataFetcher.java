@@ -31,14 +31,15 @@ public class DataFetcher {
 	private static final Logger LOG = LoggerFactory.getLogger(DataFetcher.class);
 	private static final int MEASUREMENT_TYPE_DOUBLE = 1 << 0;
 	private static final int MEASUREMENT_TYPE_STRING = 1 << 1;
-	private static final int MEASUREMENT_TYPE_JSON   = 1 << 2;
+	private static final int MEASUREMENT_TYPE_JSON = 1 << 2;
 	private static final int MEASUREMENT_TYPE_ALL = (1 << 3) - 1;
 
 	public enum ErrorCode implements ErrorCodeInterface {
-		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED ("You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
-		WRONG_TIMEZONE ("'%s' is not a valid time zone understandable by java.time.ZoneId."),
-		WHERE_WRONG_DATA_TYPE ("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given."),
-		METHOD_NOT_ALLOWED ("Method '%s' not allowed with %s representation.");
+		FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED(
+				"You have used both functions and json selectors in SELECT and/or WHERE. That is not supported yet!"),
+		WRONG_TIMEZONE("'%s' is not a valid time zone understandable by java.time.ZoneId."),
+		WHERE_WRONG_DATA_TYPE("'%s' can only be used with NULL, NUMBERS or STRINGS: '%s' given."),
+		METHOD_NOT_ALLOWED("Method '%s' not allowed with %s representation.");
 
 		private final String msg;
 
@@ -84,7 +85,8 @@ public class DataFetcher {
 				.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
 				.addSql("where s.available = true")
 				.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
+				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)",
+						!stationTypeSet.contains("*"))
 				.expandWhere()
 				.expandGroupByIf("_stationtype, _stationcode", !representation.isFlat())
 				.addSqlIf("order by _stationtype, _stationcode", !representation.isFlat())
@@ -92,7 +94,8 @@ public class DataFetcher {
 				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		// We need null values while tree building. We remove them during the output generation
+		// We need null values while tree building. We remove them during the output
+		// generation
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -109,10 +112,12 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList, String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
+	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList,
+			String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
 		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsTypesAndMeasurement(History)", representation.getTypeAsString());
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsTypesAndMeasurement(History)",
+					representation.getTypeAsString());
 		}
 
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
@@ -123,7 +128,8 @@ public class DataFetcher {
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
-				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype", "provenance");
+				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype",
+						"provenance");
 
 		int measurementType = checkMeasurementType(query);
 
@@ -131,28 +137,34 @@ public class DataFetcher {
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE)) {
 			query.addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSqlIf("from measurementhistory me", from != null || to != null)
-				 .addSqlIf("from measurement me", from == null && to == null)
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfNotNull("and", aclWhereclause)
-				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
-				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.addSqlIf(
+							"me.timestamp as _timestamp",
+							representation.isFlat())
+					.expandSelectPrefix(", ")
+					.addSqlIf("from measurementhistory me", from != null || to != null)
+					.addSqlIf("from measurement me", from == null && to == null)
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfNotNull("and", aclWhereclause)
+					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+					.setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) && hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
@@ -160,69 +172,89 @@ public class DataFetcher {
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
-			query.reset(select, where, distinct, "station", "parent", "measurementstring", "measurement", "datatype", "provenance")
-				 .addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSqlIf("from measurementstringhistory me", from != null || to != null)
-				 .addSqlIf("from measurementstring me", from == null && to == null)
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfNotNull("and", aclWhereclause)
-				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
-				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+			query.reset(select, where, distinct, "station", "parent", "measurementstring", "measurement", "datatype",
+					"provenance")
+					.addSql("select")
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.addSqlIf(
+							"me.timestamp as _timestamp",
+							representation.isFlat())
+					.expandSelectPrefix(", ")
+					.addSqlIf("from measurementstringhistory me", from != null || to != null)
+					.addSqlIf("from measurementstring me", from == null && to == null)
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfNotNull("and", aclWhereclause)
+					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+					.setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
-		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) && hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
+		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING))
+				&& hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.addSql("union all");
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
-			query.reset(select, where, distinct, "station", "parent", "measurementjson", "measurement", "datatype", "provenance")
-				 .addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSqlIf("from measurementjsonhistory me", from != null || to != null)
-				 .addSqlIf("from measurementjson me", from == null && to == null)
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfNotNull("and", aclWhereclause)
-				 .addSqlIfNotNull(aclWhereclause, aclWhereclause)
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
-				 .setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+			query.reset(select, where, distinct, "station", "parent", "measurementjson", "measurement", "datatype",
+					"provenance")
+					.addSql("select")
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.addSqlIf(
+							"me.timestamp as _timestamp",
+							representation.isFlat())
+					.expandSelectPrefix(", ")
+					.addSqlIf("from measurementjsonhistory me", from != null || to != null)
+					.addSqlIf("from measurementjson me", from == null && to == null)
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfNotNull("and", aclWhereclause)
+					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.setParameterIfNotNull("from", from, "and timestamp >= :from::timestamptz")
+					.setParameterIfNotNull("to", to, "and timestamp < :to::timestamptz")
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
 		}
 
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !representation.isFlat())
-			 .addLimit(limit)
-			 .addOffset(offset);
+				.addSqlIf("order by _timestamp asc", representation.isFlat())
+				.addLimit(limit)
+				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		// We need null values while tree building. We remove them during the output generation
+		// to print the query string
+		// LOG.debug(query.getSql().toString());
+
+		// We need null values while tree building. We remove them during the output
+		// generation
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -249,9 +281,9 @@ public class DataFetcher {
 
 				if (filename.endsWith(".sql")) {
 					String sql = FileUtils
-						.loadFile("acl-rules/" + filename)
-						.replaceAll("--.*\n", "\n")
-						.replaceAll("//.*\n", "\n");
+							.loadFile("acl-rules/" + filename)
+							.replaceAll("--.*\n", "\n")
+							.replaceAll("//.*\n", "\n");
 					aclWhereClauses.put(filename.substring(0, filename.length() - 4).toUpperCase(), sql);
 				}
 			}
@@ -274,7 +306,8 @@ public class DataFetcher {
 			final Representation representation) {
 
 		if (representation.isEdge()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsAndTypes", representation.getTypeAsString());
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsAndTypes",
+					representation.getTypeAsString());
 		}
 
 		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
@@ -291,23 +324,27 @@ public class DataFetcher {
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE)) {
 			query.addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSql("from measurement me")
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.expandSelectPrefix(", ", !representation.isFlat())
+					.addSql("from measurement me")
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
+					.addSql("order by timestamp asc");
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) && hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
@@ -316,58 +353,68 @@ public class DataFetcher {
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance")
-				 .addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSql("from measurementstring me")
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+					.addSql("select")
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.expandSelectPrefix(", ", !representation.isFlat())
+					.addSql("from measurementstring me")
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
+					.addSql("order by timestamp asc");
 		}
 
-		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) && hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
+		if ((hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE) || hasFlag(measurementType, MEASUREMENT_TYPE_STRING))
+				&& hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.addSql("union all");
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance")
-				 .addSql("select")
-				 .addSqlIf("distinct", distinct)
-				 .addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename", !representation.isFlat())
-				 .expandSelectPrefix(", ", !representation.isFlat())
-				 .addSql("from measurementjson me")
-				 .addSql("join station s on me.station_id = s.id")
-				 .addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
-				 .addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
-				 .addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
-				 .addSql("join type t on me.type_id = t.id")
-				 .addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
-				 .addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
-				 .addSql("where s.available = true")
-				 .addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
-				 .setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
-				 .setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)", !dataTypeSet.contains("*"))
-				 .expandWhere()
-				 .expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat());
+					.addSql("select")
+					.addSqlIf("distinct", distinct)
+					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
+							!representation.isFlat())
+					.expandSelectPrefix(", ", !representation.isFlat())
+					.addSql("from measurementjson me")
+					.addSql("join station s on me.station_id = s.id")
+					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSql("join type t on me.type_id = t.id")
+					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
+					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
+					.addSql("where s.available = true")
+					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
+							!stationTypeSet.contains("*"))
+					.setParameterIfNotEmptyAnd("datatypes", dataTypeSet, "and t.cname in (:datatypes)",
+							!dataTypeSet.contains("*"))
+					.expandWhere()
+					.expandGroupByIf("_stationtype, _stationcode, _datatypename", !representation.isFlat())
+					.addSql("order by timestamp asc");
 		}
 
 		query.addSqlIf("order by _stationtype, _stationcode, _datatypename", !representation.isFlat())
-			 .addLimit(limit)
-			 .addOffset(offset);
+				.addLimit(limit)
+				.addOffset(offset);
 		long timeBuild = timer.stop();
 
-		// We need null values while tree building. We remove them during the output generation
+		// We need null values while tree building. We remove them during the output
+		// generation
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -378,7 +425,8 @@ public class DataFetcher {
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
 		logData.put("dataTypes", dataTypeSet);
-		setStats("fetchStationsAndTypes", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+		setStats("fetchStationsAndTypes", representation, queryResult.size(), timeBuild, timeExec, query.getSql(),
+				logData);
 
 		return queryResult;
 	}
@@ -386,7 +434,8 @@ public class DataFetcher {
 	public List<Map<String, Object>> fetchStationTypes(final Representation representation) {
 
 		if (!representation.isNode()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationTypes", representation.getTypeAsString());
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationTypes",
+					representation.getTypeAsString());
 		}
 
 		Timer timer = new Timer();
@@ -406,7 +455,8 @@ public class DataFetcher {
 	public List<Map<String, Object>> fetchEventOrigins(final Representation representation) {
 
 		if (!representation.isEvent()) {
-			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEventOrigins", representation.getTypeAsString());
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEventOrigins",
+					representation.getTypeAsString());
 		}
 
 		Timer timer = new Timer();
@@ -423,7 +473,8 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	public List<Map<String, Object>> fetchEvents(String originList, boolean latestOnly, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
+	public List<Map<String, Object>> fetchEvents(String originList, boolean latestOnly, OffsetDateTime from,
+			OffsetDateTime to, final Representation representation) {
 
 		if (!representation.isEvent()) {
 			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchEvents", representation.getTypeAsString());
@@ -437,10 +488,13 @@ public class DataFetcher {
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "event", "location", "provenanceevent")
-				.addSqlIf("with latest as (select e.id, row_number() over(partition by e.origin, e.event_series_uuid order by e.event_interval desc) as rank from event e)", latestOnly)
+				.addSqlIf(
+						"with latest as (select e.id, row_number() over(partition by e.origin, e.event_series_uuid order by e.event_interval desc) as rank from event e)",
+						latestOnly)
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
-				.addSqlIf("ev.origin as _eventorigin, ev.event_series_uuid as _eventseriesuuid, ev.uuid as _eventuuid", !representation.isFlat())
+				.addSqlIf("ev.origin as _eventorigin, ev.event_series_uuid as _eventseriesuuid, ev.uuid as _eventuuid",
+						!representation.isFlat())
 				.addSqlIfDefinitionAnd(", ev.location_id::text as _locationid", "location", !representation.isFlat())
 				.expandSelectPrefix(", ", !representation.isFlat())
 				.addSql("from event ev")
@@ -452,19 +506,25 @@ public class DataFetcher {
 				.addSqlIf("and lat.rank = 1", latestOnly)
 				.setParameterIfNotNull("from", from, "and lower(ev.event_interval) >= :from::timestamp")
 				.setParameterIfNotNull("to", to, "and upper(ev.event_interval) < :to::timestamp")
-				.setParameterIfNotEmptyAnd("origins", originSet, "and ev.origin in (:origins)", !originSet.contains("*"))
+				.setParameterIfNotEmptyAnd("origins", originSet, "and ev.origin in (:origins)",
+						!originSet.contains("*"))
 				.expandWhere()
-				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid", !representation.isFlat() && !se.getUsedDefNames().contains("location"))
-				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid", !representation.isFlat() && !se.getUsedDefNames().contains("location"))
-				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid, _locationid", !representation.isFlat() && se.getUsedDefNames().contains("location"))
-				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid, _locationid", !representation.isFlat() && se.getUsedDefNames().contains("location"))
+				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid",
+						!representation.isFlat() && !se.getUsedDefNames().contains("location"))
+				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid",
+						!representation.isFlat() && !se.getUsedDefNames().contains("location"))
+				.expandGroupByIf("_eventorigin, _eventseriesuuid, _eventuuid, _locationid",
+						!representation.isFlat() && se.getUsedDefNames().contains("location"))
+				.addSqlIf("order by _eventorigin, _eventseriesuuid, _eventuuid, _locationid",
+						!representation.isFlat() && se.getUsedDefNames().contains("location"))
 				.addLimit(limit)
 				.addOffset(offset);
 		long timeBuild = timer.stop();
 
 		LOG.debug(query.getSql());
 
-		// We need null values while tree building. We remove them during the output generation
+		// We need null values while tree building. We remove them during the output
+		// generation
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -526,7 +586,8 @@ public class DataFetcher {
 				.addSql("where i.available = true")
 				.addSqlIfDefinition("and (o.available is null or o.available = true)", "stationbegin")
 				.addSqlIfDefinition("and (d.available is null or d.available = true)", "stationend")
-				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)", !stationTypeSet.contains("*"))
+				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND i.stationtype in (:stationtypes)",
+						!stationTypeSet.contains("*"))
 				.expandWhere()
 				.expandGroupByIf("_edgetype, _edgecode", !representation.isFlat())
 				.addSqlIf("order by _edgetype, _edgecode", !representation.isFlat())
@@ -536,7 +597,8 @@ public class DataFetcher {
 
 		LOG.debug(query.getSql());
 
-		// We need null values while tree building. We remove them during the output generation
+		// We need null values while tree building. We remove them during the output
+		// generation
 		timer.start();
 		List<Map<String, Object>> queryResult = QueryExecutor
 				.init()
@@ -558,7 +620,8 @@ public class DataFetcher {
 		LOG.debug(logPayload.get("sql").toString());
 	}
 
-	private void setStats(final String command, final Representation repr, long resultCount, long buildTime, long executionTime, final String sql, Map<String, Object> extraData) {
+	private void setStats(final String command, final Representation repr, long resultCount, long buildTime,
+			long executionTime, final String sql, Map<String, Object> extraData) {
 		if (logPayload == null) {
 			logPayload = new HashMap<>();
 		} else {
@@ -581,7 +644,6 @@ public class DataFetcher {
 		return logPayload;
 	}
 
-
 	public void setLimit(long limit) {
 		this.limit = limit;
 	}
@@ -603,7 +665,8 @@ public class DataFetcher {
 	}
 
 	public void setSelect(String select) {
-		/* No need to check for null, since the QueryBuilder
+		/*
+		 * No need to check for null, since the QueryBuilder
 		 * will handle this with a "SELECT * ..."
 		 */
 		this.select = select;
@@ -634,38 +697,30 @@ public class DataFetcher {
 		// FIXME we ignore lists here, that might have more than 1 value
 		Token mvalue = mvalueTarget.getValue(0);
 
-		if (
-			!mvalue.is("string")
-			&& !mvalue.is("number")
-			&& !mvalue.is("null")
-		) {
+		if (!mvalue.is("string")
+				&& !mvalue.is("number")
+				&& !mvalue.is("null")) {
 			throw new SimpleException(ErrorCode.WHERE_WRONG_DATA_TYPE, "mvalue", mvalue.getName());
 		}
 
-		/* We support functions only for double-typed measurements, so do not append a measurement-string query if any
+		/*
+		 * We support functions only for double-typed measurements, so do not append a
+		 * measurement-string query if any
 		 */
 		boolean hasFunctions = query.getSelectExpansion().hasFunctions();
-		boolean useMeasurementDouble =
-			(
-				Token.is(mvalue, "number")
-				|| Token.is(mvalue, "null")
-			)
-			&& !mvalueTarget.hasJson();
-		boolean useMeasurementString =
-			(
-				Token.is(mvalue, "string")
-				|| Token.is(mvalue, "null")
-			)
-			&& !hasFunctions
-			&& !mvalueTarget.hasJson();
-		boolean useMeasurementJson =
-			(
-				Token.is(mvalue, "string")
+		boolean useMeasurementDouble = (Token.is(mvalue, "number")
+				|| Token.is(mvalue, "null"))
+				&& !mvalueTarget.hasJson();
+		boolean useMeasurementString = (Token.is(mvalue, "string")
+				|| Token.is(mvalue, "null"))
+				&& !hasFunctions
+				&& !mvalueTarget.hasJson();
+		boolean useMeasurementJson = (Token.is(mvalue, "string")
 				|| Token.is(mvalue, "number")
-				|| Token.is(mvalue, "null")
-			)
-			&& !hasFunctions
-			&& mvalueTarget.hasJson(); // We can check this here, because we are sure to use "mvalue" in the where-clause at this point
+				|| Token.is(mvalue, "null"))
+				&& !hasFunctions
+				&& mvalueTarget.hasJson(); // We can check this here, because we are sure to use "mvalue" in the
+											// where-clause at this point
 
 		if (!useMeasurementDouble && !useMeasurementString && !useMeasurementJson) {
 			throw new SimpleException(ErrorCode.FUNCTIONS_AND_JSON_MIX_NOT_ALLOWED);
