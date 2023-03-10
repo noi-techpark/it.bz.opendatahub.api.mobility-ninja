@@ -133,7 +133,7 @@ public class DataFetcher {
 
 		int measurementType = checkMeasurementType(query);
 
-		String aclWhereclause = getAclWhereClause(roles);
+		String aclWhereClause = getAclWhereClause(AclType.stations, roles);
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_DOUBLE)) {
 			query.addSql("select")
@@ -154,8 +154,8 @@ public class DataFetcher {
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 					.addSql("where s.available = true")
-					.addSqlIfNotNull("and", aclWhereclause)
-					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfNotNull("and", aclWhereClause)
+					.addSqlIfNotNull(aclWhereClause, aclWhereClause)
 					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
 							!stationTypeSet.contains("*"))
@@ -192,8 +192,8 @@ public class DataFetcher {
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 					.addSql("where s.available = true")
-					.addSqlIfNotNull("and", aclWhereclause)
-					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfNotNull("and", aclWhereClause)
+					.addSqlIfNotNull(aclWhereClause, aclWhereClause)
 					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
 							!stationTypeSet.contains("*"))
@@ -231,8 +231,8 @@ public class DataFetcher {
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
 					.addSql("where s.available = true")
-					.addSqlIfNotNull("and", aclWhereclause)
-					.addSqlIfNotNull(aclWhereclause, aclWhereclause)
+					.addSqlIfNotNull("and", aclWhereClause)
+					.addSqlIfNotNull(aclWhereClause, aclWhereClause)
 					.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 					.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "and s.stationtype in (:stationtypes)",
 							!stationTypeSet.contains("*"))
@@ -271,9 +271,16 @@ public class DataFetcher {
 		return queryResult;
 	}
 
-	private String getAclWhereClause(List<String> roles) {
+	private enum AclType{
+		stations, events
+	}
+
+	private String getAclWhereClause(AclType aclType, List<String> roles) {
 		if (aclWhereClauses.isEmpty()) {
-			String[] files = FileUtils.loadFile("acl-rules/rules.txt").split("\n");
+			LOG.debug("Loading ACL rules: type = {}", aclType.name());
+			String aclRuleFolder = "acl-rules/" + aclType.name() + "/";
+
+			String[] files = FileUtils.loadFile(aclRuleFolder + "rules.txt").split("\n");
 			for (String filename : files) {
 				if (filename.equals("ADMIN.sql")) {
 					continue;
@@ -281,13 +288,16 @@ public class DataFetcher {
 
 				if (filename.endsWith(".sql")) {
 					String sql = FileUtils
-							.loadFile("acl-rules/" + filename)
+							.loadFile(aclRuleFolder + filename)
 							.replaceAll("--.*\n", "\n")
-							.replaceAll("//.*\n", "\n");
-					aclWhereClauses.put(filename.substring(0, filename.length() - 4).toUpperCase(), sql);
+							.replaceAll("//.*\n", "\n")
+							.replaceAll("^\\s*\n", ""); // remove empty lines
+					String rolename = filename.substring(0, filename.length() - 4).toUpperCase();
+					aclWhereClauses.put(rolename, sql);
 				}
 			}
 		}
+		LOG.debug("Constructing acl rules for roles {}", roles);
 
 		if (roles.contains("ADMIN")) {
 			return null;
@@ -479,6 +489,8 @@ public class DataFetcher {
 
 		Set<String> originSet = QueryBuilder.csvToSet(originList);
 
+		String aclWhereClause = getAclWhereClause(AclType.events, roles);
+
 		Timer timer = new Timer();
 
 		timer.start();
@@ -500,6 +512,8 @@ public class DataFetcher {
 				.addSqlIfDefinition("left join location loc on ev.location_id = loc.id", "location")
 				.addSqlIfAlias("left join metadata evm on evm.id = ev.meta_data_id", "evmetadata")
 				.addSql("where 1 = 1")
+				.addSqlIfNotNull("and", aclWhereClause)
+				.addSqlIfNotNull(aclWhereClause, aclWhereClause)
 				.addSqlIf("and lat.rank = 1", latestOnly)
 				.setParameterIfNotNull("from", from, "and lower(ev.event_interval) >= :from::timestamp")
 				.setParameterIfNotNull("to", to, "and upper(ev.event_interval) < :to::timestamp")

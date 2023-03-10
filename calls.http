@@ -21,6 +21,11 @@ GET {{host}}/tree/TrafficSensor/*/latest
 ?where=scode.eq.%22A22:5687:3%22
 Authorization: Bearer {{token}}
 
+### Events
+{{host}}/event,tree/*
+?select=evldescription,evuuid,evseriesuuid,evprovenance
+Authorization: Bearer {{token}}
+
 ###
 GET {{host}}/flat/*/*/2022-01-01/2022-01-02
 ?where=sorigin.eq.APPABZ
@@ -226,15 +231,16 @@ Authorization: Bearer {{token}}
 ### Problem about ON_DEMAND
 @token = {{login.response.body.access_token}}
 {{host}}/flat/ON_DEMAND_ITINERARY/*/latest
-
 Authorization: Bearer {{token}}
 
 ### Events
 {{host}}/event,flat
 
 ### Events
+@token = {{login.response.body.access_token}}
 {{host}}/event,tree/*
 ?select=evldescription,evuuid,evseriesuuid,evprovenance
+Authorization: Bearer {{token}}
 #?1=1
 #&shownull=true
 #&limit=1

@@ -214,6 +214,7 @@ public class DataController {
 		dataFetcher.setOffset(offset);
 		dataFetcher.setWhere(where);
 		dataFetcher.setSelect(select);
+		dataFetcher.setRoles(getRoles(request));
 		dataFetcher.setDistinct(distinct);
 
 		String entryPoint = null;
