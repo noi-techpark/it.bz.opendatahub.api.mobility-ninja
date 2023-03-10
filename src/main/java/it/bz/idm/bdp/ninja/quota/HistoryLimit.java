@@ -65,12 +65,19 @@ public class HistoryLimit {
 		LOG.debug("Checking history quota for request {}?{}", request.getRequestURI(), request.getQueryString());
 		PricingPlan plan = getPricingPlan(request);
 
+		if (plan.is(Policy.NO_RESTRICTION)) {
+			return Optional.empty();
+		}
+
+		LOG.debug("Requested date range is {} to {}, limit is {} days", from, to, plan.getLimit());
+
 		if (to == null) {
 			to = ZonedDateTime.now(from.getZone());
 		}
 
-		LOG.debug("Requested date range is {} to {}, limit is {} days", from, to, plan.getLimit());
-		if (Duration.between(from.toLocalDate().atStartOfDay(), to.toLocalDate().atStartOfDay()).toDays() > plan.getLimit()) {
+		long dateRangeInDays = Duration.between(from.toLocalDate().atStartOfDay(), to.toLocalDate().atStartOfDay()).toDays();
+
+		if (dateRangeInDays > plan.getLimit()) {
 			LOG.info("Caller hit history range limit!");
 			return Optional.of(new QuotaLimitException(
 					String.format("You have exceeded the date range limit of %s days", plan.getLimit()),
