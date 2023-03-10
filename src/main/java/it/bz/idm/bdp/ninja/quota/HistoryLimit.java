@@ -61,6 +61,16 @@ public class HistoryLimit {
 		LOG.debug("Loaded history limit quota map: {}", quotaMap);
 	}
 
+	/**
+	 * Checks if the caller is allowed to request data with this time range according to quota limits
+	 * 
+	 * @param request HttpRequest of the call. Used to retrieve the caller authorization and role
+	 * @param from Start of requested period
+	 * @param to End of requested period. If null, the end of the period is current time (in the timezone of the start date)
+	 * 
+	* @return Optional that wraps a QuotaLimitException. <p>
+	 * This way the caller must do an explicit throw of the Exception and it's clear that an Exception is being thrown
+	 */
 	public Optional<QuotaLimitException> check(HttpServletRequest request, ZonedDateTime from, ZonedDateTime to) {
 		LOG.debug("Checking history quota for request {}?{}", request.getRequestURI(), request.getQueryString());
 		PricingPlan plan = getPricingPlan(request);
