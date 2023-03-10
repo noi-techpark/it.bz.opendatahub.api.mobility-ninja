@@ -169,6 +169,10 @@ GET {{host}}/flat,node/BluetoothStation/*/latest
 GET {{host}}/flat,node/BluetoothStation/*/latest
 ?limit=200&where=scode.eq.schaffer-winkel&distinct=true&timezone=UTC
 
+###
+GET {{host}}/tree,node/BluetoothStation/*/2023-03-01/2023-03-09
+?limit=200&timezone=UTC
+
 #?limit=200&where=scode.eq.huber&distinct=true&timezone=UTC
 
 ###

@@ -1,7 +1,7 @@
 package it.bz.idm.bdp.ninja;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import it.bz.idm.bdp.ninja.utils.querybuilder.TargetDefList;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
@@ -27,7 +27,7 @@ public class ResultBuilderTests {
 	private SelectExpansion seOpenDataHub;
 	private SelectExpansion seNestedMain;
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		seOpenDataHub = new SelectExpansionConfig().getSelectExpansion();
 
@@ -218,7 +218,7 @@ public class ResultBuilderTests {
 	}
 
 	@Test
-	@Ignore("This is about issue #23, currently in Backlog... future development")
+	@Disabled("This is about issue #23, currently in Backlog... future development")
 	public void testNewGenericResultBuilderOnlyMvalueJsonSub2() {
 		Map<String, Object> rec1 = ConditionalMap.mapOf(
 			"_stationtype", "EChargingStation",

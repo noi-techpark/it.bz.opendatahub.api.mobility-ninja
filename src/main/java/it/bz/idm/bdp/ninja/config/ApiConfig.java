@@ -27,7 +27,7 @@ public class ApiConfig implements WebMvcConfigurer {
 	public void addCorsMappings(CorsRegistry registry) {
 		registry
 			.addMapping("/**")
-			.allowedOrigins(allowedOrigins)
+			.allowedOriginPatterns(allowedOrigins)
 			.allowedHeaders(CorsConfiguration.ALL)
 			.allowedMethods("GET", "HEAD", "OPTIONS")
 			.allowCredentials(true);

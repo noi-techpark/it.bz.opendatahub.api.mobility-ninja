@@ -38,7 +38,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.jsoniter.output.JsonStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +52,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import it.bz.idm.bdp.ninja.DataFetcher;
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
+import it.bz.idm.bdp.ninja.quota.HistoryLimit;
 import it.bz.idm.bdp.ninja.utils.FileUtils;
 import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
@@ -92,6 +95,9 @@ public class DataController {
 
 	private String fileRoot;
 	private String fileSpec;
+
+	@Autowired 
+	HistoryLimit historyLimit;
 
 	public enum ErrorCode implements ErrorCodeInterface {
 		DATE_PARSE_ERROR(
@@ -200,7 +206,6 @@ public class DataController {
 		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
 		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct
 	) {
-
 		final Representation repr = Representation.get(pathvar1);
 
 		DataFetcher dataFetcher = new DataFetcher();
@@ -446,11 +451,16 @@ public class DataController {
 		switch (repr) {
 			case FLAT_NODE:
 			case TREE_NODE:
+				ZonedDateTime from = getDateTime(pathvar4); 
+				ZonedDateTime to = getDateTime(pathvar5); 
+				historyLimit.check(request, from, to).ifPresent(e -> {
+					throw e;
+				});
 				queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
 					pathvar2,
 					pathvar3,
-					getDateTime(pathvar4).toOffsetDateTime(),
-					getDateTime(pathvar5).toOffsetDateTime(),
+					from.toOffsetDateTime(),
+					to.toOffsetDateTime(),
 					repr
 				);
 				entryPoint = "stationtype";

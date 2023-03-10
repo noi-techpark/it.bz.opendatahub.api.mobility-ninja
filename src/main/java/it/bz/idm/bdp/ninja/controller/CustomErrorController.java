@@ -19,9 +19,4 @@ public class CustomErrorController implements ErrorController {
 			"Route does not exist"
 		);
 	}
-
-	@Override
-	public String getErrorPath() {
-		return "/error";
-	}
 }

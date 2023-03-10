@@ -23,11 +23,13 @@
 package it.bz.idm.bdp.ninja.config;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import it.bz.idm.bdp.ninja.quota.QuotaLimitException;
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -71,6 +74,22 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 			return buildResponse(HttpStatus.BAD_REQUEST, (PSQLException) cause);
 		}
 		return buildResponse(HttpStatus.BAD_REQUEST, ex);
+	}
+
+	@ExceptionHandler
+	public ResponseEntity<Object> handleQuotaLimitException(QuotaLimitException ex) {
+		HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+
+		HttpHeaders headers = new HttpHeaders();
+
+		Map<String, Object> body = Map.of(
+			"message", ex.message,
+			"policy", ex.policy,
+			"hint", ex.hint
+		);
+
+		ResponseEntity<Object> response = new ResponseEntity<>(body, headers, status );
+		return response;
 	}
 
 	private ResponseEntity<Object> buildResponse(final HttpStatus httpStatus, final Exception exception) {

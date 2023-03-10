@@ -1,12 +1,9 @@
 package it.bz.idm.bdp.ninja.quota;
 
-import java.time.Duration;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Refill;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 
 public class PricingPlan {
@@ -31,11 +28,11 @@ public class PricingPlan {
 	}
 
 	private Policy policy;
-	private Map<Policy, Long> quotaMap;
+	private Map<Policy, Long> limitMap;
 
 	public PricingPlan(Policy policy, Map<Policy, Long> quotaMap) {
 		this.policy = policy;
-		this.quotaMap = new EnumMap<>(quotaMap);
+		this.limitMap = new EnumMap<>(quotaMap);
 	}
 
 	public static PricingPlan resolvePlan(
@@ -76,23 +73,17 @@ public class PricingPlan {
 		);
 	}
 
-	public Bandwidth getBandwidth() {
-		long quota = quotaMap.getOrDefault(policy, Long.valueOf(-1));
-		if (quota < 0) {
-			throw new IllegalArgumentException(
+	public long getLimit (){
+		long limit = limitMap.getOrDefault(policy, Long.valueOf(-1));
+		if (limit < 0) {
+			throw new IllegalArgumentException (
 				String.format(
-					"Princing plan '%s' does not have a bandwidth constraint or does not exist at all.",
+					"Pricing plan '%s' does not have a quota constraint or does not exist at all.",
 					policy
 				)
 			);
 		}
-		return Bandwidth.classic(
-			quota,
-			Refill.intervally(
-				quota,
-				Duration.ofSeconds(1)
-			)
-		);
+		return limit;
 	}
 
     public boolean is(Policy policy) {
@@ -107,5 +98,4 @@ public class PricingPlan {
 	public String toString() {
 		return policy.getName();
 	}
-
 }

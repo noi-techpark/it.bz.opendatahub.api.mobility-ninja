@@ -1,5 +1,6 @@
 package it.bz.idm.bdp.ninja.quota;
 
+import java.time.Duration;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.jsoniter.output.JsonStream;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +21,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
+import io.github.bucket4j.Refill;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 
@@ -96,7 +100,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 			k -> {
 				return Bucket
 					.builder()
-					.addLimit(limitation.getBandwidth())
+					.addLimit(getBandwidth(limitation))
 					.build();
 			}
 		);
@@ -139,7 +143,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
 		long waitForRefill = probe.getNanosToWaitForRefill() / 1_000_000_000;
 		response.addHeader("X-Rate-Limit-Reset", String.valueOf(waitForRefill));
-		response.addHeader("X-Rate-Limit-Limit", String.valueOf(plan.getBandwidth().getCapacity()));
+		response.addHeader("X-Rate-Limit-Limit", String.valueOf(getBandwidth(plan).getCapacity()));
 
 		if (probe.isConsumed()) {
             response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
@@ -162,4 +166,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
 		return false;
     }
+
+	private static Bandwidth getBandwidth(PricingPlan plan) {
+		long quota = plan.getLimit();
+		return Bandwidth.classic(
+			quota,
+			Refill.intervally(
+				quota,
+				Duration.ofSeconds(1)
+			)
+		);
+	}
 }
