@@ -60,7 +60,6 @@ public class DataFetcher {
 	private String select;
 	private String where;
 	private boolean distinct;
-	private static Map<String, String> aclWhereClauses = new ConcurrentHashMap<>();
 	private String timeZone = "UTC";
 	private Map<String, Object> logPayload;
 
@@ -272,11 +271,13 @@ public class DataFetcher {
 	}
 
 	private enum AclType{
-		stations, events
+		stations, events;
+
+		public final Map<String, String> rulesCache = new ConcurrentHashMap<>();
 	}
 
 	private String getAclWhereClause(AclType aclType, List<String> roles) {
-		if (aclWhereClauses.isEmpty()) {
+		if (aclType.rulesCache.isEmpty()) {
 			LOG.debug("Loading ACL rules: type = {}", aclType.name());
 			String aclRuleFolder = "acl-rules/" + aclType.name() + "/";
 
@@ -293,7 +294,7 @@ public class DataFetcher {
 							.replaceAll("//.*\n", "\n")
 							.replaceAll("^\\s*\n", ""); // remove empty lines
 					String rolename = filename.substring(0, filename.length() - 4).toUpperCase();
-					aclWhereClauses.put(rolename, sql);
+					aclType.rulesCache.put(rolename, sql);
 				}
 			}
 		}
@@ -306,7 +307,7 @@ public class DataFetcher {
 		StringJoiner sj = new StringJoiner(" or ", "(", ")");
 
 		for (String role : roles) {
-			sj.add(aclWhereClauses.get(role));
+			sj.add(aclType.rulesCache.get(role));
 		}
 
 		return sj.toString();
