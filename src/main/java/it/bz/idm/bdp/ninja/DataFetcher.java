@@ -269,8 +269,8 @@ public class DataFetcher {
 			command = "fetchMeasurement";
 		} else {
 			command = "fetchMeasurementHistory";
-			logData.put("historyRangeFrom", from);
-			logData.put("historyRangeTo", to);
+			logData.put("historyRangeFrom", from.toString());
+			logData.put("historyRangeTo", to.toString());
 		}
 		setStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
