@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -238,8 +239,8 @@ public class DataFetcher {
 			command = "fetchMeasurement";
 		} else {
 			command = "fetchMeasurementHistory";
-			logData.put("historyRangeFrom", from.toString());
-			logData.put("historyRangeTo", to.toString());
+			logData.put("historyRangeFrom", Objects.toString(from));
+			logData.put("historyRangeTo", Objects.toString(to));
 		}
 		setStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
