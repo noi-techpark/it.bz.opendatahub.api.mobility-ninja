@@ -264,7 +264,14 @@ public class DataFetcher {
 		Map<String, Object> logData = new HashMap<>();
 		logData.put("stationTypes", stationTypeSet);
 		logData.put("dataTypes", dataTypeSet);
-		String command = (from == null && to == null) ? "fetchMeasurement" : "fetchMeasurementHistory";
+		String command;
+		if (from == null && to == null) {
+			command = "fetchMeasurement";
+		} else {
+			command = "fetchMeasurementHistory";
+			logData.put("historyRangeFrom", from);
+			logData.put("historyRangeTo", to);
+		}
 		setStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
 		return queryResult;
