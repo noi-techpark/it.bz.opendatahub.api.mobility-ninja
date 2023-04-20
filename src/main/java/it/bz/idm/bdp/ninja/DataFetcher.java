@@ -1,6 +1,7 @@
 package it.bz.idm.bdp.ninja;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -272,6 +273,9 @@ public class DataFetcher {
 			command = "fetchMeasurementHistory";
 			logData.put("historyRangeFrom", Objects.toString(from));
 			logData.put("historyRangeTo", Objects.toString(to));
+			if (from != null && to != null){
+				logData.put("historyRangeDays", from.until(to, ChronoUnit.DAYS));
+			}
 		}
 		setStats(command, representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
 
