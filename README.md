@@ -35,6 +35,7 @@
       - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
       - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
       - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
+      - [I want all parking sensors that have the string "Meran" in the name](#i-want-all-parking-sensors-that-have-the-string-meran-in-the-name)
     - [Time Zones](#time-zones)
     - [Null values](#null-values)
     - [Representation](#representation)
@@ -379,6 +380,20 @@ We use a JSON selector and JSON filters here:
 ```
 GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
 ```
+
+#### I want all parking sensors that have the string "Meran" in the name
+
+We use a regex where filter on sname:
+
+```
+GET /flat/ParkingSensor?where=sname.re."Meran"
+```
+
+All supported regex filters are:  
+- re: case sensitive regex
+- ire: case insensitive regex
+- nre: negated case sensitive regex
+- nire: negated case insensitive regex
 
 ### Time Zones
 
