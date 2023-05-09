@@ -32,10 +32,9 @@
       - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
       - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
       - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
+      - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
       - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
       - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
-      - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
-      - [I want all parking sensors that have the string "Meran" in the name](#i-want-all-parking-sensors-that-have-the-string-meran-in-the-name)
     - [Time Zones](#time-zones)
     - [Null values](#null-values)
     - [Representation](#representation)
@@ -354,6 +353,14 @@ or `\"`. A special value is `null`. If you want to use it as a literal value,
 that is, the String itself, then you must put it into double-quotes, like
 `"null"`.
 
+#### I want all creative industry station names, which do not have a sector assigned
+
+We use a JSON selector and JSON filters here:
+
+```
+GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
+```
+
 #### I want to see all information where the station code starts with "me" or "rovereto"
 
 We use a key-insensitive regular expression here:
@@ -372,28 +379,6 @@ GET /flat/CreativeIndustry?where=sactive.eq.true,smetadata.website.neq.null,smet
 
 We check not only for `smetadata.website` to be present, but also to start with `http` to be sure it
 is not a description telling us, that the website is currently under development or similar things.
-
-#### I want all creative industry station names, which do not have a sector assigned
-
-We use a JSON selector and JSON filters here:
-
-```
-GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
-```
-
-#### I want all parking sensors that have the string "Meran" in the name
-
-We use a regex where filter on sname:
-
-```
-GET /flat/ParkingSensor?where=sname.re."Meran"
-```
-
-All supported regex filters are:  
-- re: case sensitive regex
-- ire: case insensitive regex
-- nre: negated case sensitive regex
-- nire: negated case insensitive regex
 
 ### Time Zones
 
