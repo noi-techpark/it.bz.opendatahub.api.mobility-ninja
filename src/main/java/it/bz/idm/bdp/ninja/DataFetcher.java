@@ -113,6 +113,56 @@ public class DataFetcher {
 		return queryResult;
 	}
 
+	public List<Map<String, Object>> fetchStationsAndMetadataHistory(String stationTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
+		if (representation.isEdge()) {
+			throw new SimpleException(ErrorCode.METHOD_NOT_ALLOWED, "fetchStationsAndMetadata", representation.getTypeAsString());
+		}
+		Set<String> stationTypeSet = QueryBuilder.csvToSet(stationTypeList);
+		Timer timer = new Timer();
+
+		timer.start();
+		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
+		QueryBuilder query = QueryBuilder
+				.init(se, select, where, distinct, "station", "parent", "metadatahistory")
+				.addSql("select")
+				.addSqlIf("distinct", distinct)
+				.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode", !representation.isFlat())
+				.expandSelectPrefix(", ",!representation.isFlat())
+				.addSql("from station s")
+				.addSql("join metadata mh on mh.station_id = s.id")
+				.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+				.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
+				.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+				.addSql("where s.available = true")
+				.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
+				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)",
+						!stationTypeSet.contains("*"))
+				.setParameterIfNotNull("from", from, "and mh.created_on >= :from::timestamptz")
+				.setParameterIfNotNull("to", to, "and mh.created_on < :to::timestamptz")
+				.expandWhere()
+				.expandGroupByIf("_stationtype, _stationcode", !representation.isFlat())
+				.addSqlIf("order by _stationtype, _stationcode ", !representation.isFlat())
+				.addLimit(limit)
+				.addOffset(offset);
+		long timeBuild = timer.stop();
+
+		// We need null values while tree building. We remove them during the output
+		// generation
+		timer.start();
+		List<Map<String, Object>> queryResult = QueryExecutor
+				.init()
+				.addParameters(query.getParameters())
+				.build(query.getSql(), ignoreNull && representation.isFlat(), timeZone);
+		long timeExec = timer.stop();
+
+		LOG.debug(queryResult.toString());
+
+		Map<String, Object> logData = new HashMap<>();
+		logData.put("stationTypes", stationTypeSet);
+		setStats("fetchStationsAndMetadata", representation, queryResult.size(), timeBuild, timeExec, query.getSql(), logData);
+
+		return queryResult;
+	}
 	public List<Map<String, Object>> fetchStationsTypesAndMeasurementHistory(String stationTypeList,
 			String dataTypeList, OffsetDateTime from, OffsetDateTime to, final Representation representation) {
 
