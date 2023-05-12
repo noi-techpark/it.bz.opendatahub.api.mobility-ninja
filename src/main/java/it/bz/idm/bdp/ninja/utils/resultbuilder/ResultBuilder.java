@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Target;
@@ -17,7 +18,8 @@ import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 public class ResultBuilder {
 
 	public enum ErrorCode implements ErrorCodeInterface {
-		RESPONSE_SIZE("Response size of %d MB exceeded. Please rephrase your request. Use a flat representation, WHERE, SELECT, LIMIT with OFFSET or a narrow time interval."),
+		RESPONSE_SIZE(
+				"Response size of %d MB exceeded. Please rephrase your request. Use a flat representation, WHERE, SELECT, LIMIT with OFFSET or a narrow time interval."),
 		WRONG_TREE_BUILDING_KEY_TYPE("The column '%s' used to build the TREE representation must be of type STRING");
 
 		private final String msg;
@@ -32,7 +34,8 @@ public class ResultBuilder {
 		}
 	}
 
-	public static int calculateLevel(Map<String, Object> rec, List<String> hierarchy, List<String> prevValues, List<String> currValues) {
+	public static int calculateLevel(Map<String, Object> rec, List<String> hierarchy, List<String> prevValues,
+			List<String> currValues) {
 
 		if (prevValues.isEmpty()) {
 			for (int i = 0; i < hierarchy.size(); i++) {
@@ -71,7 +74,8 @@ public class ResultBuilder {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> build(String entryPoint, String exitPoint, boolean showNull, List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
+	public static Map<String, Object> build(String entryPoint, String exitPoint, boolean showNull,
+			List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
 		AtomicLong size = new AtomicLong(0);
 		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
 
@@ -92,6 +96,11 @@ public class ResultBuilder {
 		Map<String, Map<String, Object>> cache = new HashMap<>();
 		Map<String, Object> firstResultRecord = queryResult.get(0);
 
+		// remove hierarchy triggers that are not contained in the Result set 
+		hierarchyTriggerKeys = hierarchyTriggerKeys.stream()
+				.filter(x -> firstResultRecord.containsKey(x))
+				.collect(Collectors.toList());
+
 		for (String key : hierarchyTriggerKeys) {
 			if (firstResultRecord.get(key) instanceof String)
 				continue;
@@ -99,7 +108,8 @@ public class ResultBuilder {
 			throw new SimpleException(ErrorCode.WRONG_TREE_BUILDING_KEY_TYPE, key);
 		}
 
-		// create catalog of Targets, since each record in this result set contains exactly the same names
+		// create catalog of Targets, since each record in this result set contains
+		// exactly the same names
 		for (List<String> targetDefListNames : hierarchy) {
 			for (String targetDefListName : targetDefListNames) {
 				Set<String> targetDefNames = schema.getOrNull(targetDefListName).getFinalNames();
@@ -115,9 +125,12 @@ public class ResultBuilder {
 			}
 		}
 
-		// We should check for all these prerequisites before starting the record loop to generate the result set
-		// we can also limit the possible levels, if we see that it stops always at 2 (for datatypes, not here in edges, just an example)
-		// and that the first two levels are mandatory, so it must never be lower than those
+		// We should check for all these prerequisites before starting the record loop
+		// to generate the result set
+		// we can also limit the possible levels, if we see that it stops always at 2
+		// (for datatypes, not here in edges, just an example)
+		// and that the first two levels are mandatory, so it must never be lower than
+		// those
 
 		for (Map<String, Object> rec : queryResult) {
 
@@ -169,7 +182,8 @@ public class ResultBuilder {
 								break;
 							}
 
-							Map<String, Object> parentSub = (Map<String, Object>) parent.getOrDefault(lookup.getParentTargetName(), new TreeMap<>());
+							Map<String, Object> parentSub = (Map<String, Object>) parent
+									.getOrDefault(lookup.getParentTargetName(), new TreeMap<>());
 							if (parentSub.isEmpty()) {
 								parent.put(lookup.getParentTargetName(), parentSub);
 								parentSub.put(mapTypeValue, curObject);
@@ -179,7 +193,8 @@ public class ResultBuilder {
 
 							break;
 						case LIST:
-							List<Object> newList = (List<Object>) parent.getOrDefault(lookup.getParentTargetName(), new ArrayList<>());
+							List<Object> newList = (List<Object>) parent.getOrDefault(lookup.getParentTargetName(),
+									new ArrayList<>());
 							if (newList.isEmpty()) {
 								parent.put(lookup.getParentTargetName(), newList);
 							}
@@ -199,7 +214,8 @@ public class ResultBuilder {
 		return result;
 	}
 
-	private static Map<String, Object> makeObj(List<Target> targetCatalog, Map<String, Object> record, boolean showNull, AtomicLong sizeEstimate) {
+	private static Map<String, Object> makeObj(List<Target> targetCatalog, Map<String, Object> record, boolean showNull,
+			AtomicLong sizeEstimate) {
 
 		if (targetCatalog == null || targetCatalog.isEmpty() || record == null || record.isEmpty()) {
 			return new TreeMap<>();
@@ -216,7 +232,8 @@ public class ResultBuilder {
 
 			if (target.hasJson()) {
 				@SuppressWarnings("unchecked")
-				Map<String, Object> jsonObj = (Map<String, Object>) result.getOrDefault(target.getName(), new TreeMap<>());
+				Map<String, Object> jsonObj = (Map<String, Object>) result.getOrDefault(target.getName(),
+						new TreeMap<>());
 				jsonObj.put(target.getJson(), cellData);
 				size += target.getJson().length();
 				if (jsonObj.size() == 1) {
