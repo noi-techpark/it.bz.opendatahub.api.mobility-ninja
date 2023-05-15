@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import it.bz.idm.bdp.ninja.utils.querybuilder.Schema;
 import it.bz.idm.bdp.ninja.utils.querybuilder.Target;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
@@ -74,10 +73,9 @@ public class ResultBuilder {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> build(String entryPoint, String exitPoint, boolean showNull,
-			List<Map<String, Object>> queryResult, Schema schema, int maxAllowedSizeInMB) {
+	public static Map<String, Object> build(ResultBuilderConfig config, List<Map<String, Object>> queryResult) {
 		AtomicLong size = new AtomicLong(0);
-		long maxAllowedSize = maxAllowedSizeInMB > 0 ? maxAllowedSizeInMB * 1000000 : 0;
+		long maxAllowedSize = config.maxAllowedSizeInMB > 0 ? config.maxAllowedSizeInMB * 1000000 : 0;
 
 		if (queryResult == null || queryResult.isEmpty()) {
 			return new HashMap<>();
@@ -89,8 +87,8 @@ public class ResultBuilder {
 		Map<String, Object> result = new HashMap<>();
 
 		// Should be present inside the definition, just entrypoint needed
-		List<List<String>> hierarchy = new ArrayList<>(schema.getHierarchy(entryPoint, exitPoint));
-		List<String> hierarchyTriggerKeys = new ArrayList<>(schema.getHierarchyTriggerKeys(entryPoint, exitPoint));
+		List<List<String>> hierarchy = new ArrayList<>(config.schema.getHierarchy(config.entryPoint, config.exitPoint));
+		List<String> hierarchyTriggerKeys = new ArrayList<>(config.schema.getHierarchyTriggerKeys(config.entryPoint, config.exitPoint));
 		int maxLevel = hierarchy.size() - 1;
 
 		Map<String, Map<String, Object>> cache = new HashMap<>();
@@ -112,7 +110,7 @@ public class ResultBuilder {
 		// exactly the same names
 		for (List<String> targetDefListNames : hierarchy) {
 			for (String targetDefListName : targetDefListNames) {
-				Set<String> targetDefNames = schema.getOrNull(targetDefListName).getFinalNames();
+				Set<String> targetDefNames = config.schema.getOrNull(targetDefListName).getFinalNames();
 				List<Target> currentTargetList = new ArrayList<>();
 				for (String targetName : firstResultRecord.keySet()) {
 					Target target = new Target(targetName);
@@ -138,14 +136,14 @@ public class ResultBuilder {
 
 			for (int level = renewLevel; level <= maxLevel; level++) {
 				for (String targetDefListName : hierarchy.get(level)) {
-					Map<String, Object> curObject = makeObj(catalog.get(targetDefListName), rec, showNull, size);
+					Map<String, Object> curObject = makeObj(catalog.get(targetDefListName), rec, config.showNull, size);
 					cache.put(targetDefListName, curObject);
 				}
 			}
 
 			for (int level = maxLevel; level >= renewLevel; level--) {
 				for (String targetDefListName : hierarchy.get(level)) {
-					LookUp lookup = schema.get(targetDefListName).getLookUp();
+					LookUp lookup = config.schema.get(targetDefListName).getLookUp();
 					Map<String, Object> parent = cache.get(lookup.getParentDefListName());
 					if (parent == null) {
 						parent = result;
@@ -154,7 +152,7 @@ public class ResultBuilder {
 					String mapTypeValue = (String) rec.get(lookup.getMapTypeKey());
 					switch (lookup.getType()) {
 						case INLINE:
-							if (curObject.isEmpty() && !showNull) {
+							if (curObject.isEmpty() && !config.showNull) {
 								parent.remove(lookup.getParentTargetName());
 							} else {
 								parent.put(lookup.getParentTargetName(), curObject);
@@ -171,7 +169,7 @@ public class ResultBuilder {
 									parent.put(keyVal.getKey(), keyVal.getValue());
 								}
 							} else {
-								if (value != null || showNull) {
+								if (value != null || config.showNull) {
 									parent.put(lookup.getParentTargetName(), value);
 								}
 							}
@@ -200,7 +198,7 @@ public class ResultBuilder {
 						case LIST:
 							List<Object> newList = (List<Object>) parent.getOrDefault(lookup.getParentTargetName(),
 									new ArrayList<>());
-							if (newList.isEmpty()) {
+							if (newList.isEmpty() && config.showNull) {
 								parent.put(lookup.getParentTargetName(), newList);
 							}
 							newList.add(curObject);
@@ -213,7 +211,7 @@ public class ResultBuilder {
 			prevValues.addAll(currValues);
 
 			if (maxAllowedSize > 0 && maxAllowedSize < size.get()) {
-				throw new SimpleException(ErrorCode.RESPONSE_SIZE, maxAllowedSizeInMB);
+				throw new SimpleException(ErrorCode.RESPONSE_SIZE, config.maxAllowedSizeInMB);
 			}
 		}
 		return result;

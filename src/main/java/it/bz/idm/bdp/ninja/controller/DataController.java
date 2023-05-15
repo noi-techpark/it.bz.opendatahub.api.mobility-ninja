@@ -57,6 +57,7 @@ import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
+import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilderConfig;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -497,6 +498,13 @@ public class DataController {
 		final Map<String, Object> result = new HashMap<>();
 		result.put("offset", offset);
 		result.put("limit", limit);
+		ResultBuilderConfig resultBuilderConfig = new ResultBuilderConfig()
+				.setEntryPoint(entryPoint)
+				.setExitPoint(exitPoint)
+				.setShowNull(showNull)
+				// FIXME use a static immutable schema everywhere
+				.setSchema(new SelectExpansionConfig().getSelectExpansion().getSchema())
+				.setMaxAllowedSizeInMB(maxAllowedSizeInMB);
 		switch (representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
@@ -504,19 +512,9 @@ public class DataController {
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-						// FIXME use a static immutable schema everywhere
-						new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
-				break;
 			case TREE_EDGE:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-						// FIXME use a static immutable schema everywhere
-						new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
-				break;
 			case TREE_EVENT:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-						// FIXME use a static immutable schema everywhere
-						new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
+				result.put("data", ResultBuilder.build(resultBuilderConfig, queryResult));
 				break;
 		}
 		return result;
