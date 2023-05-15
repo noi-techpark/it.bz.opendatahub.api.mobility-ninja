@@ -14,6 +14,8 @@ import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUpType;
  * Schema
  */
 public class Schema {
+    public static record ExitPoint(String exitPoint, boolean inclusive) {
+    };
 
 	private boolean dirty = true;
 
@@ -139,10 +141,10 @@ public class Schema {
 	}
 
 	// XXX Cache results
-	public List<List<String>> getHierarchy(String entryPoint, String exitPoint) {
+	public List<List<String>> getHierarchy(String entryPoint, Map<String, ExitPoint> exitPoints) {
 		hierarchy.clear();
 		hierarchyTriggerKeys.clear();
-		buildLevelRec(get(entryPoint), exitPoint, 0);
+		buildLevelRec(get(entryPoint), exitPoints, 0);
 		return hierarchy;
 	}
 
@@ -151,10 +153,10 @@ public class Schema {
 	}
 
 	// XXX Cache results
-	public List<String> getHierarchyTriggerKeys(String entryPoint, String exitPoint) {
+	public List<String> getHierarchyTriggerKeys(String entryPoint, Map<String, ExitPoint> exitPoints) {
 		hierarchy.clear();
 		hierarchyTriggerKeys.clear();
-		buildLevelRec(get(entryPoint), exitPoint, 0);
+		buildLevelRec(get(entryPoint), exitPoints, 0);
 		return hierarchyTriggerKeys;
 	}
 
@@ -173,7 +175,7 @@ public class Schema {
 		}
 	}
 
-	private void buildLevelRec(TargetDefList entryPoint, String exitPoint, int curLevel) {
+	private void buildLevelRec(TargetDefList entryPoint, Map<String, ExitPoint> exitPoints, int curLevel) {
 		List<String> level = hierarchy.size() > curLevel ? hierarchy.get(curLevel) : new ArrayList<>();
 		level.add(entryPoint.getName());
 
@@ -185,7 +187,7 @@ public class Schema {
 				hierarchyTriggerKeys.add(lookup.getMapTypeKey());
 		}
 
-		if (exitPoint != null && exitPoint.equals(entryPoint.getName())) {
+		if (!exitPoints.isEmpty() && exitPoints.containsKey(entryPoint.getName())) {
 			return;
 		}
 
@@ -193,7 +195,7 @@ public class Schema {
 			if (entry.getValue().hasTargetDefList()) {
 				curLevel++;
 				for (TargetDefList tdl : entry.getValue().getTargetLists()) {
-					buildLevelRec(tdl, exitPoint, curLevel);
+					buildLevelRec(tdl, exitPoints, curLevel);
 				}
 				curLevel--;
 			}

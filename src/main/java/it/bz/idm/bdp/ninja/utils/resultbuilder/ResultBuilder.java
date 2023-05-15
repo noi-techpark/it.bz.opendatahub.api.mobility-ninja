@@ -87,17 +87,18 @@ public class ResultBuilder {
 		Map<String, Object> result = new HashMap<>();
 
 		// Should be present inside the definition, just entrypoint needed
-		List<List<String>> hierarchy = new ArrayList<>(config.schema.getHierarchy(config.entryPoint, config.exitPoint));
-		List<String> hierarchyTriggerKeys = new ArrayList<>(config.schema.getHierarchyTriggerKeys(config.entryPoint, config.exitPoint));
+		List<List<String>> hierarchy = new ArrayList<>(config.schema.getHierarchy(config.entryPoint, config.exitPoints));
+		List<String> hierarchyTriggerKeys = new ArrayList<>(config.schema.getHierarchyTriggerKeys(config.entryPoint, config.exitPoints));
 		int maxLevel = hierarchy.size() - 1;
 
 		Map<String, Map<String, Object>> cache = new HashMap<>();
 		Map<String, Object> firstResultRecord = queryResult.get(0);
 
 		// remove hierarchy triggers that are not contained in the Result set
-		hierarchyTriggerKeys = hierarchyTriggerKeys.stream()
+		/*hierarchyTriggerKeys = hierarchyTriggerKeys.stream()
 				.filter(x -> firstResultRecord.containsKey(x))
 				.collect(Collectors.toList());
+		*/
 
 		for (String key : hierarchyTriggerKeys) {
 			if (firstResultRecord.get(key) instanceof String)
@@ -175,10 +176,10 @@ public class ResultBuilder {
 							}
 							break;
 						case MAP:
-							if (mapTypeValue == null){
+							/*if (mapTypeValue == null){
 								// can't have maps without keys. e.g. when the map table has not even been joined
 								break;
-							}
+							}*/
 
 							if (lookup.getParentTargetName() == null) {
 								parent.put(mapTypeValue, curObject);
