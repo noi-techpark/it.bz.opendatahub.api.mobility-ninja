@@ -83,7 +83,7 @@ public class SelectExpansionConfig {
 		TargetDefList metadatahistory = TargetDefList
 			.init("metadatahistory")
 			.setLookUp(new LookUp(LookUpType.LIST, "station", "smetadatahistory", null))
-			.add(new TargetDef("mhjson", "mh.json"))
+			.add(new TargetDef("mhmetadata", "mh.json"))
 			.add(new TargetDef("mhtransactiontime", "mh.created_on")
 					.setColumnFormat("timezone('UTC', %s)"));
 

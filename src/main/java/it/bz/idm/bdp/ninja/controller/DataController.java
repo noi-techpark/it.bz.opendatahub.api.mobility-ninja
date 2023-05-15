@@ -446,7 +446,7 @@ public class DataController {
 						from.toOffsetDateTime(), 
 						to.toOffsetDateTime(),
 						repr);
-					exitPoint = "metadatahistory";
+					exitPoint = "datatype";
 				} else {
 					historyLimit.check(request, from, to).ifPresent(e -> {
 						throw e;

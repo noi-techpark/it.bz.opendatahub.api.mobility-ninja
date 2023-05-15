@@ -96,7 +96,7 @@ public class ResultBuilder {
 		Map<String, Map<String, Object>> cache = new HashMap<>();
 		Map<String, Object> firstResultRecord = queryResult.get(0);
 
-		// remove hierarchy triggers that are not contained in the Result set 
+		// remove hierarchy triggers that are not contained in the Result set
 		hierarchyTriggerKeys = hierarchyTriggerKeys.stream()
 				.filter(x -> firstResultRecord.containsKey(x))
 				.collect(Collectors.toList());
@@ -177,6 +177,11 @@ public class ResultBuilder {
 							}
 							break;
 						case MAP:
+							if (mapTypeValue == null){
+								// can't have maps without keys. e.g. when the map table has not even been joined
+								break;
+							}
+
 							if (lookup.getParentTargetName() == null) {
 								parent.put(mapTypeValue, curObject);
 								break;
