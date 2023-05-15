@@ -35,6 +35,7 @@ public class ResultBuilderTests {
 
 		rbConfig = new ResultBuilderConfig()
 				.setShowNull(false)
+				.addExitPoint("metadatahistory", false)
 				.setSchema(seOpenDataHub.getSchema())
 				.setMaxAllowedSizeInMB(1000);
 
@@ -77,7 +78,7 @@ public class ResultBuilderTests {
 			"tname", "o"
 		).get());
 
-		rbConfig.setEntryPoint("stationtype").setExitPoint("datatype").setShowNull(true);
+		rbConfig.setEntryPoint("stationtype").addExitPoint("datatype", true).setShowNull(true);
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}}, sparent={}}}}}",
 				ResultBuilder.build(rbConfig, queryResult).toString());
@@ -100,7 +101,7 @@ public class ResultBuilderTests {
 		).get());
 
 		assertEquals("{parking={stations={walther={sdatatypes={occ1={tname=o}, occ2={tname=x}}, sparent={}}}}}",
-				ResultBuilder.build(rbConfig, queryResult));
+				ResultBuilder.build(rbConfig, queryResult).toString());
 
 	}
 
@@ -236,7 +237,7 @@ public class ResultBuilderTests {
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
 
-		String result = ResultBuilder.build(rbConfig.setEntryPoint("stationtype"), resultList)
+		String result = ResultBuilder.build(rbConfig.setEntryPoint("stationtype").setExitPoint(null), resultList)
 				.toString();
 
 		assertEquals(
@@ -255,7 +256,7 @@ public class ResultBuilderTests {
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
 
-		String result = ResultBuilder.build(rbConfig.setEntryPoint("stationtype"), resultList)
+		String result = ResultBuilder.build(rbConfig.setEntryPoint("stationtype").addExitPoint("metadatahistory", false), resultList)
 				.toString();
 
 		assertEquals(
@@ -278,7 +279,7 @@ public class ResultBuilderTests {
 		List<Map<String, Object>> resultList = new ArrayList<>();
 		resultList.add(rec1);
 
-		String result = ResultBuilder.build(rbConfig.setEntryPoint("eventorigin"), resultList).toString();
+		String result = ResultBuilder.build(rbConfig.setEntryPoint("eventorigin").setShowNull(true), resultList).toString();
 
 		assertEquals(
 				"{A22={eventseries={series3={events={ev1={evlocation={evldescription=null}, evprovenance={}, evseriesuuid=series3, evuuid=ev1}}}}}}",

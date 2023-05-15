@@ -246,8 +246,11 @@ public class DataController {
 					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-				buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
 				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
@@ -319,8 +322,11 @@ public class DataController {
 					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-				buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
 				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
@@ -393,8 +399,11 @@ public class DataController {
 					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-				buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
 				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
@@ -431,9 +440,8 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
-		String entryPoint = null;
-		String exitPoint = null;
 		List<Map<String, Object>> queryResult = null;
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull);
 
 		switch (repr) {
 			case FLAT_NODE:
@@ -443,11 +451,12 @@ public class DataController {
 
 				if ("metadata".equalsIgnoreCase(pathvar3)) {
 					queryResult = dataFetcher.fetchStationsAndMetadataHistory(
-						pathvar2, 
-						from.toOffsetDateTime(), 
-						to.toOffsetDateTime(),
-						repr);
-					exitPoint = "datatype";
+							pathvar2,
+							from.toOffsetDateTime(),
+							to.toOffsetDateTime(),
+							repr);
+					resultBuilderConfig.clearExitPoints();
+					resultBuilderConfig.addExitPoint("datatype", false);
 				} else {
 					historyLimit.check(request, from, to).ifPresent(e -> {
 						throw e;
@@ -459,7 +468,7 @@ public class DataController {
 							to.toOffsetDateTime(),
 							repr);
 				}
-				entryPoint = "stationtype";
+				resultBuilderConfig.setEntryPoint("stationtype");
 				break;
 			default:
 				break;
@@ -472,7 +481,7 @@ public class DataController {
 		}
 
 		String result = serializeJson(
-				buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
 				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
@@ -492,19 +501,21 @@ public class DataController {
 		}
 	}
 
-	private Map<String, Object> buildResult(String entryPoint, String exitPoint,
-			final List<Map<String, Object>> queryResult, final long offset,
-			final long limit, final Representation representation, final boolean showNull) {
-		final Map<String, Object> result = new HashMap<>();
-		result.put("offset", offset);
-		result.put("limit", limit);
-		ResultBuilderConfig resultBuilderConfig = new ResultBuilderConfig()
-				.setEntryPoint(entryPoint)
-				.setExitPoint(exitPoint)
+	private ResultBuilderConfig createResultBuilderConfigExcludeMetadataHistory(boolean showNull){
+		return new ResultBuilderConfig()
+				.addExitPoint("metadatahistory", false)
 				.setShowNull(showNull)
 				// FIXME use a static immutable schema everywhere
 				.setSchema(new SelectExpansionConfig().getSelectExpansion().getSchema())
 				.setMaxAllowedSizeInMB(maxAllowedSizeInMB);
+	}
+
+	private Map<String, Object> buildResult(ResultBuilderConfig builderConfig,
+			final List<Map<String, Object>> queryResult, final long offset,
+			final long limit, final Representation representation) {
+		final Map<String, Object> result = new HashMap<>();
+		result.put("offset", offset);
+		result.put("limit", limit);
 		switch (representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
@@ -514,7 +525,7 @@ public class DataController {
 			case TREE_NODE:
 			case TREE_EDGE:
 			case TREE_EVENT:
-				result.put("data", ResultBuilder.build(resultBuilderConfig, queryResult));
+				result.put("data", ResultBuilder.build(builderConfig, queryResult));
 				break;
 		}
 		return result;
