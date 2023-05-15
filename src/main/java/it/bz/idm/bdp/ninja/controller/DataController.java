@@ -57,6 +57,7 @@ import it.bz.idm.bdp.ninja.utils.Representation;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.Timer;
 import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilder;
+import it.bz.idm.bdp.ninja.utils.resultbuilder.ResultBuilderConfig;
 import it.bz.idm.bdp.ninja.utils.simpleexception.ErrorCodeInterface;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -76,12 +77,12 @@ public class DataController {
 	private static final String DEFAULT_TIMEZONE = "UTC";
 
 	private static final DateTimeFormatter DATE_FORMAT = new DateTimeFormatterBuilder()
-		.appendPattern(DATETIME_FORMAT_PATTERN)
-		.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-		.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-		.parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
-		.parseDefaulting(ChronoField.NANO_OF_SECOND, 0)
-		.toFormatter();
+			.appendPattern(DATETIME_FORMAT_PATTERN)
+			.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+			.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+			.parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)
+			.parseDefaulting(ChronoField.NANO_OF_SECOND, 0)
+			.toFormatter();
 
 	@Value("${ninja.baseurl}")
 	private String ninjaBaseUrl;
@@ -95,7 +96,7 @@ public class DataController {
 	private String fileRoot;
 	private String fileSpec;
 
-	@Autowired 
+	@Autowired
 	HistoryLimit historyLimit;
 
 	public enum ErrorCode implements ErrorCodeInterface {
@@ -138,9 +139,8 @@ public class DataController {
 	@ResponseBody
 	@GetMapping(value = "/{pathvar1}", produces = "application/json;charset=UTF-8")
 	public String requestLevel01(
-		HttpServletRequest request,
-		@PathVariable final String pathvar1
-	) {
+			HttpServletRequest request,
+			@PathVariable final String pathvar1) {
 		Representation rep = Representation.get(pathvar1);
 		final List<Map<String, Object>> queryResult;
 		DataFetcher dataFetcher = new DataFetcher();
@@ -160,30 +160,30 @@ public class DataController {
 					row.put("self.stations", url + row.get("id"));
 					row.put("self.stations+datatypes", url + row.get("id") + "/*");
 					row.put("self.stations+datatypes+measurements", url + row.get("id") + "/*/latest");
-				break;
+					break;
 				case TREE_NODE:
 					selfies = new HashMap<>();
 					selfies.put("stations", url + row.get("id"));
 					selfies.put("stations+datatypes", url + row.get("id") + "/*");
 					selfies.put("stations+datatypes+measurements", url + row.get("id") + "/*/latest");
 					row.put("self", selfies);
-				break;
+					break;
 				case FLAT_EDGE:
 					row.put("self.edges", url + row.get("id"));
-				break;
+					break;
 				case TREE_EDGE:
 					selfies = new HashMap<>();
 					selfies.put("edges", url + row.get("id"));
 					row.put("self", selfies);
-				break;
+					break;
 				case FLAT_EVENT:
 					row.put("self.events", url + row.get("id"));
-				break;
+					break;
 				case TREE_EVENT:
 					selfies = new HashMap<>();
 					selfies.put("events", url + row.get("id"));
 					row.put("self", selfies);
-				break;
+					break;
 			}
 
 		}
@@ -195,16 +195,15 @@ public class DataController {
 	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}", produces = "application/json;charset=UTF-8")
 	public String requestLevel02(
-		HttpServletRequest request,
-		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2,
-		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-		@RequestParam(value = "select", required = false) final String select,
-		@RequestParam(value = "where", required = false) final String where,
-		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct
-	) {
+			HttpServletRequest request,
+			@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2,
+			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+			@RequestParam(value = "select", required = false) final String select,
+			@RequestParam(value = "where", required = false) final String where,
+			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 		final Representation repr = Representation.get(pathvar1);
 
 		DataFetcher dataFetcher = new DataFetcher();
@@ -243,15 +242,16 @@ public class DataController {
 
 		if (queryResult == null) {
 			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Route does not exist for representation " + repr.getTypeAsString()
-			);
+					HttpStatus.NOT_FOUND,
+					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
-			dataFetcher.getStats()
-		);
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
+				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
 		return result;
@@ -259,22 +259,21 @@ public class DataController {
 
 	/**
 	 * @param pathvar1 Representation
-	 * @param pathvar2 stations  | eventorigin
+	 * @param pathvar2 stations | eventorigin
 	 * @param pathvar3 datatypes | "latest" or start-timepoint
 	 */
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}", produces = "application/json;charset=UTF-8")
 	public @ResponseBody String requestLevel03(
-		HttpServletRequest request,
-		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2,
-		@PathVariable final String pathvar3,
-		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-		@RequestParam(value = "select", required = false) final String select,
-		@RequestParam(value = "where", required = false) final String where,
-		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct
-	) {
+			HttpServletRequest request,
+			@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2,
+			@PathVariable final String pathvar3,
+			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+			@RequestParam(value = "select", required = false) final String select,
+			@RequestParam(value = "where", required = false) final String where,
+			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -305,12 +304,11 @@ public class DataController {
 					queryResult = dataFetcher.fetchEvents(pathvar2, true, null, null, repr);
 				} else {
 					queryResult = dataFetcher.fetchEvents(
-						pathvar2,
-						false,
-						getDateTime(pathvar3).toOffsetDateTime(),
-						null,
-						repr
-					);
+							pathvar2,
+							false,
+							getDateTime(pathvar3).toOffsetDateTime(),
+							null,
+							repr);
 				}
 				entryPoint = "eventorigin";
 				break;
@@ -320,15 +318,16 @@ public class DataController {
 
 		if (queryResult == null) {
 			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Route does not exist for representation " + repr.getTypeAsString()
-			);
+					HttpStatus.NOT_FOUND,
+					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
-			dataFetcher.getStats()
-		);
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
+				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
 		return result;
@@ -337,19 +336,18 @@ public class DataController {
 	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}", produces = "application/json;charset=UTF-8")
 	public String requestLevel04(
-		HttpServletRequest request,
-		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2,
-		@PathVariable final String pathvar3,
-		@PathVariable final String pathvar4,
-		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-		@RequestParam(value = "select", required = false) final String select,
-		@RequestParam(value = "where", required = false) final String where,
-		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
-		@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone
-	) {
+			HttpServletRequest request,
+			@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2,
+			@PathVariable final String pathvar3,
+			@PathVariable final String pathvar4,
+			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+			@RequestParam(value = "select", required = false) final String select,
+			@RequestParam(value = "where", required = false) final String where,
+			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -373,24 +371,22 @@ public class DataController {
 			case TREE_NODE:
 				if ("latest".equalsIgnoreCase(pathvar4)) {
 					queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
-						pathvar2,
-						pathvar3,
-						null,
-						null,
-						repr
-					);
+							pathvar2,
+							pathvar3,
+							null,
+							null,
+							repr);
 					entryPoint = "stationtype";
 				}
 				break;
 			case FLAT_EVENT:
 			case TREE_EVENT:
 				queryResult = dataFetcher.fetchEvents(
-					pathvar2,
-					false,
-					getDateTime(pathvar3).toOffsetDateTime(),
-					getDateTime(pathvar4).toOffsetDateTime(),
-					repr
-				);
+						pathvar2,
+						false,
+						getDateTime(pathvar3).toOffsetDateTime(),
+						getDateTime(pathvar4).toOffsetDateTime(),
+						repr);
 				entryPoint = "eventorigin";
 				break;
 			default:
@@ -399,15 +395,16 @@ public class DataController {
 
 		if (queryResult == null) {
 			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Route does not exist for representation " + repr.getTypeAsString()
-			);
+					HttpStatus.NOT_FOUND,
+					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull)
+			.setEntryPoint(entryPoint)
+			.addExitPoint(exitPoint, true);
 		String result = serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
-			dataFetcher.getStats()
-		);
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
+				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
 		return result;
@@ -416,20 +413,19 @@ public class DataController {
 	@ResponseBody
 	@GetMapping(value = "/{pathvar1}/{pathvar2}/{pathvar3}/{pathvar4}/{pathvar5}", produces = "application/json;charset=UTF-8")
 	public String requestLevel05(
-		HttpServletRequest request,
-		@PathVariable final String pathvar1,
-		@PathVariable final String pathvar2,
-		@PathVariable final String pathvar3,
-		@PathVariable final String pathvar4,
-		@PathVariable final String pathvar5,
-		@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
-		@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
-		@RequestParam(value = "select", required = false) final String select,
-		@RequestParam(value = "where", required = false) final String where,
-		@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
-		@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
-		@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone
-	) {
+			HttpServletRequest request,
+			@PathVariable final String pathvar1,
+			@PathVariable final String pathvar2,
+			@PathVariable final String pathvar3,
+			@PathVariable final String pathvar4,
+			@PathVariable final String pathvar5,
+			@RequestParam(value = "limit", required = false, defaultValue = DEFAULT_LIMIT) final Long limit,
+			@RequestParam(value = "offset", required = false, defaultValue = DEFAULT_OFFSET) final Long offset,
+			@RequestParam(value = "select", required = false) final String select,
+			@RequestParam(value = "where", required = false) final String where,
+			@RequestParam(value = "shownull", required = false, defaultValue = DEFAULT_SHOWNULL) final Boolean showNull,
+			@RequestParam(value = "distinct", required = false, defaultValue = DEFAULT_DISTINCT) final Boolean distinct,
+			@RequestParam(value = "timezone", required = false, defaultValue = DEFAULT_TIMEZONE) final String timeZone) {
 
 		final Representation repr = Representation.get(pathvar1);
 
@@ -444,26 +440,35 @@ public class DataController {
 		dataFetcher.setDistinct(distinct);
 		dataFetcher.setTimeZone(timeZone);
 
-		String entryPoint = null;
-		String exitPoint = null;
 		List<Map<String, Object>> queryResult = null;
+		ResultBuilderConfig resultBuilderConfig = createResultBuilderConfigExcludeMetadataHistory(showNull);
 
 		switch (repr) {
 			case FLAT_NODE:
 			case TREE_NODE:
-				ZonedDateTime from = getDateTime(pathvar4); 
-				ZonedDateTime to = getDateTime(pathvar5); 
-				historyLimit.check(request, from, to).ifPresent(e -> {
-					throw e;
-				});
-				queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
-					pathvar2,
-					pathvar3,
-					from.toOffsetDateTime(),
-					to.toOffsetDateTime(),
-					repr
-				);
-				entryPoint = "stationtype";
+				ZonedDateTime from = getDateTime(pathvar4);
+				ZonedDateTime to = getDateTime(pathvar5);
+
+				if ("metadata".equalsIgnoreCase(pathvar3)) {
+					queryResult = dataFetcher.fetchStationsAndMetadataHistory(
+							pathvar2,
+							from.toOffsetDateTime(),
+							to.toOffsetDateTime(),
+							repr);
+					resultBuilderConfig.clearExitPoints();
+					resultBuilderConfig.addExitPoint("datatype", false);
+				} else {
+					historyLimit.check(request, from, to).ifPresent(e -> {
+						throw e;
+					});
+					queryResult = dataFetcher.fetchStationsTypesAndMeasurementHistory(
+							pathvar2,
+							pathvar3,
+							from.toOffsetDateTime(),
+							to.toOffsetDateTime(),
+							repr);
+				}
+				resultBuilderConfig.setEntryPoint("stationtype");
 				break;
 			default:
 				break;
@@ -471,15 +476,13 @@ public class DataController {
 
 		if (queryResult == null) {
 			throw new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Route does not exist for representation " + repr.getTypeAsString()
-			);
+					HttpStatus.NOT_FOUND,
+					"Route does not exist for representation " + repr.getTypeAsString());
 		}
 
 		String result = serializeJson(
-			buildResult(entryPoint, exitPoint, queryResult, offset, limit, repr, showNull),
-			dataFetcher.getStats()
-		);
+				buildResult(resultBuilderConfig, queryResult, offset, limit, repr),
+				dataFetcher.getStats());
 
 		request.setAttribute("data_fetcher", dataFetcher.getStats());
 		return result;
@@ -498,32 +501,32 @@ public class DataController {
 		}
 	}
 
-	private Map<String, Object> buildResult(String entryPoint, String exitPoint, final List<Map<String, Object>> queryResult, final long offset,
-			final long limit, final Representation representation, final boolean showNull) {
+	private ResultBuilderConfig createResultBuilderConfigExcludeMetadataHistory(boolean showNull){
+		return new ResultBuilderConfig()
+				.addExitPoint("metadatahistory", false)
+				.setShowNull(showNull)
+				// FIXME use a static immutable schema everywhere
+				.setSchema(new SelectExpansionConfig().getSelectExpansion().getSchema())
+				.setMaxAllowedSizeInMB(maxAllowedSizeInMB);
+	}
+
+	private Map<String, Object> buildResult(ResultBuilderConfig builderConfig,
+			final List<Map<String, Object>> queryResult, final long offset,
+			final long limit, final Representation representation) {
 		final Map<String, Object> result = new HashMap<>();
 		result.put("offset", offset);
 		result.put("limit", limit);
-		switch(representation) {
+		switch (representation) {
 			case FLAT_EDGE:
 			case FLAT_NODE:
 			case FLAT_EVENT:
 				result.put("data", queryResult);
 				break;
 			case TREE_NODE:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-					//FIXME use a static immutable schema everywhere
-					new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
-				break;
 			case TREE_EDGE:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-					//FIXME use a static immutable schema everywhere
-					new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
-				break;
 			case TREE_EVENT:
-				result.put("data", ResultBuilder.build(entryPoint, exitPoint, showNull, queryResult,
-				//FIXME use a static immutable schema everywhere
-				new SelectExpansionConfig().getSelectExpansion().getSchema(), maxAllowedSizeInMB));
-			break;
+				result.put("data", ResultBuilder.build(builderConfig, queryResult));
+				break;
 		}
 		return result;
 	}

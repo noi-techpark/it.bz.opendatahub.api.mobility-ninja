@@ -14,6 +14,8 @@ import it.bz.idm.bdp.ninja.utils.resultbuilder.LookUpType;
  * Schema
  */
 public class Schema {
+	public static record ExitPoint(String exitPoint, boolean includeExitPoint) {
+	};
 
 	private boolean dirty = true;
 
@@ -23,7 +25,6 @@ public class Schema {
 	private Map<String, List<TargetDef>> aliasOrNameToTargetDefMap = new TreeMap<>();
 	private List<List<String>> hierarchy = new ArrayList<>();
 	private List<String> hierarchyTriggerKeys = new ArrayList<>();
-
 
 	public Schema add(final TargetDefList targetDefList) {
 		if (targetDefList == null) {
@@ -75,12 +76,16 @@ public class Schema {
 	public TargetDefList find(final String targetName) {
 		TargetDefList result = findOrNull(targetName);
 		if (result == null) {
-			throw new RuntimeException(String.format("No TargetDefList that contains TargetDef with alias or name '%s' found", targetName));
+			throw new RuntimeException(String
+					.format("No TargetDefList that contains TargetDef with alias or name '%s' found", targetName));
 		}
 		return result;
 	}
 
-	/** FIXME aliases could be used more than ones, we must therefore return an array of TargetDefLists */
+	/**
+	 * FIXME aliases could be used more than ones, we must therefore return an array
+	 * of TargetDefLists
+	 */
 	public TargetDefList findOrNull(final String targetName, Set<String> targetDefListNames) {
 		for (String targetDefListName : targetDefListNames) {
 			TargetDefList targetDefList = schema.get(targetDefListName);
@@ -98,7 +103,9 @@ public class Schema {
 	public TargetDefList find(final String targetName, Set<String> targetDefListNames) {
 		TargetDefList result = findOrNull(targetName, targetDefListNames);
 		if (result == null) {
-			throw new RuntimeException(String.format("No TargetDefList that contains TargetDef with alias or name '%s' found", targetDefListNames.toString(), targetName));
+			throw new RuntimeException(
+					String.format("No TargetDefList that contains TargetDef with alias or name '%s' found",
+							targetDefListNames.toString(), targetName));
 		}
 		return result;
 	}
@@ -129,7 +136,7 @@ public class Schema {
 		for (TargetDefList targetDefList : schema.values()) {
 			for (TargetDef targetDef : targetDefList.getAll().values()) {
 				_addToMapList(targetDef.getName(), targetDef);
-				if(targetDef.hasAlias()) {
+				if (targetDef.hasAlias()) {
 					_addToMapList(targetDef.getAlias(), targetDef);
 				}
 			}
@@ -139,10 +146,10 @@ public class Schema {
 	}
 
 	// XXX Cache results
-	public List<List<String>> getHierarchy(String entryPoint, String exitPoint) {
+	public List<List<String>> getHierarchy(String entryPoint, Map<String, ExitPoint> exitPoints) {
 		hierarchy.clear();
 		hierarchyTriggerKeys.clear();
-		buildLevelRec(get(entryPoint), exitPoint, 0);
+		buildLevelRec(get(entryPoint), exitPoints, 0);
 		return hierarchy;
 	}
 
@@ -151,10 +158,10 @@ public class Schema {
 	}
 
 	// XXX Cache results
-	public List<String> getHierarchyTriggerKeys(String entryPoint, String exitPoint) {
+	public List<String> getHierarchyTriggerKeys(String entryPoint, Map<String, ExitPoint> exitPoints) {
 		hierarchy.clear();
 		hierarchyTriggerKeys.clear();
-		buildLevelRec(get(entryPoint), exitPoint, 0);
+		buildLevelRec(get(entryPoint), exitPoints, 0);
 		return hierarchyTriggerKeys;
 	}
 
@@ -168,12 +175,12 @@ public class Schema {
 			list = new ArrayList<>();
 			list.add(targetDef);
 			aliasOrNameToTargetDefMap.put(nameOrAlias, list);
-		}  else {
+		} else {
 			list.add(targetDef);
 		}
 	}
 
-	private void buildLevelRec(TargetDefList entryPoint, String exitPoint, int curLevel) {
+	private void buildLevelRec(TargetDefList entryPoint, Map<String, ExitPoint> exitPoints, int curLevel) {
 		List<String> level = hierarchy.size() > curLevel ? hierarchy.get(curLevel) : new ArrayList<>();
 		level.add(entryPoint.getName());
 
@@ -185,7 +192,8 @@ public class Schema {
 				hierarchyTriggerKeys.add(lookup.getMapTypeKey());
 		}
 
-		if (exitPoint != null && exitPoint.equals(entryPoint.getName())) {
+		if (exitPoints.containsKey(entryPoint.getName())) {
+			// return point for inclusive exit points (values of the Exit record are still included, just not it's children)
 			return;
 		}
 
@@ -193,7 +201,11 @@ public class Schema {
 			if (entry.getValue().hasTargetDefList()) {
 				curLevel++;
 				for (TargetDefList tdl : entry.getValue().getTargetLists()) {
-					buildLevelRec(tdl, exitPoint, curLevel);
+					if (exitPoints.containsKey(tdl.getName()) && !exitPoints.get(tdl.getName()).includeExitPoint) {
+						// return point for non-inclusive exit points. The subtree is completely ignored
+						continue;
+					}
+					buildLevelRec(tdl, exitPoints, curLevel);
 				}
 				curLevel--;
 			}

@@ -13,6 +13,7 @@ services:
       mvn
         -Duser.home=/var/maven
         -Dspring-boot.run.profiles=local
+        -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000"
         clean spring-boot:run
 
     tty: true
@@ -36,6 +37,7 @@ services:
       MAVEN_CONFIG: /var/maven/.m2
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+      - "8000:8000"
     networks:
       - internal
 

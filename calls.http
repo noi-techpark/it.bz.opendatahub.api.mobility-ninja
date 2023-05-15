@@ -61,6 +61,11 @@ GET {{host}}/tree,node/BluetoothStation/*/latest
 &select=mvalue
 
 ###
+GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
+&where=scode.eq.corse_cappuccini
+
+###
 GET https://mobility.api.opendatahub.bz.it/v1/emobility/rest/get-stations
 Content-Type: text/xml
 
