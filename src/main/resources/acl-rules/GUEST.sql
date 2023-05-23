@@ -27,7 +27,8 @@
 		'ON_DEMAND_ITINERARY',
 		'BIKE_CHARGER',
 		'BIKE_CHARGER_BAY',
-		'Website'
+		'Website',
+		'WebStatistics'
 	)
 
     -- station types that are only partly open, constrained by the origin
