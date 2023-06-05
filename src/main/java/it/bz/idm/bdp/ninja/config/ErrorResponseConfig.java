@@ -1,33 +1,18 @@
-/**
- * reader - Data Reader for the Big Data Platform, that queries the database for web-services
- *
- * Copyright © 2018 IDM Südtirol - Alto Adige (info@idm-suedtirol.com)
- * Copyright © 2019 NOI Techpark - Südtirol / Alto Adige (info@opendatahub.bz.it)
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program (see LICENSES/GPL-3.0.txt). If not, see
- * <http://www.gnu.org/licenses/>.
- *
- * SPDX-License-Identifier: GPL-3.0
- */
+// Copyright © 2018 IDM Südtirol - Alto Adige (info@idm-suedtirol.com)
+// Copyright © 2019 NOI Techpark - Südtirol / Alto Adige (info@opendatahub.bz.it)
+//
+// SPDX-License-Identifier: GPL-3.0-only
+
 package it.bz.idm.bdp.ninja.config;
 
 import java.util.Date;
+import java.util.Map;
 
 import org.postgresql.util.PSQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -35,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import it.bz.idm.bdp.ninja.quota.QuotaLimitException;
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 import it.bz.idm.bdp.ninja.utils.simpleexception.SimpleException;
 
@@ -71,6 +57,22 @@ public class ErrorResponseConfig extends ResponseEntityExceptionHandler {
 			return buildResponse(HttpStatus.BAD_REQUEST, (PSQLException) cause);
 		}
 		return buildResponse(HttpStatus.BAD_REQUEST, ex);
+	}
+
+	@ExceptionHandler
+	public ResponseEntity<Object> handleQuotaLimitException(QuotaLimitException ex) {
+		HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+
+		HttpHeaders headers = new HttpHeaders();
+
+		Map<String, Object> body = Map.of(
+			"message", ex.message,
+			"policy", ex.policy,
+			"hint", ex.hint
+		);
+
+		ResponseEntity<Object> response = new ResponseEntity<>(body, headers, status );
+		return response;
 	}
 
 	private ResponseEntity<Object> buildResponse(final HttpStatus httpStatus, final Exception exception) {

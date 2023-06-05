@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package it.bz.idm.bdp.ninja.controller;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,10 +22,5 @@ public class CustomErrorController implements ErrorController {
 			HttpStatus.NOT_FOUND,
 			"Route does not exist"
 		);
-	}
-
-	@Override
-	public String getErrorPath() {
-		return "/error";
 	}
 }

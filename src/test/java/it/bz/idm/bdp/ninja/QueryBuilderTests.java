@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package it.bz.idm.bdp.ninja;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import it.bz.idm.bdp.ninja.config.SelectExpansionConfig;
 import it.bz.idm.bdp.ninja.utils.querybuilder.QueryBuilder;
@@ -16,7 +20,7 @@ public class QueryBuilderTests {
 
 	private SelectExpansion se = new SelectExpansion();
 
-	@Before
+	@BeforeEach
 	public void setUpBefore() throws Exception {
 		Schema schema = new Schema();
 		TargetDefList defC = TargetDefList.init("C")

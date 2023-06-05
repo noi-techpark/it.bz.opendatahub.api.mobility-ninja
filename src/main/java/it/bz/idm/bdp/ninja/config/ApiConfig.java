@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package it.bz.idm.bdp.ninja.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +31,7 @@ public class ApiConfig implements WebMvcConfigurer {
 	public void addCorsMappings(CorsRegistry registry) {
 		registry
 			.addMapping("/**")
-			.allowedOrigins(allowedOrigins)
+			.allowedOriginPatterns(allowedOrigins)
 			.allowedHeaders(CorsConfiguration.ALL)
 			.allowedMethods("GET", "HEAD", "OPTIONS")
 			.allowCredentials(true);

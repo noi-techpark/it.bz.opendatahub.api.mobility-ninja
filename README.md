@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # it.bz.opendatahub.api.mobility: API Version 2 (Ninja)
 
 [![CI](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/actions/workflows/main.yml/badge.svg)](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/actions/workflows/main.yml)
@@ -32,9 +38,9 @@
       - [I want to see only station names, data type names and the value of the measurement](#i-want-to-see-only-station-names-data-type-names-and-the-value-of-the-measurement)
       - [I want to see only parking stations within a bounding box of a map](#i-want-to-see-only-parking-stations-within-a-bounding-box-of-a-map)
       - [I want to see all information where the measured value is greater than 100 and the station origin is FAMAS](#i-want-to-see-all-information-where-the-measured-value-is-greater-than-100-and-the-station-origin-is-famas)
+      - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
       - [I want to see all information where the station code starts with "me" or "rovereto"](#i-want-to-see-all-information-where-the-station-code-starts-with-me-or-rovereto)
       - [I want active creative industry stations with their sector and website, but only if the have one](#i-want-active-creative-industry-stations-with-their-sector-and-website-but-only-if-the-have-one)
-      - [I want all creative industry station names, which do not have a sector assigned](#i-want-all-creative-industry-station-names-which-do-not-have-a-sector-assigned)
     - [Time Zones](#time-zones)
     - [Null values](#null-values)
     - [Representation](#representation)
@@ -231,6 +237,30 @@ The date format is `yyyy-MM-dd` or `yyyy-MM-ddThh:mm:ss.SSS`, where
 `Thh:mm:ss.SSS` is optional and any part of it can be shortened from
 left-to-right to any subset.
 
+### Historical Station metadata
+The URL pattern is `/station-types/metadata/from/to`, where `from` and `to`
+form a half-open interval, i.e., `[from, to)`.
+
+Note that while metadata looks like a data type in the URL, the data structure is actually different from normal data requests.
+Current metadata is still included as smetadata, historical metadata has the prefix "mh"
+
+#### I want to get historical metadata for all bluetooth stations from a certain period
+```
+GET /tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
+```
+
+```
+GET /tree,node/BluetoothStation/metadata/2019-01-01T23/2023-01-02
+```
+
+```
+GET /flat/BluetoothStation/metadata/2019-01-01/2023-01-02T12:30:15
+```
+
+The date format is `yyyy-MM-dd` or `yyyy-MM-ddThh:mm:ss.SSS`, where
+`Thh:mm:ss.SSS` is optional and any part of it can be shortened from
+left-to-right to any subset.
+
 ### Pagination
 
 You can limit your output by adding `limit` to your request, and paginate your
@@ -353,6 +383,14 @@ or `\"`. A special value is `null`. If you want to use it as a literal value,
 that is, the String itself, then you must put it into double-quotes, like
 `"null"`.
 
+#### I want all creative industry station names, which do not have a sector assigned
+
+We use a JSON selector and JSON filters here:
+
+```
+GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
+```
+
 #### I want to see all information where the station code starts with "me" or "rovereto"
 
 We use a key-insensitive regular expression here:
@@ -371,14 +409,6 @@ GET /flat/CreativeIndustry?where=sactive.eq.true,smetadata.website.neq.null,smet
 
 We check not only for `smetadata.website` to be present, but also to start with `http` to be sure it
 is not a description telling us, that the website is currently under development or similar things.
-
-#### I want all creative industry station names, which do not have a sector assigned
-
-We use a JSON selector and JSON filters here:
-
-```
-GET /flat/CreativeIndustry?where=smetadata.sector.eq.null&select=sname
-```
 
 ### Time Zones
 
@@ -461,8 +491,9 @@ The `tree` representation, shows a hierarchy of the following kind for nodes:
 ```
 station types / categories
 └── stations (incl. parent and metadata)
-    └── data types
-        └── measurements
+    ├── data types
+    │   └── measurements
+    └── metadatahistory
 ```
 
 ...and the following hierarchy for edges:

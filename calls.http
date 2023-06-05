@@ -21,6 +21,11 @@ GET {{host}}/tree/TrafficSensor/*/latest
 ?where=scode.eq.%22A22:5687:3%22
 Authorization: Bearer {{token}}
 
+### Events
+{{host}}/event,tree/*
+?select=evldescription,evuuid,evseriesuuid,evprovenance
+Authorization: Bearer {{token}}
+
 ###
 GET {{host}}/flat/*/*/2022-01-01/2022-01-02
 ?where=sorigin.eq.APPABZ
@@ -130,12 +135,21 @@ GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.00
 &where=and(scode.eq."Maso_Pieve",sactive.eq.true)
 
 ###
-GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
+GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2012-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
 ?limit=100
 &distinct=true
 &where=and(scode.eq."Maso_Pieve",sactive.eq.true)
 &select=mvalue,mvalidtime
 
+### Metadata history
+GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
+&where=scode.eq.corse_cappuccini
+
+###
+GET {{host}}/flat/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
+&where=scode.eq.corse_cappuccini
 
 ### Check availability (should always be true or an empty response)
 GET {{host}}/flat,edge/*
@@ -168,6 +182,10 @@ GET {{host}}/flat,node/BluetoothStation/*/latest
 ###
 GET {{host}}/flat,node/BluetoothStation/*/latest
 ?limit=200&where=scode.eq.schaffer-winkel&distinct=true&timezone=UTC
+
+###
+GET {{host}}/tree,node/BluetoothStation/*/2023-03-01/2023-03-09
+?limit=200&timezone=UTC
 
 #?limit=200&where=scode.eq.huber&distinct=true&timezone=UTC
 
@@ -222,15 +240,16 @@ Authorization: Bearer {{token}}
 ### Problem about ON_DEMAND
 @token = {{login.response.body.access_token}}
 {{host}}/flat/ON_DEMAND_ITINERARY/*/latest
-
 Authorization: Bearer {{token}}
 
 ### Events
 {{host}}/event,flat
 
 ### Events
+@token = {{login.response.body.access_token}}
 {{host}}/event,tree/*
 ?select=evldescription,evuuid,evseriesuuid,evprovenance
+Authorization: Bearer {{token}}
 #?1=1
 #&shownull=true
 #&limit=1

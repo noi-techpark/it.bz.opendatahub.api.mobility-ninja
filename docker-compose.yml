@@ -1,8 +1,12 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 version: "3.4"
 
 services:
   app:
-    image: maven:3-jdk-8-alpine
+    image: maven:3-eclipse-temurin-17-alpine
     volumes:
       - ./:/code
       - ~/.m2/:/var/maven/.m2
@@ -13,6 +17,7 @@ services:
       mvn
         -Duser.home=/var/maven
         -Dspring-boot.run.profiles=local
+        -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000"
         clean spring-boot:run
 
     tty: true
@@ -36,6 +41,7 @@ services:
       MAVEN_CONFIG: /var/maven/.m2
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
+      - "8000:8000"
     networks:
       - internal
 

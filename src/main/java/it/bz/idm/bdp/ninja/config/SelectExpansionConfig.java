@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 package it.bz.idm.bdp.ninja.config;
 
 import it.bz.idm.bdp.ninja.utils.miniparser.Consumer;
@@ -80,6 +84,15 @@ public class SelectExpansionConfig {
 
 		schema.add(datatype);
 
+		TargetDefList metadatahistory = TargetDefList
+			.init("metadatahistory")
+			.setLookUp(new LookUp(LookUpType.LIST, "station", "smetadatahistory", null))
+			.add(new TargetDef("mhmetadata", "mh.json"))
+			.add(new TargetDef("mhtransactiontime", "mh.created_on")
+					.setColumnFormat("timezone('UTC', %s)"));
+
+		schema.add(metadatahistory);
+
 		TargetDefList parent = TargetDefList
 			.init("parent")
 			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sparent", null))
@@ -106,7 +119,8 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("scoordinate", "s.pointprojection"))
 			.add(new TargetDef("smetadata", "m.json"))
 			.add(new TargetDef("sparent", parent))
-			.add(new TargetDef("sdatatypes", datatype));
+			.add(new TargetDef("sdatatypes", datatype))
+			.add(new TargetDef("smetadatahistory", metadatahistory));
 
 		schema.add(station);
 
