@@ -237,6 +237,30 @@ The date format is `yyyy-MM-dd` or `yyyy-MM-ddThh:mm:ss.SSS`, where
 `Thh:mm:ss.SSS` is optional and any part of it can be shortened from
 left-to-right to any subset.
 
+### Historical Station metadata
+The URL pattern is `/station-types/metadata/from/to`, where `from` and `to`
+form a half-open interval, i.e., `[from, to)`.
+
+Note that while metadata looks like a data type in the URL, the data structure is actually different from normal data requests.
+Current metadata is still included as smetadata, historical metadata has the prefix "mh"
+
+#### I want to get historical metadata for all bluetooth stations from a certain period
+```
+GET /tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
+```
+
+```
+GET /tree,node/BluetoothStation/metadata/2019-01-01T23/2023-01-02
+```
+
+```
+GET /flat/BluetoothStation/metadata/2019-01-01/2023-01-02T12:30:15
+```
+
+The date format is `yyyy-MM-dd` or `yyyy-MM-ddThh:mm:ss.SSS`, where
+`Thh:mm:ss.SSS` is optional and any part of it can be shortened from
+left-to-right to any subset.
+
 ### Pagination
 
 You can limit your output by adding `limit` to your request, and paginate your
@@ -467,8 +491,9 @@ The `tree` representation, shows a hierarchy of the following kind for nodes:
 ```
 station types / categories
 └── stations (incl. parent and metadata)
-    └── data types
-        └── measurements
+    ├── data types
+    │   └── measurements
+    └── metadatahistory
 ```
 
 ...and the following hierarchy for edges:

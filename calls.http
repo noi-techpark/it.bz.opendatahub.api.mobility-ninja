@@ -63,6 +63,11 @@ GET {{host}}/tree,node/BluetoothStation/*/latest
 ###
 GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
 ?limit=200
+#&where=scode.eq.corse_cappuccini
+
+###
+GET {{host}}/flat/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
 &where=scode.eq.corse_cappuccini
 
 ###
