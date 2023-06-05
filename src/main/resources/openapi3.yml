@@ -424,6 +424,47 @@ paths:
         404:
           description: Not Found
           content: {}
+  /v2/{representation}/{stationTypes}/metadata/{from}/{to}:
+    get:
+      tags:
+        - Mobility V2
+      summary:
+        View metadata history of given station types
+      description:
+        You can put multiple stationtypes as comma-seperated lists.
+        The response contains stations (prefix <code>s</code>), their
+        parent-stations (prefix <code>p</code>), and metadata history (prefix <code>mh</code>). 
+        Each JSON attribute is prefixed with the
+        letters of that object.
+      parameters:
+        - $ref: "#/components/parameters/representation"
+        - $ref: "#/components/parameters/stationTypes"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+        - $ref: "#/components/parameters/limit"
+        - $ref: "#/components/parameters/offset"
+        - $ref: "#/components/parameters/select"
+        - $ref: "#/components/parameters/where"
+        - $ref: "#/components/parameters/shownull"
+        - $ref: "#/components/parameters/distinct"
+        - $ref: "#/components/parameters/timezone"
+        - $ref: "#/components/parameters/origin"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        401:
+          description: Unauthorized
+          content: {}
+        403:
+          description: Forbidden
+          content: {}
+        404:
+          description: Not Found
+          content: {}
 
 components:
   parameters:
