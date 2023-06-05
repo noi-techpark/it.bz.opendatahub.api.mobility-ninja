@@ -60,7 +60,7 @@ public class HistoryLimit {
 		quotaMap.put(Policy.AUTHENTICATED_BASIC, quotaBasic);
 		quotaMap.put(Policy.AUTHENTICATED_ADVANCED, quotaAdvanced);
 		quotaMap.put(Policy.AUTHENTICATED_PREMIUM, quotaPremium);
-		quotaMap.put(Policy.NO_RESTRICTION, Long.valueOf(-1));
+		quotaMap.put(Policy.NO_RESTRICTION, Long.valueOf(0));
 
 		LOG.debug("Loaded history limit quota map: {}", quotaMap);
 	}
@@ -79,7 +79,8 @@ public class HistoryLimit {
 		LOG.debug("Checking history quota for request {}?{}", request.getRequestURI(), request.getQueryString());
 		PricingPlan plan = getPricingPlan(request);
 
-		if (plan.is(Policy.NO_RESTRICTION)) {
+		if (plan.getLimit() <= 0) {
+			LOG.debug("No history quota limit enabled for this role", from, to, plan.getLimit());
 			return Optional.empty();
 		}
 
