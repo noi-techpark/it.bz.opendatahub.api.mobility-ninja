@@ -61,16 +61,6 @@ GET {{host}}/tree,node/BluetoothStation/*/latest
 &select=mvalue
 
 ###
-GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
-?limit=200
-#&where=scode.eq.corse_cappuccini
-
-###
-GET {{host}}/flat/BluetoothStation/metadata/2019-01-01/2023-01-02
-?limit=200
-&where=scode.eq.corse_cappuccini
-
-###
 GET https://mobility.api.opendatahub.bz.it/v1/emobility/rest/get-stations
 Content-Type: text/xml
 
@@ -145,12 +135,21 @@ GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.00
 &where=and(scode.eq."Maso_Pieve",sactive.eq.true)
 
 ###
-GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2020-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
+GET {{host}}/flat/BluetoothStation/Bluetooth Count record/2012-09-15T22:00:00.000Z/2020-09-22T22:00:00.000Z
 ?limit=100
 &distinct=true
 &where=and(scode.eq."Maso_Pieve",sactive.eq.true)
 &select=mvalue,mvalidtime
 
+### Metadata history
+GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
+&where=scode.eq.corse_cappuccini
+
+###
+GET {{host}}/flat/BluetoothStation/metadata/2019-01-01/2023-01-02
+?limit=200
+&where=scode.eq.corse_cappuccini
 
 ### Check availability (should always be true or an empty response)
 GET {{host}}/flat,edge/*
