@@ -582,7 +582,7 @@ public class DataFetcher {
 				.addSqlIfNotNull("and", aclWhereClause)
 				.addSqlIfNotNull(aclWhereClause, aclWhereClause)
 				.addSqlIf("and lat.rank = 1", latestOnly)
-				.setParameterIfNotNull("from", from, "and (upper(e.event_interval) is null or upper(e.event_interval) > :from::timestamp)")
+				.setParameterIfNotNull("from", from, "and (upper(ev.event_interval) is null or upper(ev.event_interval) > :from::timestamp)")
 				.setParameterIfNotNull("to", to, "and lower(ev.event_interval) <= :to::timestamp")
 				.setParameterIfNotEmptyAnd("origins", originSet, "and ev.origin in (:origins)",
 						!originSet.contains("*"))
