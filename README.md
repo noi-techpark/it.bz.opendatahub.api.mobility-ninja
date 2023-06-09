@@ -6,6 +6,7 @@ SPDX-License-Identifier: CC0-1.0
 
 # it.bz.opendatahub.api.mobility: API Version 2 (Ninja)
 
+![REUSE Compliance](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/actions/workflows/reuse.yml/badge.svg)
 [![CI](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/actions/workflows/main.yml/badge.svg)](https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/actions/workflows/main.yml)
 
 **Table Of Content**
