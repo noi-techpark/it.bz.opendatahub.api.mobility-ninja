@@ -15,6 +15,8 @@
         'Bicyclestationbay',
         'BikeCounter',
         'BikesharingStation',
+		'BikeParking',
+		'BikeParkingBay',
 		'BluetoothStation',
 		'CarpoolingHub',
 		'CarpoolingService',
