@@ -39,7 +39,7 @@ public class ResultBuilderTests {
 
 		rbConfig = new ResultBuilderConfig()
 				.setShowNull(false)
-				.addExitPoint("metadatahistory", false)
+				.addExitPoint("stationhistory", false)
 				.setSchema(seOpenDataHub.getSchema())
 				.setMaxAllowedSizeInMB(1000);
 
