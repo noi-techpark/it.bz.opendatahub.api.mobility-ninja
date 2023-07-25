@@ -84,14 +84,37 @@ public class SelectExpansionConfig {
 
 		schema.add(datatype);
 
-		TargetDefList metadatahistory = TargetDefList
-			.init("metadatahistory")
-			.setLookUp(new LookUp(LookUpType.LIST, "station", "smetadatahistory", null))
-			.add(new TargetDef("mhmetadata", "mh.json"))
-			.add(new TargetDef("mhtransactiontime", "mh.created_on")
-					.setColumnFormat("timezone('UTC', %s)"));
 
-		schema.add(metadatahistory);
+		TargetDefList parenthistory = TargetDefList
+			.init("parenthistory")
+			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sparent", null))
+			.add(new TargetDef("pname", "ph.name"))
+			.add(new TargetDef("ptype", "ph.stationtype"))
+			.add(new TargetDef("pcode", "ph.stationcode"))
+			.add(new TargetDef("porigin", "ph.origin"))
+			.add(new TargetDef("pactive", "ph.active"))
+			.add(new TargetDef("pavailable", "ph.available"))
+			.add(new TargetDef("pcoordinate", "ph.pointprojection"))
+			.add(new TargetDef("pmetadata", "phm.json"));
+
+		schema.add(parenthistory);
+
+		TargetDefList stationhistory = TargetDefList
+			.init("stationhistory")
+			.setLookUp(new LookUp(LookUpType.LIST, "station", "shistory", null))
+			.add(new TargetDef("stransactiontime", "sh.created_on")
+					.setColumnFormat("timezone('UTC', %s)"))
+			.add(new TargetDef("sname", "sh.name"))
+			.add(new TargetDef("stype", "sh.stationtype"))
+			.add(new TargetDef("scode", "sh.stationcode"))
+			.add(new TargetDef("sorigin", "sh.origin"))
+			.add(new TargetDef("sactive", "sh.active"))
+			.add(new TargetDef("savailable", "sh.available"))
+			.add(new TargetDef("scoordinate", "sh.pointprojection"))
+			.add(new TargetDef("smetadata", "mh.json"))
+			.add(new TargetDef("shparent", parenthistory));
+
+		schema.add(stationhistory);
 
 		TargetDefList parent = TargetDefList
 			.init("parent")
@@ -120,7 +143,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("smetadata", "m.json"))
 			.add(new TargetDef("sparent", parent))
 			.add(new TargetDef("sdatatypes", datatype))
-			.add(new TargetDef("smetadatahistory", metadatahistory));
+			.add(new TargetDef("shistory", stationhistory));
 
 		schema.add(station);
 

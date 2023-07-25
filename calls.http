@@ -146,6 +146,11 @@ GET {{host}}/tree,node/BluetoothStation/metadata/2019-01-01/2023-01-02
 ?limit=200
 &where=scode.eq.corse_cappuccini
 
+### Metadata history
+GET {{host}}/tree,node/EChargingPlug/metadata/2019-01-01/2023-07-22
+?limit=200
+#&where=scode.eq.HER_00000529
+
 ###
 GET {{host}}/flat/BluetoothStation/metadata/2019-01-01/2023-01-02
 ?limit=200

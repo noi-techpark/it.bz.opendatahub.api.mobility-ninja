@@ -487,7 +487,7 @@ public class DataController {
 
 	private ResultBuilderConfig createResultBuilderConfigExcludeMetadataHistory(boolean showNull){
 		return new ResultBuilderConfig()
-				.addExitPoint("metadatahistory", false)
+				.addExitPoint("stationhistory", false)
 				.setShowNull(showNull)
 				// FIXME use a static immutable schema everywhere
 				.setSchema(new SelectExpansionConfig().getSelectExpansion().getSchema())
