@@ -2,7 +2,7 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
--- Mobility Analytics Developers (MAD) ::: analytics.opendatahub.bz.it
+-- Mobility Analytics Developers (MAD) ::: analytics.opendatahub.com
 (
     s.stationtype in (
         'Bicycle',

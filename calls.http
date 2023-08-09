@@ -13,7 +13,7 @@ Content-Type: application/x-www-form-urlencoded
 @token = {{login.response.body.access_token}}
 
 @host=http://localhost:8081
-#@host=https://mobility.api.opendatahub.bz.it/v2
+#@host=https://mobility.api.opendatahub.com/v2
 #@host=https://mobility.api.opendatahub.testingmachine.eu/v2
 
 ###
@@ -61,7 +61,7 @@ GET {{host}}/tree,node/BluetoothStation/*/latest
 &select=mvalue
 
 ###
-GET https://mobility.api.opendatahub.bz.it/v1/emobility/rest/get-stations
+GET https://mobility.api.opendatahub.com/v1/emobility/rest/get-stations
 Content-Type: text/xml
 
 ###

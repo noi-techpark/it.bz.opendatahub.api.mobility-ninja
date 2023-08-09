@@ -15,6 +15,8 @@
         'Bicyclestationbay',
         'BikeCounter',
         'BikesharingStation',
+		'BikeParking',
+		'BikeParkingBay',
 		'BluetoothStation',
 		'CarpoolingHub',
 		'CarpoolingService',
@@ -44,4 +46,5 @@
     -- special rules
 	or (s.origin = 'APPABZ' and me.period = 3600)
 	or (s.origin = 'ON_DEMAND_MERANO')
+	or (s.origin = 'ON_DEMAND_BADIA')
 )
