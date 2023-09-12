@@ -22,6 +22,7 @@
 		'CarpoolingHub',
 		'CarpoolingService',
 		'CarpoolingUser',
+		'CarpoolingTrip',
 		'CarsharingCar',
 		'CarsharingStation',
 		'EChargingPlug',
