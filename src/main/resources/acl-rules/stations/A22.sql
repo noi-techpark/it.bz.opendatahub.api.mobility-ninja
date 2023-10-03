@@ -4,5 +4,5 @@
 
 -- All A22 data
 (
-    s.origin = 'A22'
+    s.origin = 'A22' or s.origin = 'a22-web-site'
 )

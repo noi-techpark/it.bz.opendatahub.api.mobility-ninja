@@ -5,4 +5,5 @@
 -- A22 Trafficdata of A22
 (
     s.stationtype = 'TrafficSensor' and s.origin = 'A22'
+    or (s.stationtype = 'TrafficForecast' and s.origin = 'a22-web-site')
 )
