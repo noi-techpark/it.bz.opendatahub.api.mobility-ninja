@@ -22,6 +22,7 @@
 		'CarpoolingHub',
 		'CarpoolingService',
 		'CarpoolingUser',
+		'CarpoolingTrip',
 		'CarsharingCar',
 		'CarsharingStation',
 		'EChargingPlug',
@@ -34,6 +35,8 @@
 		'ON_DEMAND_ITINERARY',
 		'BIKE_CHARGER',
 		'BIKE_CHARGER_BAY',
+		'WeatherForecastService',
+		'WeatherForecast',
 		'WebStatistics'
 	)
 
