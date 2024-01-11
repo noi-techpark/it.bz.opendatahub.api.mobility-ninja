@@ -30,6 +30,7 @@
 		'Flight',
 		'Streetstation',
 		'ParkingSensor',
+		'ParkingFacility',
         'Culture',
 		'ON_DEMAND_VEHICLE',
 		'ON_DEMAND_ITINERARY',
