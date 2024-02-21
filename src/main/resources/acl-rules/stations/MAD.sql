@@ -17,6 +17,7 @@
         'traffic',
         'TrafficSensor',
         'Trafficstation',
+        'TrafficDirection',
         'TrafficStreetFactor',
         'VMS'
     )
