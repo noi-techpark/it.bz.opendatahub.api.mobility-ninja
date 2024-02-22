@@ -284,3 +284,20 @@ Authorization: Bearer {{token}}
 
 ### ERROR 404 expected --> generic
 {{host}}/flat,event/b/c/a
+
+### Test referer parameter header override
+# Switch on json logging to see the referer in output
+#
+### Just header
+{{host}}/event,flat
+Referer: rheader
+### just parameter
+{{host}}/event,flat
+?referer=rparamlc
+### both (parameter should override)
+{{host}}/event,flat
+?referer=rparamlc
+Referer: rheader
+### uppercase parameter (not advertised, there for consistency with Content API)
+{{host}}/event,flat
+?Referer=rparamuc

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.AbstractRequestLoggingFilter;
 
+import it.bz.idm.bdp.ninja.utils.Referer;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 
 import javax.servlet.FilterChain;
@@ -66,7 +67,7 @@ public class CustomRequestLoggingFilter extends AbstractRequestLoggingFilter {
 		result.put("user_roles_opendata", SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.OPENDATA));
 		result.put("status", response.getStatus());
 		result.put("origin", request.getParameter("origin"));
-		result.put("referer", request.getHeader("referer"));
+		result.put("referer", Referer.getReferer(request));
 		result.put("data_fetcher", request.getAttribute("data_fetcher"));
 		result.put("response_time", (System.nanoTime() - (long) request.getAttribute("timer_start")) / 1000000);
 		return result;

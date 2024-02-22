@@ -29,6 +29,7 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.Refill;
+import it.bz.idm.bdp.ninja.utils.Referer;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 import it.bz.idm.bdp.ninja.utils.conditionals.ConditionalMap;
 
@@ -120,7 +121,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 			SecurityContextHolder.clearContext();
 
 		List<String> roles = SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.QUOTA);
-		String referer = request.getHeader("referer");
+		String referer = Referer.getReferer(request);
 		String ip = request.getLocalAddr();
 		String path = request.getRequestURI();
 		String user = SecurityUtils.getSubjectFromAuthentication();

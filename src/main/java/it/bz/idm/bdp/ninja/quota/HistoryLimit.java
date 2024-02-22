@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import it.bz.idm.bdp.ninja.quota.PricingPlan.Policy;
+import it.bz.idm.bdp.ninja.utils.Referer;
 import it.bz.idm.bdp.ninja.utils.SecurityUtils;
 
 /**
@@ -105,7 +106,7 @@ public class HistoryLimit {
 
 	private PricingPlan getPricingPlan(HttpServletRequest request) {
 		List<String> roles = SecurityUtils.getRolesFromAuthentication(SecurityUtils.RoleType.QUOTA);
-		String referer = request.getHeader("referer");
+		String referer = Referer.getReferer(request);
 		String user = SecurityUtils.getSubjectFromAuthentication();
 
 		LOG.debug("History Limiting Roles: {}", roles);
