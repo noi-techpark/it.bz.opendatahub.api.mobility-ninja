@@ -35,7 +35,6 @@ paths:
       summary: View a list of entry points to the Open Data Hub Mobility domain
       parameters:
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: Successful response
@@ -62,7 +61,6 @@ paths:
       parameters:
         - $ref: "#/components/parameters/representation"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: Successful response
@@ -101,7 +99,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -138,7 +135,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -175,7 +171,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -212,7 +207,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -250,7 +244,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -289,7 +282,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -330,7 +322,6 @@ paths:
         - $ref: "#/components/parameters/shownull"
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -373,7 +364,6 @@ paths:
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/timezone"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -418,7 +408,6 @@ paths:
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/timezone"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -460,7 +449,6 @@ paths:
         - $ref: "#/components/parameters/distinct"
         - $ref: "#/components/parameters/timezone"
         - $ref: "#/components/parameters/origin"
-        - $ref: "#/components/parameters/referer"
       responses:
         200:
           description: OK
@@ -692,13 +680,6 @@ components:
       schema:
         type: string
         default: ""
-    referer:
-      name: referer
-      in: query
-      description: |- 
-        Alternate means of providing the HTTP `Referer` header in cases where setting headers is not possible
-      schema:
-        type: string
 
   schemas:
     measurement:
