@@ -26,6 +26,7 @@
 		'CarsharingCar',
 		'CarsharingStation',
 		'CompanyGamificationAction',
+		'GamificationAction',
 		'EChargingPlug',
 		'EChargingStation',
 		'Flight',
