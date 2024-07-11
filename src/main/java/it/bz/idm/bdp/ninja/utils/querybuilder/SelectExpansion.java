@@ -16,7 +16,9 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,6 +264,8 @@ public class SelectExpansion {
 		whereSQL = sbFull.toString();
 	}
 
+	private Pattern slicePattern = Pattern.compile("(\\d*)(:?)(\\d*)");
+
 	private String whereClauseItem(String column, String alias, String operator, Token clauseValueToken, Token jsonSel) {
 		operator = operator.toUpperCase();
 
@@ -285,7 +289,6 @@ public class SelectExpansion {
 		List<Token> clauseValueTokens = new ArrayList<>();
 
 		/* Build the value, or error out if the value type does not exist */
-		String paramName = null;
 		Object value = null;
 		switch (clauseValueToken.getName()) {
 		case "LIST":
@@ -308,11 +311,6 @@ public class SelectExpansion {
 			throw new SimpleException(ErrorCode.WHERE_ALIAS_VALUE_ERROR, operator);
 		}
 
-		if (value != null) {
-			paramName = "pwhere_" + whereParameters.size();
-			whereParameters.put(paramName, value);
-		}
-
 		/*
 		 * Search for a check-function for this operator/value-type combination. Execute it, if present
 		 * and error-out on failure. For instance, check if a list has exactly 3 elements. This cannot
@@ -323,39 +321,92 @@ public class SelectExpansion {
 		}
 
 		_addAliasesInWhere(alias, whereClauseOperator, clauseValueTokens, jsonSel);
-
-		value = (value == null) ? "null" : ":" + paramName;
+		
 		String sqlSnippet = whereClauseOperator.getSqlSnippet();
 		StringBuilder result = new StringBuilder();
 		int i = 0;
-		while(i < sqlSnippet.length()) {
-		   char c = sqlSnippet.charAt(i);
-		   if (c == '%' && i < sqlSnippet.length() - 1) {
-			   switch (sqlSnippet.charAt(i + 1)) {
-			   case 'v':
-				   result.append(value);
-				   i++;
-				   break;
-			   case 'c':
-				   result.append(column);
-				   i++;
-				   break;
-			   case 'j':
-				   result.append(jsonSel.getValue().replace(".", ","));
-				   i++;
-				   break;
-			   case '%':
-				   result.append('%');
-				   i++;
-				   break;
-			   }
-		   } else {
-			   result.append(c);
-		   }
-		   i++;
+		while (i < sqlSnippet.length()) {
+			char c = sqlSnippet.charAt(i);
+			if (c == '%' && i < sqlSnippet.length() - 1) {
+				switch (sqlSnippet.charAt(i + 1)) {
+					case 'v':
+						i++;
+						// Look for slice notation, e.g.[1:5]
+						if (sqlSnippet.charAt(Math.min(i + 1, sqlSnippet.length() - 1)) == '[') {
+							i = i + 2;
+							var sliceDefinition = new StringBuilder();
+							for (char x; (x = sqlSnippet.charAt(i)) != ']'; i++) {
+								sliceDefinition.append(x);
+							}
+							var slice = sliceValue(value, sliceDefinition.toString());
+							result.append(registerWhereParameter(slice));
+						} else {
+							result.append(registerWhereParameter(value));
+						}
+						break;
+					case 'c':
+						result.append(column);
+						i++;
+						break;
+					case 'j':
+						result.append(jsonSel.getValue().replace(".", ","));
+						i++;
+						break;
+					case '%':
+						result.append('%');
+						i++;
+						break;
+				}
+			} else {
+				result.append(c);
+			}
+			i++;
 		}
 
 		return result.toString();
+	}
+
+	// slice syntax like python, go etc., 0-based half-open interval [start,end) , e.g.
+	// [4] element (not a list with one element) at index 4
+	// [4:] list of elements from 4 to end
+	// [:4] list of elements from 0 to 3
+	// For indexes out of bounds, null / empty list is returned
+	private Object sliceValue(Object value, String sliceDef) {
+		@SuppressWarnings("unchecked")
+		var ls = (List<Object>) value;
+
+		var matcher = slicePattern.matcher(sliceDef);
+		matcher.find();
+		var first = matcher.group(1);
+		var separator = matcher.group(2);
+		var last = matcher.group(3);
+		
+		Object slice;
+
+		int sliceStart = Strings.isBlank(first) ? 0 : Integer.parseInt(first);
+
+		// Regular array index syntax returns one value, not list
+		if (Strings.isBlank(separator) && Strings.isNotBlank(first)) {
+			slice = sliceStart < ls.size() ? ls.get(sliceStart) : null;
+		} else {
+			int sliceEnd = Strings.isBlank(last) ? ls.size() : Integer.parseInt(last);
+			sliceEnd = Math.min(sliceEnd, ls.size());
+			if (sliceStart >= ls.size()) {
+				slice = Collections.emptyList();
+			}
+			slice = ls.subList(sliceStart, sliceEnd);
+		}
+		return slice;
+	}
+	
+	private String registerWhereParameter(Object value) {
+		if (value != null) {
+			String paramName = "pwhere_" + whereParameters.size();
+			whereParameters.put(paramName, value);
+			return ":" + paramName;
+		} else {
+			return "null";
+		}
 	}
 
 	public void expand(final String selectString, String... targetDefListNames) {

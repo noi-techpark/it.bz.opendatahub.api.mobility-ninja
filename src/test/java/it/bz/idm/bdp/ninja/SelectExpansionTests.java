@@ -135,6 +135,9 @@ public class SelectExpansionTests {
 		seMinimal.addOperator("list/number", "bbc", "%c @ ST_MakeEnvelope(%v)", t -> {
 			return t.getChildCount() == 4 || t.getChildCount() == 5;
 		});
+		seMinimal.addOperator("list/number", "dlt", "ST_Distance(%c::geography, ST_Transform(ST_SetSRID(ST_Point(%v[1:3]), coalesce(%v[3], 4326)),4326)::geography, false) < %v[0]", t -> {
+			return t.getChildCount() == 3 || t.getChildCount() == 4;
+		});
 
 		seOpenDataHub = new SelectExpansionConfig().getSelectExpansion();
 	}
@@ -362,6 +365,35 @@ public class SelectExpansionTests {
 		seMinimal.expand("a", "A");
 		assertEquals("(A.a && ST_MakeEnvelope(:pwhere_0))", seMinimal.getWhereSql());
 		assertEquals("{pwhere_0=[1, 2, 3, 4]}", seMinimal.getWhereParameters().toString());
+
+		seMinimal.setWhereClause("a.dlt.(20,1,2,4,5)");
+		try {
+			seMinimal.expand("a", "A");
+			fail("Exception expected; where clause dlt.<list> must have 3 or 4 elements");
+		} catch (SimpleException e) {
+			// nothing to do
+		}
+
+		seMinimal.setWhereClause("a.dlt.(20,1,2)");
+		seMinimal.expand("a", "A");
+		assertEquals("(ST_Distance(A.a::geography, ST_Transform(ST_SetSRID(ST_Point(:pwhere_0), coalesce(null, 4326)),4326)::geography, false) < :pwhere_1)", seMinimal.getWhereSql());
+
+		seMinimal.setWhereClause("a.dlt.(20,1,2,4326)");
+		seMinimal.expand("a", "A");
+		assertEquals("(ST_Distance(A.a::geography, ST_Transform(ST_SetSRID(ST_Point(:pwhere_0), coalesce(:pwhere_1, 4326)),4326)::geography, false) < :pwhere_2)", seMinimal.getWhereSql());
+		assertEquals("[1, 2]", seMinimal.getWhereParameters().get("pwhere_0").toString());
+		assertEquals(4326, seMinimal.getWhereParameters().get("pwhere_1"));
+		assertEquals(20, seMinimal.getWhereParameters().get("pwhere_2"));
+
+		seMinimal.addOperator("list/number", "slicea", "%v[0] %v[1:] %v[1:3] %v[:3] %v[4] %v[4:6]");
+		seMinimal.setWhereClause("a.slicea.(0,1,2,3)");
+		seMinimal.expand("a", "A");
+		assertEquals("(:pwhere_0 :pwhere_1 :pwhere_2 :pwhere_3 null :pwhere_4)", seMinimal.getWhereSql());
+		assertEquals(0, seMinimal.getWhereParameters().get("pwhere_0"));
+		assertEquals("[1, 2, 3]", seMinimal.getWhereParameters().get("pwhere_1").toString());
+		assertEquals("[1, 2]", seMinimal.getWhereParameters().get("pwhere_2").toString());
+		assertEquals("[0, 1, 2]", seMinimal.getWhereParameters().get("pwhere_3").toString());
+		assertEquals("[]", seMinimal.getWhereParameters().get("pwhere_4").toString());
 
 		seMinimal.setWhereClause("a.in.()");
 		seMinimal.expand("a", "A");

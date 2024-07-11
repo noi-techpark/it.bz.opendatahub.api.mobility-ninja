@@ -301,9 +301,18 @@ public class SelectExpansionConfig {
 				return t.getChildCount() == 4 || t.getChildCount() == 5;
 			}
 		};
-
 		se.addOperator("LIST/NUMBER", "bbi", "%c && ST_MakeEnvelope(%v)", checkMakeEnvelope);
 		se.addOperator("LIST/NUMBER", "bbc", "%c @ ST_MakeEnvelope(%v)", checkMakeEnvelope);
+
+		Consumer checkDistance = new Consumer() {
+			@Override
+			public boolean middle(Token t) {
+				return t.getChildCount() == 3 || t.getChildCount() == 4;
+			}
+		};
+		// Newer postgis (post 3.2.0) versions support ST_Point(x, y, srid), but at time of implementation we were on an older one that does not support passing the SRID
+		// Once we're on 3.2.0 +, drop the ST_SetSrid and just pass %v[1:] to ST_Point
+		se.addOperator("LIST/NUMBER", "dlt", "ST_Distance(%c::geography, ST_Transform(ST_SetSRID(ST_Point(%v[1:3]), coalesce(%v[3], 4326)),4326)::geography, false) < %v[0]", checkDistance);
 
 		/* JSON/LIST operators */
 		se.addOperator("JSON/LIST/STRING", "in", "%c#>>'{%j}' in (%v)");
