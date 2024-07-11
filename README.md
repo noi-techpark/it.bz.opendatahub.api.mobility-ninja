@@ -314,10 +314,11 @@ A `filter` has the form `alias.operator.value_or_list`.
 - `ire`: Insensitive Regular Expression
 - `nre`: Negated Regular Expression
 - `nire`: Negated Insensitive Regular Expression
-- `bbi`: Bounding box intersecting objects (ex., a street that is only partially
+- `bbi`: Bounding box intersecting objects (e.g. a street that is only partially
   covered by the box)
-- `bbc`: Bounding box containing objects (ex., a station or street, that is
+- `bbc`: Bounding box containing objects (e.g. a station or street, that is
   completely covered by the box)
+- `dlt`: Within distance from point (e.g. all stations within a 5 km radius from point X)
 - `in`: True, if the value of the alias can be found within the given list.
   Example: `name.in.(Patrick,Rudi,Peter)`
 - `nin`: False, if the value of the alias can be found within the given list.
