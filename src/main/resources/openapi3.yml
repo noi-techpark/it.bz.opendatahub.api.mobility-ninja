@@ -661,6 +661,7 @@ components:
         Multiple conditions possible as comma-separated-values. <code>value</code>s will be casted to Double precision or <code>null</code>, if possible. Put them inside double quotes, if you want to prevent that.
 
         Example-syntax for bbi/bbc could be <code>coordinate.bbi.(11,46,12,47,4326)</code>, where the ordering inside the list is left-x, left-y, right-x, right-y and SRID (optional, default 4326).
+
         Example-syntax for dlt could be <code>coordinate.dlt.(5000,11.2,46.7,4326)</code>, where the ordering inside the list is distance (in meters), point-x, point-y and SRID (optional, default 4326).
       schema:
         type: string
