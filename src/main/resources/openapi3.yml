@@ -23,15 +23,18 @@ info:
 servers:
   - url: __ODH_SERVER_URL__
 tags:
-  - name: Mobility V2
-    description: New Generic Data Controller to retrieve all kinds of data
+  - name: General
+    description: Entry points to discover data
+  - name: Station / time series
+    description: "representation `*,node` or `*,edge`"
+  - name: Events
+    description: "representation `*,event`"
 paths:
-
   # V2 ----------------------------------------------------------------------------------------
   /v2/:
     get:
       tags:
-        - Mobility V2
+        - General
       summary: View a list of entry points to the Open Data Hub Mobility domain
       parameters:
         - $ref: "#/components/parameters/origin"
@@ -56,7 +59,9 @@ paths:
   /v2/{representation}:
     get:
       tags:
-        - Mobility V2
+        - General
+        - Station / time series
+        - Events
       summary: View a list of all station or edge types (categories)
       parameters:
         - $ref: "#/components/parameters/representation"
@@ -82,7 +87,7 @@ paths:
   /v2/{representation}/{stationTypes}:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary: View station details of given stationtypes
       description:
         You can put multiple stationtypes as comma-seperated lists. The response
@@ -118,7 +123,7 @@ paths:
   /v2/{representation}/{edgeTypes}:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary: View edge details of given edgetypes
       description:
         You can put multiple edgetypes as comma-seperated list. The response
@@ -154,7 +159,7 @@ paths:
   /v2/{representation}/{eventorigins}:
     get:
       tags:
-        - Mobility V2
+        - Events
       summary: View events of given origins
       description:
         You can put multiple origins as comma-seperated list. The response
@@ -190,7 +195,7 @@ paths:
   /v2/{representation}/{eventorigins}/latest:
     get:
       tags:
-        - Mobility V2
+        - Events
       summary: View events of given origins, but only the latest ones grouped by origin and evseriesuuid
       description:
         You can put multiple origins as comma-seperated list. The response
@@ -226,7 +231,7 @@ paths:
   /v2/{representation}/{eventorigins}/{timepoint}:
     get:
       tags:
-        - Mobility V2
+        - Events
       summary: View events of given origins, that are active at a certain point in time
       description:
         You can put multiple origins as comma-seperated list. The response
@@ -263,7 +268,7 @@ paths:
   /v2/{representation}/{eventorigins}/{from}/{to}:
     get:
       tags:
-        - Mobility V2
+        - Events
       summary: View events of given origins, that are active at a certain time interval
       description:
         You can put multiple origins as comma-seperated list. The response
@@ -301,7 +306,7 @@ paths:
   /v2/{representation}/{stationTypes}/{dataTypes}:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary:
         View station details of stations with a given station type including
         associated data types
@@ -341,7 +346,7 @@ paths:
   /v2/{representation}/{stationTypes}/{dataTypes}/latest:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary:
         View details of all given station types including data types and most recent
         measurements
@@ -383,7 +388,7 @@ paths:
   /v2/{representation}/{stationTypes}/{dataTypes}/{from}/{to}:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary:
         View details of all given station types including data types and historical
         measurements
@@ -427,7 +432,7 @@ paths:
   /v2/{representation}/{stationTypes}/metadata/{from}/{to}:
     get:
       tags:
-        - Mobility V2
+        - Station / time series
       summary:
         View metadata history of given station types
       description:
