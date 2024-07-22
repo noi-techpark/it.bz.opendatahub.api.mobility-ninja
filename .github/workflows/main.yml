@@ -76,6 +76,14 @@ jobs:
           X_NINJA_QUOTA_ADVANCED: 100
           X_NINJA_QUOTA_PREMIUM: 200
 
+          # Quota: History range
+          X_NINJA_QUOTA_HISTORY_GUEST: 5
+          X_NINJA_QUOTA_HISTORY_REFERER: 100
+          X_NINJA_QUOTA_HISTORY_BASIC: 1000
+          X_NINJA_QUOTA_HISTORY_ADVANCED: 0
+          X_NINJA_QUOTA_HISTORY_PREMIUM: 0
+          X_NINJA_QUOTA_HISTORY_URL: https://github.com/noi-techpark/odh-docs/wiki/Api-Quota
+
       - name: Build project
         uses: noi-techpark/github-actions/maven-build@v2
         with:
