@@ -77,15 +77,17 @@ public class DataFetcher {
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
-				.init(se, select, where, distinct, "station", "parent")
+				.init(se, select, where, distinct, "station", "parent", "stationprovenance", "parentprovenance")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode", !representation.isFlat())
 				.expandSelectPrefix(", ",!representation.isFlat())
 				.addSql("from station s")
 				.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+				.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 				.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 				.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+				.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 				.addSql("where s.available = true")
 				.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)",
@@ -125,7 +127,7 @@ public class DataFetcher {
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
-				.init(se, select, where, distinct, "station", "parent", "metadatahistory")
+				.init(se, select, where, distinct, "station", "parent", "metadatahistory", "stationprovenance", "parentprovenance")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode", !representation.isFlat())
@@ -133,8 +135,10 @@ public class DataFetcher {
 				.addSql("from station s")
 				.addSql("join metadata mh on mh.station_id = s.id")
 				.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+				.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 				.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 				.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+				.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 				.addSql("where s.available = true")
 				.addSqlIfDefinition("and (p.id is null or p.available = true)", "parent")
 				.setParameterIfNotEmptyAnd("stationtypes", stationTypeSet, "AND s.stationtype in (:stationtypes)",
@@ -182,7 +186,7 @@ public class DataFetcher {
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
 				.init(se, select, where, distinct, "station", "parent", "measurementdouble", "measurement", "datatype",
-						"provenance");
+						"provenance", "stationprovenance", "parentprovenance");
 
 		int measurementType = checkMeasurementType(query);
 
@@ -201,8 +205,10 @@ public class DataFetcher {
 					.addSqlIf("from measurement me", from == null && to == null)
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
@@ -226,7 +232,7 @@ public class DataFetcher {
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
 			query.reset(select, where, distinct, "station", "parent", "measurementstring", "measurement", "datatype",
-					"provenance")
+					"provenance", "stationprovenance", "parentprovenance")
 					.addSql("select")
 					.addSqlIf("distinct", distinct)
 					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
@@ -239,8 +245,10 @@ public class DataFetcher {
 					.addSqlIf("from measurementstring me", from == null && to == null)
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
@@ -265,7 +273,7 @@ public class DataFetcher {
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
 			query.reset(select, where, distinct, "station", "parent", "measurementjson", "measurement", "datatype",
-					"provenance")
+					"provenance", "stationprovenance", "parentprovenance")
 					.addSql("select")
 					.addSqlIf("distinct", distinct)
 					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
@@ -278,8 +286,10 @@ public class DataFetcher {
 					.addSqlIf("from measurementjson me", from == null && to == null)
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
@@ -393,7 +403,7 @@ public class DataFetcher {
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
-				.init(se, select, where, distinct, "station", "parent", "datatype", "provenance");
+				.init(se, select, where, distinct, "station", "parent", "datatype", "provenance", "stationprovenance", "parentprovenance");
 
 		int measurementType = checkMeasurementType(query);
 
@@ -406,8 +416,10 @@ public class DataFetcher {
 					.addSql("from measurement me")
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
@@ -426,7 +438,7 @@ public class DataFetcher {
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_STRING)) {
-			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance")
+			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance", "stationprovenance", "parentprovenance")
 					.addSql("select")
 					.addSqlIf("distinct", distinct)
 					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
@@ -435,8 +447,10 @@ public class DataFetcher {
 					.addSql("from measurementstring me")
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")
@@ -456,7 +470,7 @@ public class DataFetcher {
 		}
 
 		if (hasFlag(measurementType, MEASUREMENT_TYPE_JSON)) {
-			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance")
+			query.reset(select, where, distinct, "station", "parent", "datatype", "provenance", "stationprovenance", "parentprovenance")
 					.addSql("select")
 					.addSqlIf("distinct", distinct)
 					.addSqlIf("s.stationtype as _stationtype, s.stationcode as _stationcode, t.cname as _datatypename",
@@ -465,8 +479,10 @@ public class DataFetcher {
 					.addSql("from measurementjson me")
 					.addSql("join station s on me.station_id = s.id")
 					.addSqlIfAlias("left join metadata m on m.id = s.meta_data_id", "smetadata")
+					.addSqlIfAlias("left join provenance spr on spr.id = m.provenance_id", "sprovenance")
 					.addSqlIfDefinition("left join station p on s.parent_id = p.id", "parent")
 					.addSqlIfAlias("left join metadata pm on pm.id = p.meta_data_id", "pmetadata")
+					.addSqlIfAlias("left join provenance ppr on ppr.id = pm.provenance_id", "pprovenance")
 					.addSql("join type t on me.type_id = t.id")
 					.addSqlIfDefinition("left join provenance pr on me.provenance_id = pr.id", "provenance")
 					.addSqlIfAlias("left join type_metadata tm on tm.id = t.meta_data_id", "tmetadata")

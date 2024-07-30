@@ -29,6 +29,9 @@ public class SelectExpansionConfig {
 			.setLookUp(new LookUp(LookUpType.INLINE, "measurement", "mprovenance", null))
 			.add(new TargetDef("prname", "pr.data_collector"))
 			.add(new TargetDef("prversion", "pr.data_collector_version"))
+			.add(new TargetDef("prlicense", "pr.license"))
+			.add(new TargetDef("prprovider", "pr.provider"))
+			.add(new TargetDef("prsource", "pr.source"))
 			.add(new TargetDef("prlineage", "pr.lineage"));
 
 		schema.add(provenance);
@@ -93,6 +96,14 @@ public class SelectExpansionConfig {
 
 		schema.add(metadatahistory);
 
+		TargetDefList parentProvenance = TargetDefList
+			.init("parentprovenance")
+			.setLookUp(new LookUp(LookUpType.INLINE, "parent", "pprovenance", null))
+			.add(new TargetDef("plicense", "ppr.license"))
+			.add(new TargetDef("pprovider", "ppr.provider"))
+			.add(new TargetDef("psource", "ppr.source"));
+		schema.add(parentProvenance);
+
 		TargetDefList parent = TargetDefList
 			.init("parent")
 			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sparent", null))
@@ -103,9 +114,18 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("pactive", "p.active"))
 			.add(new TargetDef("pavailable", "p.available"))
 			.add(new TargetDef("pcoordinate", "p.pointprojection"))
+			.add(new TargetDef("pprovenance", parentProvenance))
 			.add(new TargetDef("pmetadata", "pm.json"));
 
 		schema.add(parent);
+
+		TargetDefList stationProvenance = TargetDefList
+			.init("stationprovenance")
+			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sprovenance", null))
+			.add(new TargetDef("slicense", "spr.license"))
+			.add(new TargetDef("sprovider", "spr.provider"))
+			.add(new TargetDef("ssource", "spr.source"));
+		schema.add(stationProvenance);
 
 		TargetDefList station = TargetDefList
 			.init("station")
@@ -118,6 +138,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("savailable", "s.available"))
 			.add(new TargetDef("scoordinate", "s.pointprojection"))
 			.add(new TargetDef("smetadata", "m.json"))
+			.add(new TargetDef("sprovenance", stationProvenance))
 			.add(new TargetDef("sparent", parent))
 			.add(new TargetDef("sdatatypes", datatype))
 			.add(new TargetDef("smetadatahistory", metadatahistory));
