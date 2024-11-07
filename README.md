@@ -318,7 +318,8 @@ A `filter` has the form `alias.operator.value_or_list`.
   covered by the box)
 - `bbc`: Bounding box containing objects (e.g. a station or street, that is
   completely covered by the box)
-- `dlt`: Within distance from point (e.g. all stations within a 5 km radius from point X)
+- `dlt`: Within distance from point (e.g. all stations within a 5 km radius from point X)   
+    [Learn more and see examples.](https://github.com/noi-techpark/odh-docs/wiki/Time-series-API-filter-operators#dlt-operator)
 - `in`: True, if the value of the alias can be found within the given list.
   Example: `name.in.(Patrick,Rudi,Peter)`
 - `nin`: False, if the value of the alias can be found within the given list.
