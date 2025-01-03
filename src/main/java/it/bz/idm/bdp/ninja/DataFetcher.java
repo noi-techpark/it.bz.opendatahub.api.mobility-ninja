@@ -666,7 +666,7 @@ public class DataFetcher {
 		timer.start();
 		SelectExpansion se = new SelectExpansionConfig().getSelectExpansion();
 		QueryBuilder query = QueryBuilder
-				.init(se, select, where, distinct, "edge", "stationbegin", "stationend")
+				.init(se, select, where, distinct, "edge", "stationbegin", "stationend", "edgeprovenance")
 				.addSql("select")
 				.addSqlIf("distinct", distinct)
 				.addSqlIf("i.stationtype as _edgetype, i.stationcode as _edgecode", !representation.isFlat())
@@ -675,6 +675,7 @@ public class DataFetcher {
 				.addSql("join station i on e.edge_data_id = i.id")
 				.addSqlIfDefinition("left join station o on e.origin_id = o.id", "stationbegin")
 				.addSqlIfDefinition("left join station d on e.destination_id = d.id", "stationend")
+				.addSqlIfAlias("left join provenance ipr on ipr.id = m.provenance_id", "iprovenance")
 				.addSql("where i.available = true")
 				.addSqlIfDefinition("and (o.available is null or o.available = true)", "stationbegin")
 				.addSqlIfDefinition("and (d.available is null or d.available = true)", "stationend")

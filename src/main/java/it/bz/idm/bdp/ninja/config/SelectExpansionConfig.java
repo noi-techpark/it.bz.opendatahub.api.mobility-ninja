@@ -29,11 +29,7 @@ public class SelectExpansionConfig {
 			.setLookUp(new LookUp(LookUpType.INLINE, "measurement", "mprovenance", null))
 			.add(new TargetDef("prname", "pr.data_collector"))
 			.add(new TargetDef("prversion", "pr.data_collector_version"))
-			.add(new TargetDef("prlicense", "pr.license"))
-			.add(new TargetDef("prprovider", "pr.provider"))
-			.add(new TargetDef("prsource", "pr.source"))
 			.add(new TargetDef("prlineage", "pr.lineage"));
-
 		schema.add(provenance);
 
 		TargetDefList measurement = TargetDefList
@@ -44,8 +40,10 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("mtransactiontime", "me.created_on")
 					.setColumnFormat("timezone('UTC', %s)"))
 			.add(new TargetDef("mperiod", "me.period"))
+			.add(new TargetDef("mlicense", "pr.license"))
+			.add(new TargetDef("mowner", "pr.owner"))
+			.add(new TargetDef("msource", "pr.source"))
 			.add(new TargetDef("mprovenance", provenance));
-
 		schema.add(measurement);
 
 		TargetDefList measurementdouble = TargetDefList
@@ -54,7 +52,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("mvalue_double", "me.double_value")
 				.setSelectFormat("%s, null::character varying as mvalue_string, null::jsonb as mvalue_json")
 				.alias("mvalue"));
-
 		schema.add(measurementdouble);
 
 		TargetDefList measurementstring = TargetDefList
@@ -63,7 +60,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("mvalue_string", "me.string_value")
 				.setSelectFormat("null::double precision as mvalue_double, %s, null::jsonb as mvalue_json")
 				.alias("mvalue"));
-
 		schema.add(measurementstring);
 
 		TargetDefList measurementjson = TargetDefList
@@ -72,7 +68,6 @@ public class SelectExpansionConfig {
 		.add(new TargetDef("mvalue_json", "me.json_value")
 			.setSelectFormat("null::double precision as mvalue_double, null::character varying as mvalue_string, %s")
 			.alias("mvalue"));
-
 		schema.add(measurementjson);
 
 		TargetDefList datatype = TargetDefList
@@ -84,7 +79,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("tdescription", "t.description"))
 			.add(new TargetDef("tmetadata", "tm.json"))
 			.add(new TargetDef("tmeasurements", measurement, measurementdouble, measurementstring, measurementjson));
-
 		schema.add(datatype);
 
 		TargetDefList metadatahistory = TargetDefList
@@ -93,16 +87,7 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("mhmetadata", "mh.json"))
 			.add(new TargetDef("mhtransactiontime", "mh.created_on")
 					.setColumnFormat("timezone('UTC', %s)"));
-
 		schema.add(metadatahistory);
-
-		TargetDefList parentProvenance = TargetDefList
-			.init("parentprovenance")
-			.setLookUp(new LookUp(LookUpType.INLINE, "parent", "pprovenance", null))
-			.add(new TargetDef("plicense", "ppr.license"))
-			.add(new TargetDef("pprovider", "ppr.provider"))
-			.add(new TargetDef("psource", "ppr.source"));
-		schema.add(parentProvenance);
 
 		TargetDefList parent = TargetDefList
 			.init("parent")
@@ -114,18 +99,11 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("pactive", "p.active"))
 			.add(new TargetDef("pavailable", "p.available"))
 			.add(new TargetDef("pcoordinate", "p.pointprojection"))
-			.add(new TargetDef("pprovenance", parentProvenance))
+			.add(new TargetDef("plicense", "ppr.license"))
+			.add(new TargetDef("powner", "ppr.owner"))
+			.add(new TargetDef("psource", "ppr.source"))
 			.add(new TargetDef("pmetadata", "pm.json"));
-
 		schema.add(parent);
-
-		TargetDefList stationProvenance = TargetDefList
-			.init("stationprovenance")
-			.setLookUp(new LookUp(LookUpType.INLINE, "station", "sprovenance", null))
-			.add(new TargetDef("slicense", "spr.license"))
-			.add(new TargetDef("sprovider", "spr.provider"))
-			.add(new TargetDef("ssource", "spr.source"));
-		schema.add(stationProvenance);
 
 		TargetDefList station = TargetDefList
 			.init("station")
@@ -138,11 +116,12 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("savailable", "s.available"))
 			.add(new TargetDef("scoordinate", "s.pointprojection"))
 			.add(new TargetDef("smetadata", "m.json"))
-			.add(new TargetDef("sprovenance", stationProvenance))
+			.add(new TargetDef("slicense", "spr.license"))
+			.add(new TargetDef("sowner", "spr.owner"))
+			.add(new TargetDef("ssource", "spr.source"))
 			.add(new TargetDef("sparent", parent))
 			.add(new TargetDef("sdatatypes", datatype))
 			.add(new TargetDef("smetadatahistory", metadatahistory));
-
 		schema.add(station);
 
 		TargetDefList stationBegin = TargetDefList
@@ -155,7 +134,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("sbactive", "o.active"))
 			.add(new TargetDef("sbavailable", "o.available"))
 			.add(new TargetDef("sbcoordinate", "o.pointprojection"));
-
 		schema.add(stationBegin);
 
 		TargetDefList stationEnd = TargetDefList
@@ -168,7 +146,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("seactive", "d.active"))
 			.add(new TargetDef("seavailable", "d.available"))
 			.add(new TargetDef("secoordinate", "d.pointprojection"));
-
 		schema.add(stationEnd);
 
 		TargetDefList edge = TargetDefList
@@ -178,6 +155,9 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("etype", "i.stationtype"))
 			.add(new TargetDef("ecode", "i.stationcode"))
 			.add(new TargetDef("eorigin", "i.origin"))
+			.add(new TargetDef("elicense", "ipr.license"))
+			.add(new TargetDef("eowner", "ipr.owner"))
+			.add(new TargetDef("esource", "ipr.source"))
 			.add(new TargetDef("eactive", "i.active"))
 			.add(new TargetDef("eavailable", "i.available"))
 			.add(new TargetDef("edirected", "e.directed"))
@@ -187,21 +167,18 @@ public class SelectExpansionConfig {
 				.setColumnFormat("st_asgeojson(%s, 9, 3)::jsonb"))
 			.add(new TargetDef("ebegin", stationBegin))
 			.add(new TargetDef("eend", stationEnd));
-
 		schema.add(edge);
 
 		TargetDefList stationtype = TargetDefList
 			.init("stationtype")
 			.setLookUp(new LookUp(LookUpType.MAP, null, null, "_stationtype"))
 			.add(new TargetDef("stations", station));
-
 		schema.add(stationtype);
 
 		TargetDefList edgetype = TargetDefList
 			.init("edgetype")
 			.setLookUp(new LookUp(LookUpType.MAP, null, null, "_edgetype"))
 			.add(new TargetDef("edges", edge));
-
 		schema.add(edgetype);
 
 		TargetDefList location = TargetDefList
@@ -210,7 +187,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("evldescription", "loc.description"))
 			.add(new TargetDef("evlgeometry", "st_transform(loc.geometry, 4326)")
 				.setColumnFormat("st_asgeojson(%s, 9, 3)::jsonb"));
-
 		schema.add(location);
 
 		TargetDefList provenanceEvent = TargetDefList
@@ -219,7 +195,6 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("prname", "pr.data_collector"))
 			.add(new TargetDef("prversion", "pr.data_collector_version"))
 			.add(new TargetDef("prlineage", "pr.lineage"));
-
 		schema.add(provenanceEvent);
 
 		TargetDefList event = TargetDefList
@@ -232,12 +207,14 @@ public class SelectExpansionConfig {
 			.add(new TargetDef("evstart", "lower(ev.event_interval)"))
 			.add(new TargetDef("evend", "upper(ev.event_interval)"))
 			.add(new TargetDef("evorigin", "ev.origin"))
+			.add(new TargetDef("evlicense", "pr.license"))
+			.add(new TargetDef("evowner", "pr.owner"))
+			.add(new TargetDef("evsource", "pr.source"))
 			.add(new TargetDef("evuuid", "ev.uuid"))
 			.add(new TargetDef("evname", "ev.name"))
 			.add(new TargetDef("evmetadata", "evm.json"))
 			.add(new TargetDef("evlocation", location))
 			.add(new TargetDef("evprovenance", provenanceEvent));
-
 		schema.add(event);
 
 		TargetDefList eventseries = TargetDefList
@@ -245,15 +222,12 @@ public class SelectExpansionConfig {
 			.setLookUp(new LookUp(LookUpType.MAP, "eventorigin", "eventseries", "_eventseriesuuid"))
 			//.add(new TargetDef("evseriesuuid", "ev.event_series_uuid"))
 			.add(new TargetDef("events", event));
-
 		schema.add(eventseries);
-
 
 		TargetDefList eventorigin = TargetDefList
 			.init("eventorigin")
 			.setLookUp(new LookUp(LookUpType.MAP, null, null, "_eventorigin"))
 			.add(new TargetDef("eventseries", eventseries));
-
 		schema.add(eventorigin);
 
 		se = new SelectExpansion();
