@@ -40,7 +40,8 @@
 		'BIKE_CHARGER_BAY',
 		'WeatherForecastService',
 		'WeatherForecast',
-		'WebStatistics'
+		'WebStatistics',
+		'IndoorStation'
 	)
 
     -- station types that are only partly open, constrained by the origin
