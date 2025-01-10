@@ -41,7 +41,8 @@
 		'WeatherForecastService',
 		'WeatherForecast',
 		'WebStatistics',
-		'IndoorStation'
+		'IndoorStation',
+		'TrafficForecast'
 	)
 
     -- station types that are only partly open, constrained by the origin
