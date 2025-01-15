@@ -40,14 +40,16 @@
 		'BIKE_CHARGER_BAY',
 		'WeatherForecastService',
 		'WeatherForecast',
-		'WebStatistics'
+		'WebStatistics',
+		'IndoorStation',
+		'TrafficForecast'
 	)
 
     -- station types that are only partly open, constrained by the origin
 	or (s.stationtype = 'EnvironmentStation' and s.origin = 'APPATN-open')
 	or (s.stationtype = 'LinkStation' and (s.origin is null or s.origin = 'NOI'))
 	or (s.stationtype = 'MeteoStation' and s.origin in ('meteotrentino', 'SIAG', 'EURAC'))
-	or (s.stationtype = 'ParkingStation' and s.origin in ('FAMAS', 'FBK', 'Municipality Merano', 'skidata', 'Municipality Bolzano'))
+	or (s.stationtype = 'ParkingStation' and s.origin in ('FAMAS', 'FBK', 'Municipality Merano', 'skidata', 'Municipality Bolzano', 'STA'))
 	or (s.stationtype = 'RWISstation' and s.origin = 'InfoMobility')
 
     -- special rules
