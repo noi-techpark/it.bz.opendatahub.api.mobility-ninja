@@ -533,6 +533,12 @@ public class SelectExpansion {
 				if (target.hasFunction()) {
 					sj.add(String.format("%s(%s(%s#>'{%s}')::double precision) as \"%s(%s.%s)\"", target.getFunc(), distinct, targetDef.getColumn(), target.getJson().replace(".", ","), target.getFunc(), targetDef.getFinalName(), target.getJson()));
 					hasFunctions = true;
+				} else if (target.getTargetDefListName() == "measurementdouble" || target.getTargetDefListName() == "measurementstring") {
+					// 26/02/2025 mroggia:
+					// json selects on mvalue needs to be performed only on measurementjson table, otherwise we will get invalid operation #> on double precision.
+					// This solution is hacky but is the only way to allow json selects on json measurements.
+					sj.add(String.format("null::jsonb as \"%s.%s\"", targetDef.getFinalName(), target.getJson()));
+					hasJSONSelectors = true;
 				} else {
 					sj.add(String.format("%s#>'{%s}' as \"%s.%s\"", targetDef.getColumn(), target.getJson().replace(".", ","), targetDef.getFinalName(), target.getJson()));
 					hasJSONSelectors = true;
@@ -551,9 +557,15 @@ public class SelectExpansion {
 			if (! sqlSelect.isEmpty()) {
 				sqlSelect += ", ";
 			}
-
-			expandedSelects.put(defName, sqlSelect + String.format(targetDef.getSelectFormat(), sj));
-
+			
+			// 26/02/2025 mroggia:
+			// when selecting a json, do not triplicate the select with _string, _json and _double postfix.
+			// we already have the "as" alias which allows union all to merge results
+			if (!target.hasJson()) {
+				expandedSelects.put(defName, sqlSelect + String.format(targetDef.getSelectFormat(), sj));
+			} else {
+				expandedSelects.put(defName, sqlSelect + sj);
+			}
 		}
 
 		/*
