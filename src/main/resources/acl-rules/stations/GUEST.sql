@@ -47,7 +47,7 @@
 
     -- station types that are only partly open, constrained by the origin and/or datatype
 	or (s.stationtype = 'EnvironmentStation' and s.origin = 'APPATN-open')
-	or (s.stationtype = 'EnvironmentStation' and s.origin = 'a22-algorab' and t.cname = 'NO2-Alphasense_processed_public')
+	or (s.stationtype = 'EnvironmentStation' and s.origin = 'a22-algorab' and t.cname = 'NO2-Alphasense_processed_rating')
 	or (s.stationtype = 'LinkStation' and (s.origin is null or s.origin = 'NOI'))
 	or (s.stationtype = 'LinkStation' and s.origin = 'A22' and t.cname in ('lds_leggeri_desc', 'lds_pesanti_desc'))
 	or (s.stationtype = 'MeteoStation' and s.origin in ('meteotrentino', 'SIAG', 'EURAC'))
