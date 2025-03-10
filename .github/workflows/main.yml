@@ -27,7 +27,7 @@ jobs:
   # Deploy Test
   deploy-test:
     runs-on: ubuntu-24.04
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/head/feat/helm'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/helm'
     needs: test
     environment: test
     concurrency: deploy-test
